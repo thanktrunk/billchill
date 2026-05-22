@@ -1,4 +1,4 @@
-name: db-migration
+name: Migrate Production DB
 
 on:
   push:
