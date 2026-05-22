@@ -26,4 +26,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+const config = withNextIntl(nextConfig);
+
+// next-intl's webpack fallback is registered when the TURBOPACK env var is not
+// set at config-evaluation time (e.g. Vercel's build environment). Vercel's
+// modifyConfig may invoke the webpack function with config.context = undefined,
+// which causes path.resolve(undefined, …) to throw ERR_INVALID_ARG_TYPE.
+// Guard against that here so those incidental invocations are safely skipped.
+if (config.webpack) {
+  const originalWebpack = config.webpack;
+  config.webpack = (webpackConfig, ctx) => {
+    if (!webpackConfig.context) return webpackConfig;
+    return originalWebpack(webpackConfig, ctx);
+  };
+}
+
+export default config;
