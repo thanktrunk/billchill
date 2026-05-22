@@ -1,7 +1,9 @@
 import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
 
-config({ path: ".env.local" });
+config({
+  path: process.env.NODE_ENV === "production" ? ".env.production.local" : ".env.local",
+});
 
 export default defineConfig({
   out: "./drizzle",
