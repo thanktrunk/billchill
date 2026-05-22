@@ -4,7 +4,7 @@ import { groups } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
-import { getDictionary, hasLocale } from "../../../../../dictionaries";
+import { hasLocale } from "@/lib/i18n";
 import { NewExpenseForm } from "./new-expense-form";
 
 export default async function NewExpensePage({
@@ -13,7 +13,7 @@ export default async function NewExpensePage({
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([requireUser(), getDictionary(lang)]);
+  const user = await requireUser();
   await verifyGroupMembership(id, user.id);
 
   const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
@@ -25,7 +25,6 @@ export default async function NewExpensePage({
       groupId={id}
       groupName={group.name}
       currency={group.currency}
-      dict={dict.new_expense as unknown as Record<string, string>}
     />
   );
 }

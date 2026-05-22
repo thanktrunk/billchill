@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   BCIcon, BCCard, BCSectionLabel, BCAvatar, BCCategoryBadge,
   BCNumPad, BCAmountDisplay, BCChip, BC_CATEGORIES,
@@ -20,15 +21,15 @@ export function NewExpenseForm({
   groupId,
   groupName,
   currency,
-  dict,
 }: {
   lang: string;
   groupId: string;
   groupName: string;
   currency: string;
-  dict: Record<string, string>;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("add");
   const sym = currencySymbol(currency);
   const [pending, setPending] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
@@ -75,7 +76,7 @@ export function NewExpenseForm({
     setPending(true);
     try {
       const formData = new FormData();
-      formData.set("description", description || (dict.untitled ?? "Untitled expense"));
+      formData.set("description", description || t("untitled"));
       formData.set("amount", amount.toFixed(2));
       formData.set("paidBy", paidBy);
       formData.set("date", new Date().toISOString().split("T")[0]);
@@ -85,7 +86,7 @@ export function NewExpenseForm({
       formData.set("perPerson", perPerson.toFixed(2));
 
       await addExpenseWithSplit(groupId, formData, splitList, perPerson);
-      router.push(`/${lang}/groups/${groupId}`);
+      router.push(`/${locale}/groups/${groupId}`);
     } catch {
       setPending(false);
     }
@@ -114,7 +115,7 @@ export function NewExpenseForm({
           }}
         >
           <Link
-            href={`/${lang}/groups/${groupId}`}
+            href={`/${locale}/groups/${groupId}`}
             className="bc-tap"
             style={{
               width: 40, height: 40, borderRadius: 999, border: "none",
@@ -131,7 +132,7 @@ export function NewExpenseForm({
                 fontWeight: 500, fontSize: 15, color: "var(--bc-ink)",
               }}
             >
-              {dict.title ?? "Add expense"}
+              {t("title")}
             </div>
             <div
               style={{
@@ -150,7 +151,7 @@ export function NewExpenseForm({
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder={dict.placeholder_what ?? "What's this for?"}
+            placeholder={t("placeholder_what")}
             style={{
               width: "100%",
               border: "none",
@@ -179,7 +180,7 @@ export function NewExpenseForm({
             padding: "20px 24px",
           }}
         >
-          <BCSectionLabel>{dict.amount ?? "Amount"}</BCSectionLabel>
+          <BCSectionLabel>{t("amount")}</BCSectionLabel>
           <div style={{ marginTop: 16 }}>
             <BCAmountDisplay value={amountStr} currency={sym} size={88} />
           </div>
@@ -229,7 +230,7 @@ export function NewExpenseForm({
               opacity: amount > 0 ? 1 : 0.5,
             }}
           >
-            {dict.continue ?? "Continue"}
+            {t("continue")}
             <BCIcon name="arrowR" size={18} color={amount > 0 ? "#fff" : "var(--bc-muted)"} strokeWidth={2.2} />
           </button>
         </div>
@@ -277,7 +278,7 @@ export function NewExpenseForm({
               fontWeight: 500, fontSize: 15, color: "var(--bc-ink)",
             }}
           >
-            {dict.title ?? "Add expense"}
+            {t("title")}
           </div>
           <div
             style={{
@@ -320,7 +321,7 @@ export function NewExpenseForm({
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
               }}
             >
-              {description || (dict.untitled ?? "Untitled expense")}
+              {description || t("untitled")}
             </div>
             <div
               style={{
@@ -329,7 +330,7 @@ export function NewExpenseForm({
                 letterSpacing: "0.04em",
               }}
             >
-              {new Date().toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US", { month: "short", day: "numeric" })}
+              {new Date().toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US", { month: "short", day: "numeric" })}
             </div>
           </div>
           <div
@@ -346,7 +347,7 @@ export function NewExpenseForm({
         {/* Paid by */}
         <div>
           <div style={{ padding: "0 4px 8px" }}>
-            <BCSectionLabel>{dict.paid_by ?? "Paid by"}</BCSectionLabel>
+            <BCSectionLabel>{t("paid_by")}</BCSectionLabel>
           </div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 4px" }}>
             {members.map((m) => {
@@ -378,7 +379,7 @@ export function NewExpenseForm({
         {/* Category */}
         <div>
           <div style={{ padding: "0 4px 8px" }}>
-            <BCSectionLabel>{dict.category ?? "Category"}</BCSectionLabel>
+            <BCSectionLabel>{t("category")}</BCSectionLabel>
           </div>
           <div
             style={{
@@ -436,14 +437,14 @@ export function NewExpenseForm({
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}
           >
-            <BCSectionLabel>{dict.split_with ?? "Split with"}</BCSectionLabel>
+            <BCSectionLabel>{t("split_with")}</BCSectionLabel>
             <div
               style={{
                 fontFamily: "var(--font-jetbrains-mono), monospace",
                 fontSize: 11, color: "var(--bc-muted)", letterSpacing: "0.04em",
               }}
             >
-              {(dict.each ?? "{0} EACH").replace("{0}", sym + perPerson.toFixed(2))}
+              {t("each", { 0: sym + perPerson.toFixed(2) })}
             </div>
           </div>
           <BCCard padded={false}>
@@ -521,7 +522,7 @@ export function NewExpenseForm({
           }}
         >
           <BCIcon name="check" size={18} color="#fff" strokeWidth={2.2} />
-          {pending ? "…" : (dict.save ?? "Save expense")}
+          {pending ? "…" : t("save")}
         </button>
       </div>
     </div>
@@ -541,7 +542,6 @@ async function addExpenseWithSplit(
   const date = formData.get("date") as string;
   const category = formData.get("category") as string;
 
-  // Build a new FormData for the server action that uses "amount" split method
   const fd = new FormData();
   fd.set("description", description);
   fd.set("amount", amount.toFixed(2));
@@ -549,11 +549,9 @@ async function addExpenseWithSplit(
   fd.set("date", date);
   fd.set("category", category);
 
-  // Set per-member amounts for the "amount" split method
   for (const mid of splitWith) {
     fd.set(`split_${mid}`, perPerson.toFixed(2));
   }
 
-  // Mark members NOT in splitWith as 0
   await addExpense(groupId, fd, "amount");
 }

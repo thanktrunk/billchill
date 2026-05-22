@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
 import { calculateBalances, minimizeDebts } from "@/lib/balance";
-import { getDictionary, hasLocale } from "../../../dictionaries";
+import { hasLocale } from "@/lib/i18n";
 import { GroupDetailClient } from "./group-detail-client";
 
 export default async function GroupDetailPage({
@@ -14,10 +14,7 @@ export default async function GroupDetailPage({
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([
-    requireUser(),
-    getDictionary(lang),
-  ]);
+  const user = await requireUser();
   await verifyGroupMembership(id, user.id);
 
   const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
@@ -40,10 +37,9 @@ export default async function GroupDetailPage({
     ? await db
         .select()
         .from(expenseSplits)
-        .where(eq(expenseSplits.expenseId, expenseIds[0])) // Drizzle limitation; we use all below
+        .where(eq(expenseSplits.expenseId, expenseIds[0]))
     : [];
 
-  // Fetch all splits for all expenses in this group properly
   let allSplitsForGroup: typeof allSplits = [];
   if (expenseIds.length > 0) {
     const { inArray } = await import("drizzle-orm");
@@ -82,7 +78,6 @@ export default async function GroupDetailPage({
     ? (balances.find((b) => b.memberId === myMember.id)?.balance ?? 0)
     : 0;
 
-  // Serialize dates to ISO strings for client component
   const serializedExpenses = groupExpenses.map((e) => ({
     id: e.id,
     description: e.description,
@@ -108,17 +103,9 @@ export default async function GroupDetailPage({
     userId: m.userId,
   }));
 
-  // Pass dict as flat sections for client component
-  const dictSections: Record<string, Record<string, string>> = {
-    common: dict.common as unknown as Record<string, string>,
-    group: dict.group as unknown as Record<string, string>,
-    add: dict.add as unknown as Record<string, string>,
-  };
-
   return (
     <GroupDetailClient
       lang={lang}
-      dict={dictSections}
       group={{
         id: group.id,
         name: group.name,

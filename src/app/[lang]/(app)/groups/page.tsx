@@ -3,10 +3,11 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/db";
 import { groups, groupMembers, expenses, expenseSplits, settlements } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
-import { getDictionary, hasLocale } from "../../dictionaries";
+import { hasLocale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
 import { calculateBalances } from "@/lib/balance";
 import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel } from "@/components/bc-ui";
+import { getTranslations } from "next-intl/server";
 
 function currencySymbol(code: string) {
   return ({ USD: "$", EUR: "€", GBP: "£", JPY: "¥" } as Record<string, string>)[code] ?? code;
@@ -41,9 +42,10 @@ export default async function GroupsPage({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([
+  const [user, tCommon, tHome] = await Promise.all([
     requireUser(),
-    getDictionary(lang),
+    getTranslations("common"),
+    getTranslations("home"),
   ]);
 
   // Get user's memberships
@@ -152,7 +154,7 @@ export default async function GroupsPage({
             paddingLeft: 6,
           }}
         >
-          {dict.common.app_name}
+          {tCommon("app_name")}
         </div>
         <Link
           href={`/${lang}/groups/new`}
@@ -196,7 +198,7 @@ export default async function GroupsPage({
               marginBottom: 6,
             }}
           >
-            {dict.home.your_balance}
+            {tHome("your_balance")}
           </div>
           <div>
             <div
@@ -227,7 +229,7 @@ export default async function GroupsPage({
                   textTransform: "uppercase",
                 }}
               >
-                {dict.home.owed_to_you}
+                {tHome("owed_to_you")}
               </div>
               <div
                 style={{
@@ -253,7 +255,7 @@ export default async function GroupsPage({
                   textTransform: "uppercase",
                 }}
               >
-                {dict.home.you_owe}
+                {tHome("you_owe")}
               </div>
               <div
                 style={{
@@ -281,7 +283,7 @@ export default async function GroupsPage({
           padding: "22px 22px 10px",
         }}
       >
-        <BCSectionLabel>{dict.home.groups_section}</BCSectionLabel>
+        <BCSectionLabel>{tHome("groups_section")}</BCSectionLabel>
         <div
           style={{
             fontFamily: "var(--font-be-vietnam-pro), sans-serif",
@@ -289,7 +291,7 @@ export default async function GroupsPage({
             color: "var(--bc-muted)",
           }}
         >
-          {dict.home.active.replace("{0}", String(groupRows.length))}
+          {tHome("active", { 0: groupRows.length })}
         </div>
       </div>
 
@@ -312,7 +314,7 @@ export default async function GroupsPage({
               fontFamily: "var(--font-be-vietnam-pro), sans-serif",
             }}
           >
-            {dict.home.empty}
+            {tHome("empty")}
           </div>
         ) : (
           groupRows.map((r) => (
@@ -320,7 +322,9 @@ export default async function GroupsPage({
               key={r.group.id}
               row={r}
               lang={lang}
-              dict={dict}
+              settled={tCommon("settled")}
+              youreOwed={tHome("youre_owed")}
+              youOweShort={tHome("you_owe_short")}
             />
           ))
         )}
@@ -340,17 +344,21 @@ type GroupRow = {
 function GroupRowCard({
   row,
   lang,
-  dict,
+  settled,
+  youreOwed,
+  youOweShort,
 }: {
   row: GroupRow;
   lang: string;
-  dict: Awaited<ReturnType<typeof getDictionary>>;
+  settled: string;
+  youreOwed: string;
+  youOweShort: string;
 }) {
   const { group, members, myBalance, lastActivity } = row;
   const sym = currencySymbol(group.currency);
   const isOwed = myBalance > 0.005;
   const owes = myBalance < -0.005;
-  const settled = !isOwed && !owes;
+  const isSettled = !isOwed && !owes;
 
   return (
     <Link href={`/${lang}/groups/${group.id}`} style={{ textDecoration: "none" }}>
@@ -395,7 +403,7 @@ function GroupRowCard({
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            {settled ? (
+            {isSettled ? (
               <div
                 style={{
                   fontFamily: "var(--font-be-vietnam-pro), sans-serif",
@@ -405,7 +413,7 @@ function GroupRowCard({
                   textTransform: "uppercase",
                 }}
               >
-                {dict.common.settled}
+                {settled}
               </div>
             ) : (
               <>
@@ -419,7 +427,7 @@ function GroupRowCard({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {isOwed ? dict.home.youre_owed : dict.home.you_owe_short}
+                  {isOwed ? youreOwed : youOweShort}
                 </div>
                 <div
                   style={{

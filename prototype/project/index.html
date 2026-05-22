@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>billchill</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #E8E2D6; min-height: 100vh; font-family: 'Be Vietnam Pro', -apple-system, system-ui, sans-serif; }
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; box-sizing: border-box; }
+    #root { display: flex; align-items: center; justify-content: center; }
+    *::-webkit-scrollbar { width: 0; height: 0; display: none; }
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    .bc-fade-enter { animation: bcFadeIn 280ms cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes bcFadeIn { from { opacity: 0.001; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .bc-slide-enter { animation: bcSlideIn 320ms cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes bcSlideIn { from { opacity: 0.001; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+    .bc-pop { animation: bcPop 380ms cubic-bezier(.2,.9,.3,1.3) both; }
+    @keyframes bcPop { 0% { transform: scale(.92); opacity: 0.001; } 100% { transform: scale(1); opacity: 1; } }
+    .bc-tap { transition: transform 120ms, background 160ms, border-color 160ms; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .bc-tap:active { transform: scale(.97); }
+    .bc-key:active { background: rgba(26,26,26,0.08) !important; }
+  </style>
+</head>
+<body>
+  <template id="__bundler_thumbnail" data-bg-color="#E5572F">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1200" height="800" fill="#E5572F"/>
+      <g transform="translate(360 220)">
+        <rect x="0" y="0" width="480" height="360" rx="48" fill="#FBF7EE" stroke="#1A1A1A" stroke-width="6"/>
+        <text x="240" y="170" font-family="Newsreader, Georgia, serif" font-size="120" font-style="italic" text-anchor="middle" fill="#1A1A1A" letter-spacing="-3">bc</text>
+        <text x="240" y="250" font-family="'Be Vietnam Pro', sans-serif" font-size="28" font-weight="500" text-anchor="middle" fill="#6B6359" letter-spacing="6">BILLCHILL</text>
+      </g>
+    </svg>
+  </template>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="theme.jsx"></script>
+  <script type="text/babel" src="i18n.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="screens.jsx"></script>
+  <script type="text/babel" src="auth.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+
+  <script type="application/json" id="bc-tweak-defaults">
+    {}
+  </script>
+
+  <script>
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "accent": "#E5572F",
+      "dark": false,
+      "currency": "$",
+      "defaultTip": 18,
+      "roundUp": false,
+      "showFrame": true,
+      "lang": "vi",
+      "loggedIn": false
+    }/*EDITMODE-END*/;
+    window.__BC_DEFAULTS = TWEAK_DEFAULTS;
+  </script>
+</body>
+</html>

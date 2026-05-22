@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { locales, type Locale } from "@/lib/i18n";
 
 const labels: Record<Locale, string> = {
@@ -8,12 +9,12 @@ const labels: Record<Locale, string> = {
   vi: "VI",
 };
 
-export function LanguageSwitcher({ currentLang }: { currentLang: string }) {
+export function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
+  const currentLang = useLocale();
 
   function switchTo(lang: Locale) {
-    // Replace the current locale prefix with the new one
     const segments = pathname.split("/");
     segments[1] = lang;
     router.push(segments.join("/"));

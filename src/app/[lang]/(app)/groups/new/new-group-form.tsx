@@ -4,16 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createGroup } from "./actions";
 import { CurrencyInput } from "@/components/currency-input";
-import type { Dictionary } from "@/app/[lang]/dictionaries";
+import { useTranslations, useLocale } from "next-intl";
 
-export function NewGroupForm({
-  lang,
-  dict,
-}: {
-  lang: string;
-  dict: Dictionary["new_group"];
-}) {
+export function NewGroupForm({ lang }: { lang: string }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("new_group");
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(formData: FormData) {
@@ -21,7 +17,7 @@ export function NewGroupForm({
     setPending(true);
     try {
       const group = await createGroup(formData);
-      router.push(`/${lang}/groups/${group.id}`);
+      router.push(`/${locale}/groups/${group.id}`);
     } catch {
       setPending(false);
     }
@@ -29,11 +25,11 @@ export function NewGroupForm({
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-md">
-      <h1 className="text-2xl font-bold mb-6">{dict.title}</h1>
+      <h1 className="text-2xl font-bold mb-6">{t("title")}</h1>
       <form action={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium mb-1">
-            {dict.name_label}
+            {t("name_label")}
           </label>
           <input
             id="name"
@@ -41,12 +37,12 @@ export function NewGroupForm({
             type="text"
             required
             className="w-full rounded-md border px-3 py-2 text-sm"
-            placeholder={dict.name_placeholder}
+            placeholder={t("name_placeholder")}
           />
         </div>
         <div>
           <label htmlFor="currency" className="block text-sm font-medium mb-1">
-            {dict.currency_label}
+            {t("currency_label")}
           </label>
           <CurrencyInput defaultValue="USD" />
         </div>
@@ -55,7 +51,7 @@ export function NewGroupForm({
           disabled={pending}
           className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          {pending ? dict.submitting : dict.submit}
+          {pending ? t("submitting") : t("submit")}
         </button>
       </form>
     </div>

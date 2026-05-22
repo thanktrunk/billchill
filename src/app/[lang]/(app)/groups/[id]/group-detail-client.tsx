@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   BCIcon, BCCard, BCSectionLabel, BCAvatar, BCAvatarStack,
   BCGroupGlyph, BCCategoryBadge, BCTabs, avatarColor,
@@ -40,7 +41,6 @@ type Debt = {
 // ── Main component ────────────────────────────────────────────────
 export function GroupDetailClient({
   lang,
-  dict,
   group,
   members,
   expenses,
@@ -52,7 +52,6 @@ export function GroupDetailClient({
   myBalance,
 }: {
   lang: string;
-  dict: Record<string, Record<string, string>>;
   group: { id: string; name: string; currency: string };
   members: Member[];
   expenses: Expense[];
@@ -63,13 +62,12 @@ export function GroupDetailClient({
   myMemberId: string | null;
   myBalance: number;
 }) {
+  const locale = useLocale();
+  const tGroup = useTranslations("group");
+  const tCommon = useTranslations("common");
+
   const [tab, setTab] = useState<"expenses" | "balances">("expenses");
   const sym = currencySymbol(group.currency);
-  const T = (section: string, key: string, vars?: (string | number)[]) => {
-    const raw = dict[section]?.[key] ?? key;
-    if (!vars) return raw;
-    return vars.reduce<string>((s, v, i) => s.replace(`{${i}}`, String(v)), raw);
-  };
 
   const expensesSorted = [...expenses].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
@@ -121,7 +119,7 @@ export function GroupDetailClient({
         }}
       >
         <Link
-          href={`/${lang}/groups`}
+          href={`/${locale}/groups`}
           className="bc-tap"
           style={{
             width: 40, height: 40, borderRadius: 999, border: "none",
@@ -147,7 +145,7 @@ export function GroupDetailClient({
               fontSize: 11, color: "var(--bc-muted)", marginTop: 2, letterSpacing: "0.04em",
             }}
           >
-            {membersCount} {dict.group?.members_count?.replace("{0}", "") ?? "members"} · {group.currency}
+            {tGroup(membersCount === 1 ? "members_count_one" : "members_count_other", { 0: membersCount })} · {group.currency}
           </div>
         </div>
         <div style={{ width: 40 }} />
@@ -168,7 +166,7 @@ export function GroupDetailClient({
                   letterSpacing: "0.14em", color: "var(--bc-bg)",
                 }}
               >
-                {isOwed ? dict.group?.youre_owed : isOwing ? dict.group?.you_owe : dict.group?.all_settled}
+                {isOwed ? tGroup("youre_owed") : isOwing ? tGroup("you_owe") : tGroup("all_settled")}
               </div>
               <div
                 style={{
@@ -182,7 +180,7 @@ export function GroupDetailClient({
               </div>
             </div>
             <Link
-              href={`/${lang}/groups/${group.id}/settle`}
+              href={`/${locale}/groups/${group.id}/settle`}
               className="bc-tap"
               style={{
                 background: "rgba(245,241,234,0.12)",
@@ -196,7 +194,7 @@ export function GroupDetailClient({
               }}
             >
               <BCIcon name="swap" size={14} color="var(--bc-bg)" strokeWidth={1.8} />
-              {dict.group?.settle_up ?? "Settle up"}
+              {tGroup("settle_up")}
             </Link>
           </div>
         </BCCard>
@@ -210,9 +208,9 @@ export function GroupDetailClient({
           tabs={[
             {
               k: "expenses",
-              label: (dict.group?.tab_expenses ?? "Expenses · {0}").replace("{0}", String(expenses.length)),
+              label: tGroup("tab_expenses", { 0: expenses.length }),
             },
-            { k: "balances", label: dict.group?.tab_balances ?? "Balances" },
+            { k: "balances", label: tGroup("tab_balances") },
           ]}
         />
       </div>
@@ -237,7 +235,7 @@ export function GroupDetailClient({
                     gap: 10,
                   }}
                 >
-                  <BCSectionLabel>{shortDate(grp.day, lang)}</BCSectionLabel>
+                  <BCSectionLabel>{shortDate(grp.day, locale)}</BCSectionLabel>
                   <div
                     style={{ flex: 1, height: 1, background: "var(--bc-softhair)" }}
                   />
@@ -252,8 +250,7 @@ export function GroupDetailClient({
                         members={members}
                         myMemberId={myMemberId}
                         sym={sym}
-                        dict={dict}
-                        T={T}
+                        tGroup={tGroup}
                       />
                     ) : (
                       <SettlementRow
@@ -261,9 +258,8 @@ export function GroupDetailClient({
                         settlement={it.s}
                         members={members}
                         sym={sym}
-                        lang={lang}
-                        dict={dict}
-                        T={T}
+                        locale={locale}
+                        tGroup={tGroup}
                       />
                     )
                   )}
@@ -279,7 +275,7 @@ export function GroupDetailClient({
                   fontFamily: "var(--font-be-vietnam-pro), sans-serif",
                 }}
               >
-                {dict.group?.no_expenses ?? "No expenses yet."}
+                {tGroup("no_expenses")}
               </div>
             )}
           </div>
@@ -292,9 +288,9 @@ export function GroupDetailClient({
             minimizedDebts={minimizedDebts}
             myMemberId={myMemberId}
             sym={sym}
-            lang={lang}
-            dict={dict}
-            T={T}
+            locale={locale}
+            tGroup={tGroup}
+            tCommon={tCommon}
             groupId={group.id}
           />
         )}
@@ -304,7 +300,7 @@ export function GroupDetailClient({
       {tab === "expenses" && (
         <div style={{ position: "fixed", bottom: 100, right: 18, zIndex: 25 }}>
           <Link
-            href={`/${lang}/groups/${group.id}/expenses/new`}
+            href={`/${locale}/groups/${group.id}/expenses/new`}
             className="bc-tap"
             style={{
               background: "var(--bc-accent)",
@@ -325,7 +321,7 @@ export function GroupDetailClient({
             }}
           >
             <BCIcon name="plus" size={20} color="#fff" strokeWidth={2.2} />
-            {dict.group?.add_expense ?? "Add expense"}
+            {tGroup("add_expense")}
           </Link>
         </div>
       )}
@@ -340,19 +336,17 @@ function ExpenseRow({
   members,
   myMemberId,
   sym,
-  dict,
-  T,
+  tGroup,
 }: {
   expense: Expense;
   splits: Split[];
   members: Member[];
   myMemberId: string | null;
   sym: string;
-  dict: Record<string, Record<string, string>>;
-  T: (section: string, key: string, vars?: (string | number)[]) => string;
+  tGroup: ReturnType<typeof useTranslations>;
 }) {
   const payer = members.find((m) => m.id === expense.paidBy);
-  const payerName = payer?.userId === null ? payer?.displayName : payer?.displayName ?? "?";
+  const payerName = payer?.displayName ?? "?";
   const mySplit = splits.find((s) => s.memberId === myMemberId);
   const iPaid = expense.paidBy === myMemberId;
   const amount = parseFloat(expense.amount);
@@ -381,7 +375,7 @@ function ExpenseRow({
               fontSize: 12, color: "var(--bc-muted)", marginTop: 2,
             }}
           >
-            {T("group", "paid_shares", [payerName, splits.length])}
+            {tGroup(splits.length === 1 ? "paid_shares_one" : "paid_shares_other", { 0: payerName, 1: splits.length })}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -417,16 +411,14 @@ function SettlementRow({
   settlement,
   members,
   sym,
-  lang,
-  dict,
-  T,
+  locale,
+  tGroup,
 }: {
   settlement: Settlement;
   members: Member[];
   sym: string;
-  lang: string;
-  dict: Record<string, Record<string, string>>;
-  T: (section: string, key: string, vars?: (string | number)[]) => string;
+  locale: string;
+  tGroup: ReturnType<typeof useTranslations>;
 }) {
   const from = members.find((m) => m.id === settlement.fromMember);
   const to   = members.find((m) => m.id === settlement.toMember);
@@ -453,7 +445,7 @@ function SettlementRow({
               fontWeight: 500, fontSize: 14.5, color: "var(--bc-ink)",
             }}
           >
-            {T("group", "paid_to", [from?.displayName ?? "?", to?.displayName ?? "?"])}
+            {tGroup("paid_to", { 0: from?.displayName ?? "?", 1: to?.displayName ?? "?" })}
           </div>
           <div
             style={{
@@ -461,7 +453,7 @@ function SettlementRow({
               fontSize: 12, color: "var(--bc-muted)", marginTop: 2,
             }}
           >
-            {T("group", "settlement_date", [shortDate(settlement.settledAt, lang)])}
+            {tGroup("settlement_date", { 0: shortDate(settlement.settledAt, locale) })}
           </div>
         </div>
         <div
@@ -480,16 +472,16 @@ function SettlementRow({
 
 // ── Balances view ─────────────────────────────────────────────────
 function BalancesView({
-  members, balances, minimizedDebts, myMemberId, sym, lang, dict, T, groupId,
+  members, balances, minimizedDebts, myMemberId, sym, locale, tGroup, tCommon, groupId,
 }: {
   members: Member[];
   balances: Balance[];
   minimizedDebts: Debt[];
   myMemberId: string | null;
   sym: string;
-  lang: string;
-  dict: Record<string, Record<string, string>>;
-  T: (section: string, key: string, vars?: (string | number)[]) => string;
+  locale: string;
+  tGroup: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
   groupId: string;
 }) {
   return (
@@ -497,7 +489,7 @@ function BalancesView({
       {/* Member balances */}
       <div>
         <div style={{ padding: "0 4px 8px" }}>
-          <BCSectionLabel>{dict.group?.member_balances ?? "Member balances"}</BCSectionLabel>
+          <BCSectionLabel>{tGroup("member_balances")}</BCSectionLabel>
         </div>
         <BCCard padded={false}>
           {members.map((m, i) => {
@@ -529,7 +521,7 @@ function BalancesView({
                           color: "var(--bc-muted)", letterSpacing: "0.08em",
                         }}
                       >
-                        {dict.group?.you_label ?? "YOU"}
+                        {tGroup("you_label")}
                       </span>
                     )}
                   </div>
@@ -541,10 +533,10 @@ function BalancesView({
                     }}
                   >
                     {Math.abs(bal) < 0.005
-                      ? dict.common?.settled ?? "Settled"
+                      ? tCommon("settled")
                       : bal > 0
-                        ? dict.group?.is_owed ?? "Is owed"
-                        : dict.group?.owes ?? "Owes"}
+                        ? tGroup("is_owed")
+                        : tGroup("owes")}
                   </div>
                 </div>
                 <div
@@ -575,7 +567,7 @@ function BalancesView({
             }}
           >
             <BCSectionLabel>
-              {dict.group?.simplified_payments ?? "Simplified payments"}
+              {tGroup("simplified_payments")}
             </BCSectionLabel>
             <div
               style={{
@@ -583,7 +575,7 @@ function BalancesView({
                 fontSize: 11, color: "var(--bc-muted)", letterSpacing: "0.04em",
               }}
             >
-              {T("group", "transfers", [minimizedDebts.length])}
+              {tGroup(minimizedDebts.length === 1 ? "transfers_one" : "transfers_other", { 0: minimizedDebts.length })}
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -613,7 +605,7 @@ function BalancesView({
                           letterSpacing: "-0.005em",
                         }}
                       >
-                        {T("group", "pays", [debt.from.displayName, debt.to.displayName])}
+                        {tGroup("pays", { 0: debt.from.displayName, 1: debt.to.displayName })}
                       </div>
                     </div>
                     <div
@@ -632,7 +624,7 @@ function BalancesView({
           </div>
           <div style={{ marginTop: 12 }}>
             <Link
-              href={`/${lang}/groups/${groupId}/settle`}
+              href={`/${locale}/groups/${groupId}/settle`}
               className="bc-tap"
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -644,7 +636,7 @@ function BalancesView({
               }}
             >
               <BCIcon name="swap" size={16} color="var(--bc-ink)" strokeWidth={1.8} />
-              {dict.group?.record_settlement ?? "Record a settlement"}
+              {tGroup("record_settlement")}
             </Link>
           </div>
         </div>

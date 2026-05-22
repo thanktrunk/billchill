@@ -3,20 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BCIcon } from "@/components/bc-ui";
-import { useLocale } from "@/lib/locale-context";
+import { useTranslations, useLocale } from "next-intl";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { lang, dict } = useLocale();
+  const locale = useLocale();
+  const t = useTranslations("nav");
 
   const tabs = [
-    { k: "home",     href: `/${lang}/groups`,        label: dict.nav.groups,        icon: "home" },
-    { k: "activity", href: `/${lang}/notifications`, label: dict.nav.notifications, icon: "activity" },
-    { k: "profile",  href: `/${lang}/profile`,       label: dict.nav.profile,       icon: "user" },
+    { k: "home",     href: `/${locale}/groups`,        label: t("groups"),        icon: "home" },
+    { k: "activity", href: `/${locale}/notifications`, label: t("notifications"), icon: "activity" },
+    { k: "profile",  href: `/${locale}/profile`,       label: t("profile"),       icon: "user" },
   ];
 
   function isActive(href: string) {
-    return pathname === href || (href !== `/${lang}` && pathname.startsWith(href));
+    return pathname === href || (href !== `/${locale}` && pathname.startsWith(href));
   }
 
   return (

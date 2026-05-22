@@ -5,7 +5,7 @@ import { eq, inArray } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
 import { calculateBalances, minimizeDebts } from "@/lib/balance";
-import { getDictionary, hasLocale } from "../../../../dictionaries";
+import { hasLocale } from "@/lib/i18n";
 import { SettleForm } from "./settle-form";
 
 export default async function SettlePage({
@@ -15,7 +15,7 @@ export default async function SettlePage({
   const { lang, id } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([requireUser(), getDictionary(lang)]);
+  const user = await requireUser();
   await verifyGroupMembership(id, user.id);
 
   const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
@@ -51,7 +51,6 @@ export default async function SettlePage({
 
   const debts = minimizeDebts(balances);
 
-  // Pre-fill from search params or use largest debt
   const sp = await searchParams;
   const fromParam = sp?.from as string | undefined;
   const toParam = sp?.to as string | undefined;
@@ -68,11 +67,6 @@ export default async function SettlePage({
     suggestedDebt = { from: d.from.memberId, to: d.to.memberId, amount: d.amount };
   }
 
-  const dictSections: Record<string, Record<string, string>> = {
-    settle: dict.settle as unknown as Record<string, string>,
-    common: dict.common as unknown as Record<string, string>,
-  };
-
   return (
     <SettleForm
       lang={lang}
@@ -80,7 +74,6 @@ export default async function SettlePage({
       currency={group.currency}
       members={activeMembers.map((m) => ({ id: m.id, displayName: m.displayName }))}
       suggestedDebt={suggestedDebt}
-      dict={dictSections}
     />
   );
 }

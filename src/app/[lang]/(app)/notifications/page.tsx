@@ -1,43 +1,41 @@
-import Link from "next/link";
 import { db } from "@/db";
-import { notifications } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { notifications, groups } from "@/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
-import { getDictionary, hasLocale } from "../../dictionaries";
+import { hasLocale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
-import { markAsRead, markAllAsRead } from "./actions";
-import { BCIcon, BCSectionLabel } from "@/components/bc-ui";
+import { markAllAsRead } from "./actions";
+import { BCIcon } from "@/components/bc-ui";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 function relativeTime(iso: string, lang: string): string {
   const now = new Date();
   const t = new Date(iso);
   const diff = (now.getTime() - t.getTime()) / 1000;
-  if (diff < 60) return lang === "vi" ? "vừa xong" : "just now";
+  if (diff < 60) return lang === "vi" ? "vừa xong" : "now";
   if (diff < 3600) {
     const m = Math.floor(diff / 60);
-    return lang === "vi" ? `${m} ph` : `${m}m ago`;
+    return lang === "vi" ? `${m} ph` : `${m}m`;
   }
   if (diff < 86400) {
     const h = Math.floor(diff / 3600);
-    return lang === "vi" ? `${h} g` : `${h}h ago`;
+    return lang === "vi" ? `${h} g` : `${h}h`;
   }
   if (diff < 86400 * 7) {
     const d = Math.floor(diff / 86400);
-    return lang === "vi" ? `${d} ng` : `${d}d ago`;
+    return lang === "vi" ? `${d} ng` : `${d}d`;
   }
-  return t.toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US", { month: "short", day: "numeric" });
+  return t.toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  expense_added: "expense",
-  settlement_recorded: "payment",
-  member_added: "joined",
-};
-
-const TYPE_LABEL_VI: Record<string, string> = {
-  expense_added: "chi tiêu",
-  settlement_recorded: "thanh toán",
-  member_added: "tham gia",
+const TYPE_ICON: Record<string, string> = {
+  expense_added: "receipt",
+  settlement_recorded: "check",
+  member_added: "users",
 };
 
 export default async function NotificationsPage({
@@ -46,7 +44,7 @@ export default async function NotificationsPage({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([requireUser(), getDictionary(lang)]);
+  const [user, t] = await Promise.all([requireUser(), getTranslations("activity")]);
 
   const userNotifications = await db
     .select()
@@ -55,8 +53,19 @@ export default async function NotificationsPage({
     .orderBy(desc(notifications.createdAt))
     .limit(50);
 
+  const groupIds = [...new Set(userNotifications.map((n) => n.groupId))];
+  const groupRows = groupIds.length
+    ? await db.select({ id: groups.id, name: groups.name }).from(groups).where(inArray(groups.id, groupIds))
+    : [];
+  const groupMap = new Map(groupRows.map((g) => [g.id, g.name]));
+
   const unreadCount = userNotifications.filter((n) => !n.isRead).length;
-  const t = dict.activity as Record<string, string>;
+
+  const typeLabel: Record<string, string> = {
+    expense_added: t("type_expense"),
+    settlement_recorded: t("type_payment"),
+    member_added: t("type_joined"),
+  };
 
   return (
     <div
@@ -74,11 +83,21 @@ export default async function NotificationsPage({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "16px 20px 4px",
+          padding: "8px 16px 4px",
           minHeight: 52,
         }}
       >
-        <BCSectionLabel>{t.title ?? "Activity"}</BCSectionLabel>
+        <div
+          style={{
+            fontFamily: "var(--font-newsreader), serif",
+            fontSize: 28,
+            color: "var(--bc-ink)",
+            paddingLeft: 6,
+            letterSpacing: "-0.015em",
+          }}
+        >
+          {t("title")}
+        </div>
         {unreadCount > 0 && (
           <form action={markAllAsRead.bind(null, lang)}>
             <button
@@ -87,161 +106,162 @@ export default async function NotificationsPage({
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontSize: 12,
-                color: "var(--bc-accent)",
-                letterSpacing: "0.02em",
-                padding: "6px 2px",
+                width: 40,
+                height: 40,
+                borderRadius: 999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
+              title={t("mark_all_read")}
             >
-              {t.mark_all_read ?? "Mark all read"}
+              <BCIcon name="check" size={20} color="var(--bc-ink)" />
             </button>
           </form>
         )}
       </div>
 
-      {/* List */}
-      <div style={{ flex: 1, padding: "8px 16px 160px", display: "flex", flexDirection: "column", gap: 2 }}>
+      {/* Notification list */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "10px 16px 160px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}
+      >
         {userNotifications.length === 0 ? (
           <div
             style={{
-              padding: "48px 20px",
+              padding: "40px 20px",
               textAlign: "center",
               color: "var(--bc-muted)",
               fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 14,
             }}
           >
-            {t.empty ?? "No activity yet."}
+            {t("empty")}
           </div>
         ) : (
           userNotifications.map((n) => {
-            const typeLabel = lang === "vi"
-              ? TYPE_LABEL_VI[n.type] ?? n.type
-              : TYPE_LABEL[n.type] ?? n.type;
+            const groupName = groupMap.get(n.groupId);
+            const iconName = TYPE_ICON[n.type] ?? "bell";
+            const label = typeLabel[n.type] ?? n.type;
+            const time = relativeTime(n.createdAt.toISOString(), lang).toUpperCase();
 
             return (
-              <div
+              <Link
                 key={n.id}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 14,
-                  padding: "12px 14px",
-                  borderRadius: 16,
-                  background: !n.isRead ? "var(--bc-surface)" : "transparent",
-                  position: "relative",
-                }}
+                href={`/${lang}/groups/${n.groupId}`}
+                style={{ textDecoration: "none" }}
               >
-                {/* Unread dot */}
-                {!n.isRead && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 6,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 5,
-                      height: 5,
-                      borderRadius: 999,
-                      background: "var(--bc-accent)",
-                    }}
-                  />
-                )}
-
-                {/* Icon */}
                 <div
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    background: "var(--bc-chip)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    background: n.isRead ? "var(--bc-surface)" : "var(--bc-bg)",
+                    border: `1px solid var(--bc-softhair)`,
+                    borderRadius: 22,
+                    padding: "14px 16px",
+                    cursor: "pointer",
                   }}
                 >
-                  <BCIcon
-                    name={n.type === "settlement_recorded" ? "swap" : n.type === "member_added" ? "users" : "receipt"}
-                    size={16}
-                    color="var(--bc-muted)"
-                  />
-                </div>
-
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <div
                       style={{
-                        fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                        fontSize: 11,
-                        color: "var(--bc-muted)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 999,
+                        background: "var(--bc-chip)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        position: "relative",
                       }}
                     >
-                      {typeLabel}
-                    </span>
-                    <span style={{ color: "var(--bc-hair)", fontSize: 10 }}>·</span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                        fontSize: 11,
-                        color: "var(--bc-muted)",
-                      }}
-                    >
-                      {relativeTime(n.createdAt.toISOString(), lang)}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                      fontSize: 14,
-                      color: "var(--bc-ink)",
-                      fontWeight: !n.isRead ? 500 : 400,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {n.message}
-                  </div>
-                </div>
+                      <BCIcon name={iconName} size={18} color="var(--bc-ink)" strokeWidth={1.6} />
+                      {!n.isRead && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: -1,
+                            right: -1,
+                            width: 10,
+                            height: 10,
+                            borderRadius: 999,
+                            background: "var(--bc-accent)",
+                            boxShadow: "0 0 0 2px var(--bc-bg)",
+                          }}
+                        />
+                      )}
+                    </div>
 
-                {/* Actions */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
-                  <Link
-                    href={`/${lang}/groups/${n.groupId}`}
-                    style={{
-                      fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                      fontSize: 11,
-                      color: "var(--bc-accent)",
-                      textDecoration: "none",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    <BCIcon name="arrowR" size={14} color="var(--bc-accent)" />
-                  </Link>
-                  {!n.isRead && (
-                    <form action={markAsRead.bind(null, lang, n.id)}>
-                      <button
-                        type="submit"
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
                         style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: 0,
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          alignItems: "baseline",
+                          gap: 6,
+                          marginBottom: 4,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
                         }}
-                        title="Mark read"
                       >
-                        <BCIcon name="check" size={14} color="var(--bc-muted)" />
-                      </button>
-                    </form>
-                  )}
+                        <div
+                          style={{
+                            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+                            fontSize: 10,
+                            color: "var(--bc-muted)",
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            fontWeight: 500,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {label}
+                        </div>
+                        {groupName && (
+                          <div
+                            style={{
+                              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+                              fontSize: 11,
+                              color: "var(--bc-muted)",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            · {groupName}
+                          </div>
+                        )}
+                        <div style={{ flex: 1 }} />
+                        <div
+                          style={{
+                            fontFamily: "var(--font-jetbrains-mono), monospace",
+                            fontSize: 10,
+                            color: "var(--bc-muted)",
+                            letterSpacing: "0.04em",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {time}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+                          fontSize: 14.5,
+                          color: "var(--bc-ink)",
+                          letterSpacing: "-0.005em",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {n.message}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })
         )}

@@ -1,21 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { defaultLocale, hasLocale } from "@/lib/i18n";
-import Negotiator from "negotiator";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "./i18n/routing";
 
-function getPreferredLocale(req: NextRequest): string {
-  const acceptLanguage = req.headers.get("accept-language") ?? "";
-  const languages = new Negotiator({
-    headers: { "accept-language": acceptLanguage },
-  }).languages();
-
-  for (const lang of languages) {
-    const base = lang.split("-")[0].toLowerCase();
-    if (hasLocale(base)) return base;
-  }
-  return defaultLocale;
-}
+const intlMiddleware = createIntlMiddleware(routing);
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -25,20 +14,24 @@ export async function proxy(req: NextRequest) {
     return auth0.middleware(req);
   }
 
-  // Check whether the URL already contains a supported locale prefix
-  const segments = pathname.split("/");
-  const firstSegment = segments[1];
-  const pathnameHasLocale = hasLocale(firstSegment);
-
-  if (!pathnameHasLocale) {
-    // Redirect to locale-prefixed path
-    const locale = getPreferredLocale(req);
-    req.nextUrl.pathname = `/${locale}${pathname}`;
-    return NextResponse.redirect(req.nextUrl);
+  // Apply next-intl locale routing (detects locale, redirects if missing)
+  const intlResponse = intlMiddleware(req);
+  if (intlResponse.status !== 200) {
+    return intlResponse;
   }
 
-  // Locale is present — run auth check
+  // Locale is present in URL; apply auth checks
+  const segments = pathname.split("/");
+  const firstSegment = segments[1];
+  const isLandingRoute =
+    pathname === `/${firstSegment}` || pathname === `/${firstSegment}/`;
+
   const authRes = await auth0.middleware(req);
+
+  if (isLandingRoute) {
+    return authRes;
+  }
+
   const session = await auth0.getSession(req);
   if (!session) {
     return NextResponse.redirect(

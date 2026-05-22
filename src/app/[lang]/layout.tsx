@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { Newsreader, Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
-import { getDictionary, hasLocale } from "./dictionaries";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getTranslations } from "next-intl/server";
+import { hasLocale } from "@/lib/i18n";
 import "../globals.css";
 
 const newsreader = Newsreader({
@@ -42,14 +44,15 @@ export async function generateMetadata({
 }: LayoutProps<"/[lang]">): Promise<Metadata> {
   const { lang } = await params;
   if (!hasLocale(lang)) return {};
-  const dict = await getDictionary(lang);
+  const t = await getTranslations({ locale: lang, namespace: "meta" });
+  const tCommon = await getTranslations({ locale: lang, namespace: "common" });
   return {
-    title: dict.meta.title,
-    description: dict.meta.description,
+    title: t("title"),
+    description: t("description"),
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",
-      title: dict.common.app_name,
+      title: tCommon("app_name"),
     },
     formatDetection: { telephone: false },
   };
@@ -66,6 +69,8 @@ export default async function RootLayout({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
+  const messages = await getMessages({ locale: lang });
+
   return (
     <html
       lang={lang}
@@ -73,7 +78,9 @@ export default async function RootLayout({
     >
       <Auth0Provider>
         <body className="min-h-full flex flex-col">
-          {children}
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
           <ServiceWorkerRegister />
         </body>
       </Auth0Provider>
