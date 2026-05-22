@@ -40,7 +40,9 @@ self.addEventListener("fetch", (event) => {
 
   // Network-first for everything else (auth-protected pages)
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request).catch(() =>
+      caches.match(event.request).then((cached) => cached || new Response("Offline", { status: 503 }))
+    )
   );
 });
 

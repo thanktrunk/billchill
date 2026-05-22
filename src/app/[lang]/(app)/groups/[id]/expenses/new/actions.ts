@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { expenses, expenseSplits, groupMembers } from "@/db/schema";
+import { expenses, expenseSplits, groups, groupMembers } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
 import { eq, and } from "drizzle-orm";
@@ -41,7 +41,7 @@ export async function addExpense(
 
   // Get group info for currency
   const group = await db.query.groups.findFirst({
-    where: eq(groupMembers.groupId, groupId),
+    where: eq(groups.id, groupId),
   });
 
   // Get active members for splitting

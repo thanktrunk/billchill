@@ -1,0 +1,141 @@
+import { notFound } from "next/navigation";
+import { db } from "@/db";
+import { groups, groupMembers, expenses, expenseSplits, settlements } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { requireUser } from "@/lib/auth";
+import { verifyGroupMembership } from "@/lib/access-control";
+import { calculateBalances, minimizeDebts } from "@/lib/balance";
+import { getDictionary, hasLocale } from "../../../dictionaries";
+import { GroupDetailClient } from "./group-detail-client";
+
+export default async function GroupDetailPage({
+  params,
+}: PageProps<"/[lang]/groups/[id]">) {
+  const { lang, id } = await params;
+  if (!hasLocale(lang)) notFound();
+
+  const [user, dict] = await Promise.all([
+    requireUser(),
+    getDictionary(lang),
+  ]);
+  await verifyGroupMembership(id, user.id);
+
+  const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
+  if (!group) notFound();
+
+  const members = await db
+    .select()
+    .from(groupMembers)
+    .where(eq(groupMembers.groupId, id));
+
+  const myMember = members.find((m) => m.userId === user.id);
+
+  const groupExpenses = await db
+    .select()
+    .from(expenses)
+    .where(eq(expenses.groupId, id));
+
+  const expenseIds = groupExpenses.map((e) => e.id);
+  const allSplits = expenseIds.length
+    ? await db
+        .select()
+        .from(expenseSplits)
+        .where(eq(expenseSplits.expenseId, expenseIds[0])) // Drizzle limitation; we use all below
+    : [];
+
+  // Fetch all splits for all expenses in this group properly
+  let allSplitsForGroup: typeof allSplits = [];
+  if (expenseIds.length > 0) {
+    const { inArray } = await import("drizzle-orm");
+    allSplitsForGroup = await db
+      .select()
+      .from(expenseSplits)
+      .where(inArray(expenseSplits.expenseId, expenseIds));
+  }
+
+  const groupSettlements = await db
+    .select()
+    .from(settlements)
+    .where(eq(settlements.groupId, id));
+
+  const activeMembers = members.filter((m) => m.isActive);
+
+  const expensesWithSplits = groupExpenses.map((e) => ({
+    paidBy: e.paidBy,
+    splits: allSplitsForGroup
+      .filter((s) => s.expenseId === e.id)
+      .map((s) => ({ memberId: s.memberId, shareAmount: s.shareAmount })),
+  }));
+
+  const balances = calculateBalances(
+    activeMembers.map((m) => ({ id: m.id, displayName: m.displayName })),
+    expensesWithSplits,
+    groupSettlements.map((s) => ({
+      fromMember: s.fromMember,
+      toMember: s.toMember,
+      amount: s.amount,
+    }))
+  );
+
+  const minimizedDebts = minimizeDebts(balances);
+  const myBalance = myMember
+    ? (balances.find((b) => b.memberId === myMember.id)?.balance ?? 0)
+    : 0;
+
+  // Serialize dates to ISO strings for client component
+  const serializedExpenses = groupExpenses.map((e) => ({
+    id: e.id,
+    description: e.description,
+    amount: e.amount,
+    currency: e.currency,
+    category: e.category,
+    date: e.date,
+    paidBy: e.paidBy,
+    createdAt: e.createdAt.toISOString(),
+  }));
+
+  const serializedSettlements = groupSettlements.map((s) => ({
+    id: s.id,
+    fromMember: s.fromMember,
+    toMember: s.toMember,
+    amount: s.amount,
+    settledAt: s.settledAt.toISOString(),
+  }));
+
+  const serializedMembers = activeMembers.map((m) => ({
+    id: m.id,
+    displayName: m.displayName,
+    userId: m.userId,
+  }));
+
+  // Pass dict as flat sections for client component
+  const dictSections: Record<string, Record<string, string>> = {
+    common: dict.common as unknown as Record<string, string>,
+    group: dict.group as unknown as Record<string, string>,
+    add: dict.add as unknown as Record<string, string>,
+  };
+
+  return (
+    <GroupDetailClient
+      lang={lang}
+      dict={dictSections}
+      group={{
+        id: group.id,
+        name: group.name,
+        currency: group.currency,
+      }}
+      members={serializedMembers}
+      expenses={serializedExpenses}
+      splits={allSplitsForGroup.map((s) => ({
+        expenseId: s.expenseId,
+        memberId: s.memberId,
+        shareAmount: s.shareAmount,
+      }))}
+      settlements={serializedSettlements}
+      balances={balances}
+      minimizedDebts={minimizedDebts}
+      myMemberId={myMember?.id ?? null}
+      myBalance={myBalance}
+    />
+  );
+}

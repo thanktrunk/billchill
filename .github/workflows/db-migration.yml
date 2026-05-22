@@ -1,6 +1,7 @@
 name: Migrate Production DB
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

@@ -2,39 +2,82 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Bell, User } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/groups", label: "Groups", icon: Home },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/profile", label: "Profile", icon: User },
-];
+import { BCIcon } from "@/components/bc-ui";
+import { useLocale } from "@/lib/locale-context";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { lang, dict } = useLocale();
+
+  const tabs = [
+    { k: "home",     href: `/${lang}/groups`,        label: dict.nav.groups,        icon: "home" },
+    { k: "activity", href: `/${lang}/notifications`, label: dict.nav.notifications, icon: "activity" },
+    { k: "profile",  href: `/${lang}/profile`,       label: dict.nav.profile,       icon: "user" },
+  ];
+
+  function isActive(href: string) {
+    return pathname === href || (href !== `/${lang}` && pathname.startsWith(href));
+  }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-10 border-t bg-background/80 backdrop-blur-sm pb-safe">
-      <div className="flex h-16 items-center justify-around max-w-2xl mx-auto px-2">
-        {links.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+    <nav
+      style={{
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+        display: "flex",
+        justifyContent: "center",
+        pointerEvents: "none",
+        zIndex: 20,
+      }}
+    >
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          padding: 6,
+          background: "var(--bc-ink)",
+          color: "var(--bc-bg)",
+          borderRadius: 999,
+          pointerEvents: "auto",
+          boxShadow: "0 14px 30px rgba(0,0,0,0.18), 0 4px 10px rgba(0,0,0,0.08)",
+        }}
+      >
+        {tabs.map((t) => {
+          const sel = isActive(t.href);
           return (
             <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex flex-col items-center gap-1 min-w-[64px] py-1 rounded-lg transition-colors",
-                active
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+              key={t.k}
+              href={t.href}
+              className="bc-tap"
+              style={{
+                border: "none",
+                cursor: "pointer",
+                background: sel ? "var(--bc-bg)" : "transparent",
+                color: sel ? "var(--bc-ink)" : "rgba(245,241,234,0.8)",
+                padding: sel ? "10px 18px" : "10px 14px",
+                borderRadius: 999,
+                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: "-0.005em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "background 200ms, padding 200ms, color 200ms",
+                whiteSpace: "nowrap",
+                textDecoration: "none",
+              }}
             >
-              <Icon
-                className={cn("size-6", active && "stroke-[2.5]")}
-                aria-hidden
+              <BCIcon
+                name={t.icon}
+                size={18}
+                color={sel ? "var(--bc-ink)" : "rgba(245,241,234,0.8)"}
+                strokeWidth={1.7}
               />
-              <span className="text-[10px] font-medium">{label}</span>
+              {sel && <span>{t.label}</span>}
             </Link>
           );
         })}

@@ -3,16 +3,25 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createGroup } from "./actions";
+import { CurrencyInput } from "@/components/currency-input";
+import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-export default function NewGroupPage() {
+export function NewGroupForm({
+  lang,
+  dict,
+}: {
+  lang: string;
+  dict: Dictionary["new_group"];
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(formData: FormData) {
+    if (pending) return;
     setPending(true);
     try {
       const group = await createGroup(formData);
-      router.push(`/groups/${group.id}`);
+      router.push(`/${lang}/groups/${group.id}`);
     } catch {
       setPending(false);
     }
@@ -20,11 +29,11 @@ export default function NewGroupPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-md">
-      <h1 className="text-2xl font-bold mb-6">Create Group</h1>
+      <h1 className="text-2xl font-bold mb-6">{dict.title}</h1>
       <form action={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium mb-1">
-            Group Name
+            {dict.name_label}
           </label>
           <input
             id="name"
@@ -32,34 +41,21 @@ export default function NewGroupPage() {
             type="text"
             required
             className="w-full rounded-md border px-3 py-2 text-sm"
-            placeholder="e.g., Trip to Japan"
+            placeholder={dict.name_placeholder}
           />
         </div>
         <div>
           <label htmlFor="currency" className="block text-sm font-medium mb-1">
-            Currency
+            {dict.currency_label}
           </label>
-          <select
-            id="currency"
-            name="currency"
-            className="w-full rounded-md border px-3 py-2 text-sm"
-            defaultValue="USD"
-          >
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="VND">VND</option>
-            <option value="JPY">JPY</option>
-            <option value="AUD">AUD</option>
-            <option value="CAD">CAD</option>
-          </select>
+          <CurrencyInput defaultValue="USD" />
         </div>
         <button
           type="submit"
           disabled={pending}
           className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          {pending ? "Creating..." : "Create Group"}
+          {pending ? dict.submitting : dict.submit}
         </button>
       </form>
     </div>

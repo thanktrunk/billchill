@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
-          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'; connect-src 'self' https://*.auth0.com" },
         ],
       },
     ];

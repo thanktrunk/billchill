@@ -1,0 +1,161 @@
+{
+  "common": {
+    "logout": "Đăng xuất",
+    "back_to_groups": "← Quay lại danh sách nhóm",
+    "app_name": "billchill",
+    "you": "Bạn",
+    "settled": "Đã thanh toán",
+    "app_footer": "billchill · phiên bản 1.0"
+  },
+  "nav": {
+    "groups": "Nhóm",
+    "notifications": "Hoạt động",
+    "profile": "Hồ sơ"
+  },
+  "meta": {
+    "title": "billchill — Chia sẻ chi phí với bạn bè",
+    "description": "Theo dõi chi tiêu nhóm và thanh toán dễ dàng"
+  },
+  "home": {
+    "your_balance": "Số dư của bạn",
+    "owed_to_you": "Được nợ",
+    "you_owe": "Bạn nợ",
+    "groups_section": "Nhóm",
+    "active": "{0} đang hoạt động",
+    "empty": "Chưa có nhóm. Nhấn + để bắt đầu.",
+    "youre_owed": "Được nợ",
+    "you_owe_short": "Bạn nợ",
+    "settled": "Đã thanh toán",
+    "new_group": "Nhóm mới"
+  },
+  "group": {
+    "members_count": "{0} thành viên",
+    "all_settled": "Đã thanh toán hết",
+    "youre_owed": "Bạn được nợ",
+    "you_owe": "Bạn nợ",
+    "settle_up": "Quyết toán",
+    "tab_expenses": "Chi tiêu · {0}",
+    "tab_balances": "Số dư",
+    "no_expenses": "Chưa có chi tiêu.",
+    "add_expense": "Thêm chi tiêu",
+    "member_balances": "Số dư thành viên",
+    "simplified_payments": "Thanh toán rút gọn",
+    "transfers": "{0} giao dịch",
+    "is_owed": "Được nợ",
+    "owes": "Đang nợ",
+    "record_settlement": "Ghi nhận thanh toán",
+    "paid_shares": "{0} trả · {1} phần",
+    "pays": "{0} trả {1}",
+    "paid_to": "{0} đã trả {1}",
+    "settlement_date": "Thanh toán · {0}",
+    "you_label": "BẠN"
+  },
+  "add": {
+    "title": "Thêm chi tiêu",
+    "amount": "Số tiền",
+    "placeholder_what": "Cho việc gì?",
+    "continue": "Tiếp tục",
+    "untitled": "Chi tiêu chưa đặt tên",
+    "paid_by": "Người trả",
+    "category": "Danh mục",
+    "split_with": "Chia với",
+    "each": "{0} MỖI NGƯỜI",
+    "save": "Lưu chi tiêu"
+  },
+  "settle": {
+    "title": "Quyết toán",
+    "from": "Từ",
+    "to": "Đến",
+    "amount": "Số tiền",
+    "suggested": "Đề xuất {0}",
+    "record": "Ghi nhận thanh toán",
+    "done_title": "Đã ghi nhận.",
+    "done_subtitle": "Sổ sách nhẹ đi một bước.",
+    "back_to_group": "Quay lại nhóm"
+  },
+  "activity": {
+    "title": "Hoạt động",
+    "empty": "Chưa có hoạt động.",
+    "type_expense": "Chi tiêu",
+    "type_payment": "Thanh toán",
+    "type_reminder": "Nhắc nhở",
+    "type_joined": "Tham gia",
+    "mark_all_read": "Đánh dấu đã đọc hết"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "stat_groups": "Nhóm",
+    "stat_expenses": "Chi tiêu",
+    "stat_total_lent": "Đã cho ứng",
+    "preferences": "Tùy chọn",
+    "default_currency": "Tiền tệ",
+    "notifications": "Thông báo",
+    "appearance": "Giao diện",
+    "connected_accounts": "Tài khoản liên kết",
+    "language": "Ngôn ngữ",
+    "archived_groups": "Nhóm lưu trữ",
+    "archived": "Đã lưu trữ",
+    "all_on": "Bật hết",
+    "auto": "Tự động",
+    "signed_in_as": "Đã đăng nhập với",
+    "logout": "Đăng xuất"
+  },
+  "cat": {
+    "food": "Ăn uống",
+    "drinks": "Đồ uống",
+    "transport": "Đi lại",
+    "lodging": "Lưu trú",
+    "groceries": "Đi chợ",
+    "fun": "Giải trí",
+    "utilities": "Tiện ích",
+    "other": "Khác"
+  },
+  "groups": {
+    "title": "Nhóm của tôi",
+    "new_group": "Tạo nhóm",
+    "empty": "Chưa có nhóm nào. Hãy tạo một nhóm để bắt đầu!"
+  },
+  "new_group": {
+    "title": "Tạo nhóm",
+    "name_label": "Tên nhóm",
+    "name_placeholder": "Ví dụ: Chuyến đi Nhật Bản",
+    "currency_label": "Tiền tệ",
+    "submitting": "Đang tạo...",
+    "submit": "Tạo nhóm"
+  },
+  "group_detail": {
+    "add_expense": "Thêm chi tiêu",
+    "members": "Thành viên",
+    "inactive": "(không hoạt động)",
+    "balances": "Số dư",
+    "all_settled": "Tất cả đã thanh toán!",
+    "expenses": "Chi tiêu",
+    "no_expenses": "Chưa có chi tiêu nào.",
+    "paid_by": "Người trả"
+  },
+  "new_expense": {
+    "title": "Thêm chi tiêu",
+    "description_label": "Mô tả",
+    "description_placeholder": "Ví dụ: Bữa tối",
+    "amount_label": "Số tiền",
+    "paid_by_label": "Người trả",
+    "select_member": "Chọn thành viên",
+    "date_label": "Ngày",
+    "split_method_label": "Phương thức chia",
+    "split_equal": "Chia đều",
+    "split_amount": "Theo số tiền cụ thể",
+    "split_shares": "Theo tỷ lệ phần",
+    "split_percentage": "Theo phần trăm",
+    "enter_amounts": "Nhập số tiền cho mỗi thành viên:",
+    "enter_shares": "Nhập tỷ lệ phần cho mỗi thành viên:",
+    "enter_percentages": "Nhập phần trăm cho mỗi thành viên:",
+    "submitting": "Đang thêm...",
+    "submit": "Thêm chi tiêu"
+  },
+  "notifications": {
+    "title": "Hoạt động",
+    "empty": "Chưa có hoạt động.",
+    "mark_read": "Đánh dấu đã đọc",
+    "view_group": "Xem nhóm"
+  }
+}

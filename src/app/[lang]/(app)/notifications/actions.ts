@@ -6,7 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-export async function markAsRead(notificationId: string) {
+export async function markAsRead(lang: string, notificationId: string) {
   const user = await requireUser();
 
   await db
@@ -19,5 +19,16 @@ export async function markAsRead(notificationId: string) {
       )
     );
 
-  revalidatePath("/notifications");
+  revalidatePath(`/${lang}/notifications`);
+}
+
+export async function markAllAsRead(lang: string) {
+  const user = await requireUser();
+
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(eq(notifications.userId, user.id));
+
+  revalidatePath(`/${lang}/notifications`);
 }
