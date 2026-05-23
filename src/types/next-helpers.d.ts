@@ -8,7 +8,7 @@ declare type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
-declare type LayoutProps = {
+declare type LayoutProps<_ = unknown> = {
   children: React.ReactNode
   params: Promise<Record<string, string>>
 }
