@@ -22,12 +22,19 @@ export default async function AppLayout({
   }
 
   return (
-    <div
-      className="relative min-h-dvh"
-      style={{ background: "var(--bc-bg)", color: "var(--bc-ink)" }}
-    >
-      <main className="pb-safe-nav">{children}</main>
-      <BottomNav />
+    <div style={{ background: "var(--bc-bg)", minHeight: "100dvh" }}>
+      <div
+        className="relative min-h-dvh"
+        style={{
+          maxWidth: 480,
+          margin: "0 auto",
+          background: "var(--bc-bg)",
+          color: "var(--bc-ink)",
+        }}
+      >
+        <main className="pb-safe-nav">{children}</main>
+        <BottomNav />
+      </div>
     </div>
   );
 }

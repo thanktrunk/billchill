@@ -98,10 +98,20 @@ test.describe("Navigation", () => {
     await expect(logoutLink).toHaveAttribute("href", "/auth/logout");
   });
 
-  test("logout redirects to login page", async ({ page }) => {
+  test("logout redirects to login page", async ({ page, browser }) => {
     await page.goto("/en/groups");
     await page.getByRole("link", { name: /logout|đăng xuất/i }).click();
-    await page.waitForURL(/auth0\.com|\/auth\/login/);
+    await page.waitForLoadState("load");
+
+    // Verify the effect: a fresh browser context (no SSO cookies) visiting a
+    // protected route must be redirected to the login page. This tests our
+    // middleware, not Auth0's SSO silent-reauth behaviour.
+    const freshCtx = await browser.newContext();
+    const freshPage = await freshCtx.newPage();
+    await freshPage.goto("http://localhost:3000/en/groups");
+    await freshPage.waitForURL(/auth0\.com|\/auth\/login/);
+    await expect(freshPage).toHaveURL(/auth0\.com|\/auth\/login/);
+    await freshCtx.close();
   });
 });
 
