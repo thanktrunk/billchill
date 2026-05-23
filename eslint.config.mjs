@@ -14,7 +14,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     // Prototype/demo files use global component references without imports.
-    "prototype/**",
+    "*/prototype/**",
   ]),
 ]);
 

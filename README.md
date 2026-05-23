@@ -14,6 +14,7 @@ A mobile-first group expense tracker PWA. Split expenses with friends, track who
 | Auth | Auth0 via `@auth0/nextjs-auth0` v4 |
 | Database | PostgreSQL via `drizzle-orm` + `postgres` |
 | Migrations | Drizzle Kit (`drizzle-kit migrate`) |
+| Charts | Recharts (group stats) |
 | Testing | Playwright (E2E, `tests/e2e/`) |
 | Fonts | Newsreader (serif headings), Be Vietnam Pro (body), JetBrains Mono (numbers) |
 
@@ -92,6 +93,9 @@ src/
 │   │       │   └── [id]/
 │   │       │       ├── page.tsx              # server: fetch group data
 │   │       │       ├── group-detail-client.tsx  # client: tabs, expense list, balances
+│   │       │       ├── _components/
+│   │       │       │   ├── stats-tab.tsx     # Stats tab: 7 Recharts charts (no extra DB queries)
+│   │       │       │   └── …
 │   │       │       ├── expenses/new/         # add expense (numpad → details)
 │   │       │       └── settle/              # settle up form
 │   │       ├── notifications/    # activity feed
@@ -205,6 +209,22 @@ Dictionary keys follow the pattern `section.key`, e.g. `group.settle_up`, `landi
 
 - `calculateBalances(members, expenses, settlements)` — computes each member's net balance. Positive = owed money; negative = owes money.
 - `minimizeDebts(balances)` — greedy algorithm that produces the minimum number of `DebtTransaction` objects to clear all debts.
+
+---
+
+## Group stats
+
+The **Stats** tab renders seven charts from data already loaded for the group detail page (no extra DB queries):
+
+| Chart | Source |
+|---|---|
+| Spend by category | Donut — sum of `expense.amount` per category |
+| Paid by member | Horizontal bar — sum of `expense.amount` per payer |
+| Spend by member | Horizontal bar — sum of `split.shareAmount` per member |
+| Spending over time | Area — monthly totals; only shown with 2+ months of data |
+| Top expenses | Horizontal bar — 8 largest expenses, colored by category |
+| Expenses by category | Horizontal bar — count of expenses per category |
+| Settlement progress | Progress bar — `settled / (settled + outstanding)` |
 
 ---
 

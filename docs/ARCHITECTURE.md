@@ -5,7 +5,7 @@
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14+ (App Router, TypeScript) |
-| UI | Tailwind CSS v4 + shadcn/ui |
+| UI | Tailwind CSS v4 + shadcn/ui + Recharts |
 | Auth | Auth0 Cloud (`@auth0/nextjs-auth0` SDK v4) |
 | Database | Supabase Postgres (via Drizzle ORM) |
 | ORM | Drizzle ORM (`drizzle-orm` + `drizzle-kit` + `postgres` driver) |
@@ -139,6 +139,19 @@ All tables use UUID primary keys. Amounts stored as `numeric(12,2)`. No RLS — 
 - Use `prepare: false` in the postgres client for connection pooler compatibility.
 - Run `drizzle-kit migrate` with the direct connection before/during deploy.
 - Set `DATABASE_URL` on Vercel to the pooler connection string for runtime.
+
+---
+
+## Group Stats Charts
+
+The Stats tab (`_components/stats-tab.tsx`) renders seven Recharts charts from props already loaded for the group detail page. No extra DB queries are made.
+
+- All chart data is computed with `useMemo` from `expenses`, `splits`, `settlements`, and `balances` props.
+- Amounts are summed as raw floats (matching the group's base currency — multi-currency conversion is out of scope).
+- Recharts `Cell` components provide per-bar/per-slice colors sourced from `BC_CATEGORIES`.
+- A custom `BarAmountLabel` SVG component renders formatted amounts to the right of each bar.
+- The spending-over-time area chart is only rendered when 2+ distinct months of data exist.
+- Settlement progress is calculated as `settled / (settled + outstanding)` where `settled = Σ settlements.amount` and `outstanding = Σ max(balance, 0)`.
 
 ---
 

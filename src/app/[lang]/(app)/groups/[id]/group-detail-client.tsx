@@ -10,6 +10,7 @@ import { ExpensesTab } from './_components/expenses-tab'
 import { BalancesTab } from './_components/balances-tab'
 import { MembersTab } from './_components/members-tab'
 import { SettingsTab } from './_components/settings-tab'
+import { StatsTab } from './_components/stats-tab'
 
 type Member = { id: string; displayName: string; userId: string | null; avatarUrl?: string | null }
 type AllMember = {
@@ -65,7 +66,7 @@ export function GroupDetailClient({
   const locale = useLocale()
   const tGroup = useTranslations('group')
 
-  const [tab, setTab] = useState<'expenses' | 'balances' | 'members' | 'settings'>('expenses')
+  const [tab, setTab] = useState<'expenses' | 'balances' | 'members' | 'settings' | 'stats'>('expenses')
   const { isOwed, isOwing } = AppCalculations.getBalanceFlags(myBalance)
   const totalSpent = AppCalculations.sumAmountStrings(expenses)
 
@@ -120,6 +121,7 @@ export function GroupDetailClient({
             { k: 'expenses', label: tGroup('tab_expenses', { 0: expenses.length }) },
             { k: 'balances', label: tGroup('tab_balances') },
             { k: 'members', label: tGroup('tab_members') },
+            { k: 'stats', label: tGroup('tab_stats') },
             { k: 'settings', label: tGroup('tab_settings') },
           ]}
         />
@@ -149,6 +151,16 @@ export function GroupDetailClient({
         )}
         {tab === 'members' && <MembersTab groupId={group.id} allMembers={allMembers} />}
         {tab === 'settings' && <SettingsTab group={group} />}
+        {tab === 'stats' && (
+          <StatsTab
+            expenses={expenses}
+            splits={splits}
+            allMembers={allMembers}
+            settlements={settlements}
+            balances={balances}
+            currency={group.currency}
+          />
+        )}
       </div>
 
       {tab === 'expenses' && (

@@ -16,7 +16,7 @@ A mobile-first web app for splitting group expenses, similar to SettleUp. Users 
 ### Groups
 - A user can create a group with a name and default currency.
 - A user can view all groups they belong to (archived groups are hidden).
-- A group has a detail view with four tabs: Expenses, Balances, Members, Settings.
+- A group has a detail view with five tabs: Expenses, Balances, Members, Stats, Settings.
 - A group can be archived from the Settings tab; archived groups no longer appear in the list.
 - Group name and currency can be edited from the Settings tab.
 
@@ -53,6 +53,23 @@ A mobile-first web app for splitting group expenses, similar to SettleUp. Users 
   - Positive → owed money back
   - Negative → owes money
 - A minimized list of transactions (settle-up suggestions) is shown to clear all debts with the fewest payments.
+
+### Stats
+
+The Stats tab shows a visual spending breakdown for the group. All data is derived client-side from props already fetched for the group detail page — no additional DB queries.
+
+| Chart | Description |
+|---|---|
+| Spend by category | Donut chart of total spend per category; center label shows group total |
+| Paid by member | Horizontal bar chart of how much each member paid across all expenses |
+| Spend by member | Horizontal bar chart of each member's share of expenses (from splits) |
+| Spending over time | Area chart of monthly spend totals (only shown when there are 2+ months of data) |
+| Top expenses | Horizontal bar chart of the 8 largest individual expenses, colored by category |
+| Expenses by category | Horizontal bar chart of expense count per category |
+| Settlement progress | Progress bar showing settled vs. outstanding amounts with a percentage |
+
+- Category colors are derived from `BC_CATEGORIES` in the design system.
+- If there are no expenses, the tab shows an empty state message instead of charts.
 
 ### Settlements
 - A member can record a settlement (person A pays person B an amount).
