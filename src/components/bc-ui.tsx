@@ -408,12 +408,13 @@ export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
 // ── Amount display ────────────────────────────────────────────────
 export function BCAmountDisplay({ value, currency, size = 88 }: { value: string; currency: string; size?: number }) {
   const display = formatCurrency(value || '0', currency)
+  const displaySize = size * 0.78
   return (
     <div className="flex items-baseline justify-center">
       <span
         style={{
           fontFamily: 'var(--font-newsreader), serif',
-          fontSize: size,
+          fontSize: displaySize,
           color: 'var(--bc-ink)',
           lineHeight: 0.95,
           fontVariantNumeric: 'tabular-nums',

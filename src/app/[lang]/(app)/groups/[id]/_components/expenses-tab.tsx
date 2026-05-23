@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { BCCard, BCSectionLabel, BCCategoryBadge, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatDate } from '@/lib/currency'
+import { AppCalculations } from '@/lib/app-calculations'
 
 type Member = { id: string; displayName: string; userId: string | null; avatarUrl?: string | null }
 type Expense = {
@@ -36,10 +37,7 @@ function ExpenseRow({
   const payerName = payer?.displayName ?? '?'
   const mySplit = splits.find((s) => s.memberId === myMemberId)
   const iPaid = expense.paidBy === myMemberId
-  const amount = parseFloat(expense.amount)
-  const myShare = parseFloat(mySplit?.shareAmount ?? '0')
-  const lent = iPaid ? amount - myShare : 0
-  const owe = !iPaid ? myShare : 0
+  const { lent, owe } = AppCalculations.buildExpenseDelta(expense.amount, mySplit?.shareAmount, iPaid)
 
   return (
     <BCCard padded={false} className="px-3.5 py-3">

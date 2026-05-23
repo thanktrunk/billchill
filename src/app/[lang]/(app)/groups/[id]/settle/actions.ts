@@ -1,10 +1,8 @@
 'use server'
 
-import { db } from '@/db'
-import { settlements, groupMembers, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
-import { eq, and } from 'drizzle-orm'
+import { createSettlement, createSettlementRecordedNotifications, findGroupMemberByIdInGroup } from '@/db/mutations/settlements'
 
 export async function recordSettlement(groupId: string, fromMember: string, toMember: string, amount: number) {
   const user = await requireUser()
@@ -12,7 +10,7 @@ export async function recordSettlement(groupId: string, fromMember: string, toMe
 
   if (amount <= 0) throw new Error('Amount must be positive')
 
-  await db.insert(settlements).values({
+  await createSettlement({
     groupId,
     fromMember,
     toMember,
@@ -22,8 +20,8 @@ export async function recordSettlement(groupId: string, fromMember: string, toMe
 
   // Notify involved members (other than the actor)
   const [fromRow, toRow] = await Promise.all([
-    db.query.groupMembers.findFirst({ where: and(eq(groupMembers.id, fromMember), eq(groupMembers.groupId, groupId)) }),
-    db.query.groupMembers.findFirst({ where: and(eq(groupMembers.id, toMember), eq(groupMembers.groupId, groupId)) }),
+    findGroupMemberByIdInGroup(fromMember, groupId),
+    findGroupMemberByIdInGroup(toMember, groupId),
   ])
 
   const fromName = fromRow?.displayName ?? 'Someone'
@@ -33,7 +31,7 @@ export async function recordSettlement(groupId: string, fromMember: string, toMe
   const recipientUserIds = [fromRow?.userId, toRow?.userId].filter((uid): uid is string => !!uid && uid !== user.id)
 
   if (recipientUserIds.length > 0) {
-    await db.insert(notifications).values(
+    await createSettlementRecordedNotifications(
       recipientUserIds.map((userId) => ({
         userId,
         groupId,

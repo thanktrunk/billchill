@@ -1,6 +1,3 @@
-import { db } from '@/db'
-import { notifications, groups } from '@/db/schema'
-import { eq, desc, inArray } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth'
 import { hasLocale } from '@/lib/i18n'
 import { notFound } from 'next/navigation'
@@ -8,24 +5,8 @@ import { markAllAsRead, markAsReadAndNavigate } from './actions'
 import { BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { getTranslations } from 'next-intl/server'
-
-function relativeTime(
-  iso: string,
-  locale: string,
-  tCommon: (key: string, values?: Record<string, string | number | Date>) => string,
-): string {
-  const now = new Date()
-  const t = new Date(iso)
-  const diff = (now.getTime() - t.getTime()) / 1000
-  if (diff < 60) return tCommon('now')
-  if (diff < 3600) return tCommon('minutes_short', { '0': Math.floor(diff / 60) })
-  if (diff < 86400) return tCommon('hours_short', { '0': Math.floor(diff / 3600) })
-  if (diff < 86400 * 7) return tCommon('days_short', { '0': Math.floor(diff / 86400) })
-  return t.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
-}
+import { AppCalculations } from '@/lib/app-calculations'
+import { getUserNotificationsWithGroups } from '@/db/queries/notifications'
 
 const TYPE_ICON: Record<string, string> = {
   expense_added: 'receipt',
@@ -43,18 +24,7 @@ export default async function NotificationsPage({ params }: PageProps) {
     getTranslations({ locale: lang, namespace: 'common' }),
   ])
 
-  const userNotifications = await db
-    .select()
-    .from(notifications)
-    .where(eq(notifications.userId, user.id))
-    .orderBy(desc(notifications.createdAt))
-    .limit(50)
-
-  const groupIds = [...new Set(userNotifications.map((n) => n.groupId))]
-  const groupRows = groupIds.length
-    ? await db.select({ id: groups.id, name: groups.name }).from(groups).where(inArray(groups.id, groupIds))
-    : []
-  const groupMap = new Map(groupRows.map((g) => [g.id, g.name]))
+  const { userNotifications, groupMap } = await getUserNotificationsWithGroups(user.id)
 
   const unreadCount = userNotifications.filter((n) => !n.isRead).length
 
@@ -89,7 +59,7 @@ export default async function NotificationsPage({ params }: PageProps) {
             const groupName = groupMap.get(n.groupId)
             const iconName = TYPE_ICON[n.type] ?? 'bell'
             const label = typeLabel[n.type] ?? n.type
-            const time = relativeTime(n.createdAt.toISOString(), lang, tCommon).toUpperCase()
+            const time = AppCalculations.relativeTime(n.createdAt.toISOString(), lang, tCommon, 'short').toUpperCase()
 
             return (
               <form key={n.id} action={markAsReadAndNavigate.bind(null, lang, n.id, n.groupId)}>

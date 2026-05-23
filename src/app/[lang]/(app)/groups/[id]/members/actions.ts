@@ -1,11 +1,18 @@
 'use server'
 
-import { db } from '@/db'
-import { users, groupMembers, groups, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
-import { eq, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import {
+  createGroupMember,
+  createMemberAddedNotifications,
+  findGroupMemberByUser,
+  findGroupName,
+  findUserByEmail,
+  reactivateGroupMember,
+  setGroupMemberActive,
+  updateGroupMember,
+} from '@/db/mutations/group-members'
 
 export async function inviteMember(groupId: string, email: string) {
   const currentUser = await requireUser()
@@ -14,27 +21,19 @@ export async function inviteMember(groupId: string, email: string) {
   const trimmed = email.trim().toLowerCase()
   if (!trimmed) throw new Error('Email is required')
 
-  const existing = await db.query.users.findFirst({ where: eq(users.email, trimmed) })
+  const existing = await findUserByEmail(trimmed)
 
   const [alreadyMember, group] = await Promise.all([
-    existing
-      ? db.query.groupMembers.findFirst({
-          where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, existing.id)),
-        })
-      : Promise.resolve(null),
-    db
-      .select({ name: groups.name })
-      .from(groups)
-      .where(eq(groups.id, groupId))
-      .then((r) => r[0]),
+    existing ? findGroupMemberByUser(groupId, existing.id) : Promise.resolve(null),
+    findGroupName(groupId),
   ])
 
   if (!group) throw new Error('Group not found')
 
   if (alreadyMember) {
     if (!alreadyMember.isActive) {
-      await db.update(groupMembers).set({ isActive: true }).where(eq(groupMembers.id, alreadyMember.id))
-      await db.insert(notifications).values([
+      await reactivateGroupMember(alreadyMember.id)
+      await createMemberAddedNotifications([
         {
           userId: existing!.id,
           groupId,
@@ -56,7 +55,7 @@ export async function inviteMember(groupId: string, email: string) {
 
   const inviteeName = existing?.displayName ?? trimmed
 
-  await db.insert(groupMembers).values({
+  await createGroupMember({
     groupId,
     userId: existing?.id ?? null,
     displayName: inviteeName,
@@ -80,7 +79,7 @@ export async function inviteMember(groupId: string, email: string) {
         ]
       : []),
   ]
-  await db.insert(notifications).values(notificationRows)
+  await createMemberAddedNotifications(notificationRows)
 
   revalidatePath(`/groups/${groupId}`)
   return { status: existing ? ('linked' as const) : ('placeholder' as const) }
@@ -90,10 +89,7 @@ export async function updateMember(groupId: string, memberId: string, data: { di
   const user = await requireUser()
   await verifyGroupMembership(groupId, user.id)
 
-  await db
-    .update(groupMembers)
-    .set({ displayName: data.displayName.trim(), defaultShare: data.defaultShare })
-    .where(and(eq(groupMembers.id, memberId), eq(groupMembers.groupId, groupId)))
+  await updateGroupMember(groupId, memberId, { displayName: data.displayName.trim(), defaultShare: data.defaultShare })
 
   revalidatePath(`/groups/${groupId}`)
 }
@@ -102,10 +98,7 @@ export async function setMemberActive(groupId: string, memberId: string, isActiv
   const user = await requireUser()
   await verifyGroupMembership(groupId, user.id)
 
-  await db
-    .update(groupMembers)
-    .set({ isActive })
-    .where(and(eq(groupMembers.id, memberId), eq(groupMembers.groupId, groupId)))
+  await setGroupMemberActive(groupId, memberId, isActive)
 
   revalidatePath(`/groups/${groupId}`)
 }

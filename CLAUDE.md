@@ -54,6 +54,15 @@ Before writing any code, review and follow the coding conventions and styling ru
 - **DB amounts** — stored as `numeric(12,2)` strings; always `parseFloat()` before arithmetic.
 - **i18n** — dictionary keys follow `section.key` (e.g. `group.settle_up`); server-side imports from `src/dictionaries/`; client components use `useLocale()`. Migration to `next-intl` is in progress — see `docs/MIGRATE-NEXT-INTL.md`.
 
+### Refactor summary (2026-05-23)
+
+- Centralized app-route DB access from `src/app/[lang]/(app)` into `src/db/queries/*` and `src/db/mutations/*`.
+- Updated pages and server actions in groups, notifications, profile, and app layout to call query/mutation helpers instead of importing `db`/schema directly.
+- Kept auth and access checks in route actions/pages (`requireUser()`, `verifyGroupMembership(...)`) while moving Drizzle query details into `src/db`.
+- Added reusable query modules: `app`, `groups`, `expenses`, `notifications`, `profile`.
+- Added reusable mutation modules: `groups`, `group-members`, `expenses`, `settlements`, `notifications`, `profile`.
+- Build status after refactor: `npm run build` passed. Lint still reports pre-existing errors in `docs/prototype/project/*` (not introduced by this refactor).
+
 ---
 
 ## Code quality rules

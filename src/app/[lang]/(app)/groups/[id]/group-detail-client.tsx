@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCCard, BCTabs } from '@/components/bc-ui'
 import { formatCurrency } from '@/lib/currency'
+import { AppCalculations } from '@/lib/app-calculations'
 import { ExpensesTab } from './_components/expenses-tab'
 import { BalancesTab } from './_components/balances-tab'
 import { MembersTab } from './_components/members-tab'
@@ -65,9 +66,8 @@ export function GroupDetailClient({
   const tGroup = useTranslations('group')
 
   const [tab, setTab] = useState<'expenses' | 'balances' | 'members' | 'settings'>('expenses')
-  const isOwed = myBalance > 0.005
-  const isOwing = myBalance < -0.005
-  const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0)
+  const { isOwed, isOwing } = AppCalculations.getBalanceFlags(myBalance)
+  const totalSpent = AppCalculations.sumAmountStrings(expenses)
 
   return (
     <div className="bc-page">

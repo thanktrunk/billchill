@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation'
-import { db } from '@/db'
-import { groups, groupMembers, expenses, expenseSplits, settlements } from '@/db/schema'
-import { eq, inArray } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
-import { calculateBalances, minimizeDebts } from '@/lib/balance'
+import { minimizeDebts } from '@/lib/balance'
+import { AppCalculations } from '@/lib/app-calculations'
 import { hasLocale } from '@/lib/i18n'
 import { SettleForm } from './settle-form'
+import { getSettlePageData } from '@/db/queries/groups'
 
 export default async function SettlePage({ params, searchParams }: PageProps) {
   const { lang, id } = await params
@@ -15,27 +14,15 @@ export default async function SettlePage({ params, searchParams }: PageProps) {
   const user = await requireUser()
   await verifyGroupMembership(id, user.id)
 
-  const group = await db.query.groups.findFirst({ where: eq(groups.id, id) })
+  const { group, members, groupExpenses, allSplits, groupSettlements } = await getSettlePageData(id)
   if (!group) notFound()
-
-  const members = await db.select().from(groupMembers).where(eq(groupMembers.groupId, id))
 
   const activeMembers = members.filter((m) => m.isActive)
 
-  const groupExpenses = await db.select().from(expenses).where(eq(expenses.groupId, id))
-  const expenseIds = groupExpenses.map((e) => e.id)
-  const allSplits = expenseIds.length ? await db.select().from(expenseSplits).where(inArray(expenseSplits.expenseId, expenseIds)) : []
-
-  const groupSettlements = await db.select().from(settlements).where(eq(settlements.groupId, id))
-
-  const expensesWithSplits = groupExpenses.map((e) => ({
-    paidBy: e.paidBy,
-    splits: allSplits.filter((s) => s.expenseId === e.id).map((s) => ({ memberId: s.memberId, shareAmount: s.shareAmount })),
-  }))
-
-  const balances = calculateBalances(
+  const balances = AppCalculations.calculateGroupBalances(
     activeMembers.map((m) => ({ id: m.id, displayName: m.displayName })),
-    expensesWithSplits,
+    groupExpenses.map((e) => ({ id: e.id, paidBy: e.paidBy })),
+    allSplits,
     groupSettlements.map((s) => ({
       fromMember: s.fromMember,
       toMember: s.toMember,

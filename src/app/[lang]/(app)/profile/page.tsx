@@ -1,7 +1,4 @@
 import { notFound } from 'next/navigation'
-import { db } from '@/db'
-import { groups, groupMembers, expenses } from '@/db/schema'
-import { eq, inArray } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth'
 import { hasLocale } from '@/lib/i18n'
 import { BCIcon, BCCard, BCSectionLabel } from '@/components/bc-ui'
@@ -11,6 +8,7 @@ import { ProfileNameEditor } from './profile-name-editor'
 import { ProfileCurrencyEditor } from './profile-currency-editor'
 import { ArchivedGroupsRow } from './archived-groups-row'
 import { cn, formatCurrency } from '@/lib/utils'
+import { getProfileStatsData } from '@/db/queries/profile'
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -31,29 +29,7 @@ export default async function ProfilePage({ params }: PageProps) {
     getTranslations({ locale: lang, namespace: 'common' }),
   ])
 
-  const myMemberships = await db
-    .select({ groupId: groupMembers.groupId, memberId: groupMembers.id })
-    .from(groupMembers)
-    .where(eq(groupMembers.userId, user.id))
-
-  const groupIds = myMemberships.map((m) => m.groupId)
-  const memberIds = myMemberships.map((m) => m.memberId)
-
-  const [allExpenses, allGroups] = await Promise.all([
-    groupIds.length
-      ? db.select({ amount: expenses.amount, paidBy: expenses.paidBy }).from(expenses).where(inArray(expenses.groupId, groupIds))
-      : Promise.resolve([]),
-    groupIds.length
-      ? db
-          .select({
-            id: groups.id,
-            name: groups.name,
-            archivedAt: groups.archivedAt,
-          })
-          .from(groups)
-          .where(inArray(groups.id, groupIds))
-      : Promise.resolve([]),
-  ])
+  const { allExpenses, allGroups, memberIds } = await getProfileStatsData(user.id)
 
   const activeGroups = allGroups.filter((g) => !g.archivedAt)
   const archivedGroups = allGroups.filter((g) => g.archivedAt)

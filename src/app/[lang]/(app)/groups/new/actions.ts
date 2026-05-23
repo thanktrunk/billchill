@@ -1,8 +1,7 @@
 'use server'
 
-import { db } from '@/db'
-import { groups, groupMembers, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
+import { createGroupWithOwner } from '@/db/mutations/groups'
 
 export async function createGroup(formData: FormData) {
   const user = await requireUser()
@@ -13,27 +12,8 @@ export async function createGroup(formData: FormData) {
     throw new Error('Group name is required')
   }
 
-  const [group] = await db
-    .insert(groups)
-    .values({
-      name: name.trim(),
-      currency: currency || 'USD',
-      createdBy: user.id,
-    })
-    .returning()
-
-  await db.insert(groupMembers).values({
-    groupId: group.id,
-    userId: user.id,
-    displayName: user.displayName,
+  return createGroupWithOwner(user, {
+    name: name.trim(),
+    currency: currency || 'USD',
   })
-
-  await db.insert(notifications).values({
-    userId: user.id,
-    groupId: group.id,
-    type: 'member_added',
-    message: `You created the group "${name.trim()}"`,
-  })
-
-  return group
 }

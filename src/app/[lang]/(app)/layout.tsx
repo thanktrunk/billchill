@@ -5,9 +5,7 @@ import { BCIcon, AVATAR_COLORS } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { hasLocale } from '@/lib/i18n'
 import { getTranslations } from 'next-intl/server'
-import { db } from '@/db'
-import { notifications } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { getUnreadNotificationsCount } from '@/db/queries/app'
 
 export default async function AppLayout({ children, params }: LayoutProps) {
   const { lang } = await params
@@ -19,11 +17,7 @@ export default async function AppLayout({ children, params }: LayoutProps) {
     return <LandingPage lang={lang} />
   }
 
-  const unreadCount = await db
-    .select({ id: notifications.id })
-    .from(notifications)
-    .where(and(eq(notifications.userId, user.id), eq(notifications.isRead, false)))
-    .then((rows) => rows.length)
+  const unreadCount = await getUnreadNotificationsCount(user.id)
 
   return (
     <div className="bg-(--bc-bg) min-h-dvh">

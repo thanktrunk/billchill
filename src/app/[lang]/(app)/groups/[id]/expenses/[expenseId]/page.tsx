@@ -1,10 +1,8 @@
 import { notFound } from 'next/navigation'
-import { db } from '@/db'
-import { groupMembers } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
 import { hasLocale } from '@/lib/i18n'
 import { getExpenseDetail } from './actions'
 import { ExpenseDetailClient } from './expense-detail-client'
+import { getActiveMembersByGroupId } from '@/db/queries/groups'
 
 export default async function ExpenseDetailPage({ params }: PageProps) {
   const { lang, id, expenseId } = await params
@@ -13,10 +11,7 @@ export default async function ExpenseDetailPage({ params }: PageProps) {
   const detail = await getExpenseDetail(expenseId)
   if (!detail) notFound()
 
-  const allMembers = await db
-    .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
-    .from(groupMembers)
-    .where(and(eq(groupMembers.groupId, id), eq(groupMembers.isActive, true)))
+  const allMembers = await getActiveMembersByGroupId(id)
 
   const serializedExpense = {
     id: detail.expense.id,

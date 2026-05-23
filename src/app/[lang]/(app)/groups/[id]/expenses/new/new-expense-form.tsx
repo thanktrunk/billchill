@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES } from '@/components/bc-ui'
 import { addExpense } from './actions'
-import { currencySymbol, suggestedAmounts } from '@/lib/currency'
+import { currencySymbol, formatCurrency, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { CategoryPicker } from '../_components/category-picker'
 import { PaidByPicker } from '../_components/paid-by-picker'
@@ -190,8 +190,7 @@ export function NewExpenseForm({
           <div className="flex gap-2 mt-6 flex-wrap justify-center">
             {suggestedAmounts(currency).map((n) => (
               <BCChip key={n} onClick={() => setAmountStr(String(n))}>
-                {sym}
-                {n}
+                {formatCurrency(n, currency)}
               </BCChip>
             ))}
           </div>

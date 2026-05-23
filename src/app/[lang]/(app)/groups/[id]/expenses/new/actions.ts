@@ -1,19 +1,24 @@
 'use server'
 
-import { db } from '@/db'
-import { expenses, expenseSplits, groups, groupMembers, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
-import { eq, and } from 'drizzle-orm'
+import {
+  createExpense,
+  createExpenseAddedNotifications,
+  createExpenseSplits,
+  findActiveGroupMembers,
+  findGroupById,
+} from '@/db/mutations/expenses'
 
 export async function getGroupMembers(groupId: string) {
   const user = await requireUser()
   await verifyGroupMembership(groupId, user.id)
 
-  const members = await db
-    .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
-    .from(groupMembers)
-    .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true)))
+  const members = (await findActiveGroupMembers(groupId)).map((member) => ({
+    id: member.id,
+    displayName: member.displayName,
+    defaultShare: member.defaultShare,
+  }))
 
   return members
 }
@@ -37,39 +42,31 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
   }
 
   // Get group info for currency
-  const group = await db.query.groups.findFirst({
-    where: eq(groups.id, groupId),
-  })
+  const group = await findGroupById(groupId)
 
   // Get active members for splitting
-  const members = await db
-    .select()
-    .from(groupMembers)
-    .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true)))
+  const members = await findActiveGroupMembers(groupId)
 
   // Calculate splits
   const splits = calculateSplits(members, amount, splitMethod, formData)
 
   // Insert expense
-  const [expense] = await db
-    .insert(expenses)
-    .values({
-      groupId,
-      paidBy,
-      amount: amount.toFixed(2),
-      currency: group?.currency || 'USD',
-      description: description.trim(),
-      category,
-      date,
-      createdBy: user.id,
-    })
-    .returning()
+  const expense = await createExpense({
+    groupId,
+    paidBy,
+    amount: amount.toFixed(2),
+    currency: group?.currency || 'USD',
+    description: description.trim(),
+    category,
+    date,
+    createdBy: user.id,
+  })
 
   // Insert splits
   if (splits.length > 0) {
-    await db.insert(expenseSplits).values(
+    await createExpenseSplits(
+      expense.id,
       splits.map((split) => ({
-        expenseId: expense.id,
         memberId: split.memberId,
         shareAmount: split.amount.toFixed(2),
       })),
@@ -81,7 +78,7 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
   const actorName = actor?.displayName ?? 'Someone'
   const notifRecipients = members.filter((m) => m.userId && m.userId !== user.id)
   if (notifRecipients.length > 0) {
-    await db.insert(notifications).values(
+    await createExpenseAddedNotifications(
       notifRecipients.map((m) => ({
         userId: m.userId!,
         groupId,
