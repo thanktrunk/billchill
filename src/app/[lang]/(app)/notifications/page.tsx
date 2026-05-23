@@ -6,6 +6,7 @@ import { hasLocale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
 import { markAllAsRead } from "./actions";
 import { BCIcon } from "@/components/bc-ui";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -68,51 +69,16 @@ export default async function NotificationsPage({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100dvh",
-        background: "var(--bc-bg)",
-        color: "var(--bc-ink)",
-      }}
-    >
-      {/* Top bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 16px 4px",
-          minHeight: 52,
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 28,
-            color: "var(--bc-ink)",
-            paddingLeft: 6,
-            letterSpacing: "-0.015em",
-          }}
-        >
+    <div className="bc-page">
+      <div className="flex items-center justify-between px-4 pt-2 pb-1 min-h-13">
+        <div className="bc-wordmark pl-1.5">
           {t("title")}
         </div>
         {unreadCount > 0 && (
           <form action={markAllAsRead.bind(null, lang)}>
             <button
               type="submit"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                width: 40,
-                height: 40,
-                borderRadius: 999,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="bc-tap w-10 h-10 rounded-full border-0 bg-transparent cursor-pointer flex items-center justify-center"
               title={t("mark_all_read")}
             >
               <BCIcon name="check" size={20} color="var(--bc-ink)" />
@@ -121,26 +87,9 @@ export default async function NotificationsPage({
         )}
       </div>
 
-      {/* Notification list */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "10px 16px 160px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-        }}
-      >
+      <div className="flex-1 overflow-y-auto px-4 pt-2.5 pb-40 flex flex-col gap-2">
         {userNotifications.length === 0 ? (
-          <div
-            style={{
-              padding: "40px 20px",
-              textAlign: "center",
-              color: "var(--bc-muted)",
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            }}
-          >
+          <div className="py-10 px-5 text-center text-(--bc-muted) font-sans">
             {t("empty")}
           </div>
         ) : (
@@ -154,108 +103,40 @@ export default async function NotificationsPage({
               <Link
                 key={n.id}
                 href={`/${lang}/groups/${n.groupId}`}
-                style={{ textDecoration: "none" }}
+                className="no-underline"
               >
                 <div
-                  style={{
-                    background: n.isRead ? "var(--bc-surface)" : "var(--bc-bg)",
-                    border: `1px solid var(--bc-softhair)`,
-                    borderRadius: 22,
-                    padding: "14px 16px",
-                    cursor: "pointer",
-                  }}
+                  className={cn(
+                    "border border-(--bc-softhair) rounded-[22px] px-4 py-3.5 cursor-pointer",
+                    n.isRead ? "bg-(--bc-surface)" : "bg-(--bc-bg)",
+                  )}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 999,
-                        background: "var(--bc-chip)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        position: "relative",
-                      }}
-                    >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-(--bc-chip) flex items-center justify-center shrink-0 relative">
                       <BCIcon name={iconName} size={18} color="var(--bc-ink)" strokeWidth={1.6} />
                       {!n.isRead && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: -1,
-                            right: -1,
-                            width: 10,
-                            height: 10,
-                            borderRadius: 999,
-                            background: "var(--bc-accent)",
-                            boxShadow: "0 0 0 2px var(--bc-bg)",
-                          }}
-                        />
+                        <div className="absolute -top-px -right-px w-2.5 h-2.5 rounded-full bg-(--bc-accent) shadow-[0_0_0_2px_var(--bc-bg)]" />
                       )}
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="flex-1 min-w-0">
                       <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: 6,
-                          marginBottom: 4,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                        }}
+                        className="flex items-baseline gap-1.5 mb-1 whitespace-nowrap overflow-hidden"
                       >
-                        <div
-                          style={{
-                            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                            fontSize: 10,
-                            color: "var(--bc-muted)",
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                            fontWeight: 500,
-                            flexShrink: 0,
-                          }}
-                        >
+                        <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.12em] uppercase font-medium shrink-0">
                           {label}
                         </div>
                         {groupName && (
-                          <div
-                            style={{
-                              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                              fontSize: 11,
-                              color: "var(--bc-muted)",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
+                          <div className="font-sans text-[11px] text-(--bc-muted) whitespace-nowrap overflow-hidden text-ellipsis">
                             · {groupName}
                           </div>
                         )}
-                        <div style={{ flex: 1 }} />
-                        <div
-                          style={{
-                            fontFamily: "var(--font-jetbrains-mono), monospace",
-                            fontSize: 10,
-                            color: "var(--bc-muted)",
-                            letterSpacing: "0.04em",
-                            flexShrink: 0,
-                          }}
-                        >
+                        <div className="flex-1" />
+                        <div className="font-mono text-[10px] text-(--bc-muted) tracking-[0.04em] shrink-0">
                           {time}
                         </div>
                       </div>
-                      <div
-                        style={{
-                          fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                          fontSize: 14.5,
-                          color: "var(--bc-ink)",
-                          letterSpacing: "-0.005em",
-                          lineHeight: 1.35,
-                        }}
-                      >
+                      <div className="font-sans text-[14.5px] text-(--bc-ink) tracking-[-0.005em] leading-[1.35]">
                         {n.message}
                       </div>
                     </div>

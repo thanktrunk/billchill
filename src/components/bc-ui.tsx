@@ -129,7 +129,7 @@ export function BCAvatarStack({
   const show = members.slice(0, max);
   const extra = members.length - show.length;
   return (
-    <div style={{ display: "flex" }}>
+    <div className="flex">
       {show.map((m, i) => (
         <div key={m.id} style={{ marginLeft: i === 0 ? 0 : -size * 0.32 }}>
           <BCAvatar name={m.displayName} seed={m.id} size={size} ring />
@@ -235,14 +235,13 @@ export function BCCard({
   return (
     <div
       onClick={onClick}
-      className={cn(onClick && "bc-tap cursor-pointer", className)}
-      style={{
-        background: "var(--bc-surface)",
-        borderRadius: 22,
-        border: "1px solid var(--bc-softhair)",
-        padding: padded ? 18 : 0,
-        ...style,
-      }}
+      className={cn(
+        "bg-(--bc-surface) rounded-[22px] border border-(--bc-softhair)",
+        padded ? "p-[18px]" : "p-0",
+        onClick && "bc-tap cursor-pointer",
+        className,
+      )}
+      style={style}
     >
       {children}
     </div>
@@ -259,15 +258,8 @@ export function BCSectionLabel({
 }) {
   return (
     <div
-      style={{
-        fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-        fontSize: 11,
-        color: "var(--bc-muted)",
-        textTransform: "uppercase",
-        letterSpacing: "0.14em",
-        fontWeight: 500,
-        ...style,
-      }}
+      className="font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.14em] font-medium"
+      style={style}
     >
       {children}
     </div>
@@ -287,47 +279,21 @@ export function BCTopBar({
   subtitle?: string;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "8px 16px 4px",
-        minHeight: 52,
-      }}
-    >
-      <div style={{ minWidth: 40, display: "flex", alignItems: "center" }}>{left}</div>
-      <div style={{ textAlign: "center", flex: 1 }}>
+    <div className="flex items-center justify-between px-4 pt-2 pb-1 min-h-13">
+      <div className="min-w-10 flex items-center">{left}</div>
+      <div className="text-center flex-1">
         {title && (
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontWeight: 500,
-              fontSize: 15,
-              color: "var(--bc-ink)",
-              letterSpacing: "-0.005em",
-            }}
-          >
+          <div className="font-sans font-medium text-[15px] text-(--bc-ink) tracking-[-0.005em]">
             {title}
           </div>
         )}
         {subtitle && (
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 11,
-              color: "var(--bc-muted)",
-              marginTop: 2,
-              letterSpacing: "0.04em",
-            }}
-          >
+          <div className="font-sans text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">
             {subtitle}
           </div>
         )}
       </div>
-      <div style={{ minWidth: 40, display: "flex", justifyContent: "flex-end", gap: 4 }}>
-        {right}
-      </div>
+      <div className="min-w-10 flex justify-end gap-1">{right}</div>
     </div>
   );
 }
@@ -348,56 +314,25 @@ export function BCIconBtn({
     <>
       <BCIcon name={name} size={20} color="var(--bc-ink)" />
       {badge != null && badge > 0 && (
-        <span
-          style={{
-            position: "absolute",
-            top: 6,
-            right: 6,
-            minWidth: 14,
-            height: 14,
-            padding: "0 4px",
-            background: "var(--bc-accent)",
-            color: "#fff",
-            borderRadius: 999,
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 9,
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 0 2px var(--bc-bg)",
-          }}
-        >
+        <span className="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-1 bg-(--bc-accent) text-white rounded-full font-sans text-[9px] font-bold flex items-center justify-center shadow-[0_0_0_2px_var(--bc-bg)]">
           {badge}
         </span>
       )}
     </>
   );
 
-  const baseStyle: React.CSSProperties = {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "var(--bc-ink)",
-    position: "relative",
-  };
+  const baseClass = "bc-tap w-10 h-10 rounded-full border-0 bg-transparent cursor-pointer flex items-center justify-center text-(--bc-ink) relative";
 
   if (href) {
     return (
-      <a href={href} className="bc-tap" style={baseStyle}>
+      <a href={href} className={baseClass}>
         {inner}
       </a>
     );
   }
 
   return (
-    <button onClick={onClick} className="bc-tap" style={baseStyle}>
+    <button onClick={onClick} className={baseClass}>
       {inner}
     </button>
   );
@@ -423,37 +358,24 @@ export function BCButton({
   type?: "button" | "submit";
   href?: string;
 }) {
-  const styles: Record<string, React.CSSProperties> = {
-    primary: { background: "var(--bc-ink)", color: "var(--bc-bg)" },
-    accent:  { background: "var(--bc-accent)", color: "#fff" },
-    ghost:   { background: "transparent", color: "var(--bc-ink)", border: "1px solid var(--bc-hair)" },
-    quiet:   { background: "var(--bc-chip)", color: "var(--bc-ink)" },
-    danger:  { background: "transparent", color: "var(--bc-neg)", border: "1px solid var(--bc-softhair)" },
+  const variantClass: Record<string, string> = {
+    primary: "bg-(--bc-ink) text-(--bc-bg) border-0",
+    accent:  "bg-(--bc-accent) text-white border-0",
+    ghost:   "bg-transparent text-(--bc-ink) border border-(--bc-hair)",
+    quiet:   "bg-(--bc-chip) text-(--bc-ink) border-0",
+    danger:  "bg-transparent text-(--bc-neg) border border-(--bc-softhair)",
   };
 
-  const s = styles[variant];
-  const baseStyle: React.CSSProperties = {
-    ...s,
-    padding: "15px 22px",
-    borderRadius: 999,
-    cursor: disabled ? "not-allowed" : "pointer",
-    fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-    fontWeight: 500,
-    fontSize: 16,
-    letterSpacing: "-0.005em",
-    width: full ? "100%" : "auto",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    opacity: disabled ? 0.4 : 1,
-    border: s.border,
-    textDecoration: "none",
-  };
+  const cls = cn(
+    "bc-tap px-5.5 py-[15px] rounded-full font-sans font-medium text-base tracking-[-0.005em] inline-flex items-center justify-center gap-2.5 no-underline",
+    variantClass[variant],
+    full && "w-full",
+    disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
+  );
 
   if (href) {
     return (
-      <a href={href} className="bc-tap" style={baseStyle}>
+      <a href={href} className={cls}>
         {icon}
         {children}
       </a>
@@ -461,7 +383,7 @@ export function BCButton({
   }
 
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className="bc-tap" style={baseStyle}>
+    <button type={type} onClick={onClick} disabled={disabled} className={cls}>
       {icon}
       {children}
     </button>
@@ -472,47 +394,13 @@ export function BCButton({
 export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "del"];
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 4,
-        padding: "0 12px 10px",
-      }}
-    >
+    <div className="grid grid-cols-3 gap-1 px-3 pb-[10px]">
       {keys.map((k) => (
         <button
           key={k}
           type="button"
           onClick={() => onKey(k)}
-          className="bc-tap"
-          style={{
-            height: 52,
-            border: "none",
-            background: "transparent",
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 30,
-            fontWeight: 400,
-            color: "var(--bc-ink)",
-            borderRadius: 16,
-            cursor: "pointer",
-            fontVariantNumeric: "tabular-nums",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          onMouseDown={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "var(--bc-chip)";
-          }}
-          onMouseUp={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-          }}
-          onTouchStart={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "var(--bc-chip)";
-          }}
-          onTouchEnd={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-          }}
+          className="bc-tap h-[52px] border-0 bg-transparent active:bg-(--bc-chip) font-serif text-[30px] font-normal text-(--bc-ink) rounded-[16px] cursor-pointer tabular-nums flex items-center justify-center"
         >
           {k === "del" ? (
             <BCIcon name="back" size={20} color="var(--bc-ink)" strokeWidth={1.6} />
@@ -537,7 +425,7 @@ export function BCAmountDisplay({
 }) {
   const display = value || "0";
   return (
-    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center" }}>
+    <div className="flex items-baseline justify-center">
       <span
         style={{
           fontFamily: "var(--font-newsreader), serif",
@@ -581,37 +469,18 @@ export function BCTabs({
   onChange: (k: string) => void;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 4,
-        padding: 4,
-        background: "var(--bc-chip)",
-        borderRadius: 18,
-        margin: "0 16px",
-      }}
-    >
+    <div className="flex gap-1 p-1 bg-(--bc-chip) rounded-[18px] mx-4">
       {tabs.map((t) => (
         <button
           key={t.k}
           type="button"
           onClick={() => onChange(t.k)}
-          className="bc-tap"
-          style={{
-            flex: 1,
-            border: "none",
-            cursor: "pointer",
-            background: active === t.k ? "var(--bc-surface)" : "transparent",
-            color: "var(--bc-ink)",
-            padding: "10px 12px",
-            borderRadius: 14,
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontWeight: 500,
-            fontSize: 13,
-            letterSpacing: "-0.005em",
-            boxShadow: active === t.k ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
-            transition: "background 160ms",
-          }}
+          className={cn(
+            "bc-tap flex-1 border-0 cursor-pointer text-(--bc-ink) px-3 py-2.5 rounded-[14px] font-sans font-medium text-[13px] tracking-[-0.005em] transition-[background] duration-[160ms]",
+            active === t.k
+              ? "bg-(--bc-surface) shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+              : "bg-transparent",
+          )}
         >
           {t.label}
         </button>
@@ -634,20 +503,10 @@ export function BCChip({
     <button
       type="button"
       onClick={onClick}
-      className="bc-tap"
-      style={{
-        border: "none",
-        cursor: "pointer",
-        background: active ? "var(--bc-ink)" : "var(--bc-chip)",
-        color: active ? "var(--bc-bg)" : "var(--bc-ink)",
-        padding: "8px 14px",
-        borderRadius: 999,
-        fontSize: 13,
-        fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-        fontWeight: 500,
-        letterSpacing: "-0.005em",
-        flexShrink: 0,
-      }}
+      className={cn(
+        "bc-tap border-0 cursor-pointer px-3.5 py-2 rounded-full text-[13px] font-sans font-medium tracking-[-0.005em] shrink-0",
+        active ? "bg-(--bc-ink) text-(--bc-bg)" : "bg-(--bc-chip) text-(--bc-ink)",
+      )}
     >
       {children}
     </button>
@@ -661,9 +520,8 @@ export function BCSpinner({ color = "var(--bc-accent)" }: { color?: string }) {
       width="40"
       height="40"
       viewBox="0 0 40 40"
-      style={{ animation: "bcSpin 900ms linear infinite" }}
+      className="animate-bc-spin"
     >
-      <style>{`@keyframes bcSpin { to { transform: rotate(360deg); } }`}</style>
       <circle cx="20" cy="20" r="16" stroke={color} strokeOpacity="0.18" strokeWidth="3" fill="none" />
       <path d="M20 4 A 16 16 0 0 1 36 20" stroke={color} strokeWidth="3" strokeLinecap="round" fill="none" />
     </svg>
@@ -684,43 +542,22 @@ export function BCBalanceBadge({
   const owes = amount < -0.005;
   const settled = !isOwed && !owes;
   return (
-    <div style={{ textAlign: "right" }}>
+    <div className="text-right">
       {settled ? (
-        <div
-          style={{
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 12,
-            color: "var(--bc-muted)",
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
+        <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">
           Settled
         </div>
       ) : (
         <>
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 10,
-              color: "var(--bc-muted)",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.08em] uppercase whitespace-nowrap">
             {isOwed ? "You're owed" : "You owe"}
           </div>
           <div
-            style={{
-              fontFamily: "var(--font-newsreader), serif",
-              fontSize: size,
-              lineHeight: 1,
-              color: isOwed ? "var(--bc-pos)" : "var(--bc-neg)",
-              fontVariantNumeric: "tabular-nums",
-              letterSpacing: "-0.01em",
-              marginTop: 2,
-            }}
+            className={cn(
+              "font-serif leading-none tabular-nums tracking-[-0.01em] mt-0.5",
+              isOwed ? "text-(--bc-pos)" : "text-(--bc-neg)",
+            )}
+            style={{ fontSize: size }}
           >
             {currency}{Math.abs(amount).toFixed(2)}
           </div>

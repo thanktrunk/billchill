@@ -7,6 +7,7 @@ import { hasLocale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
 import { calculateBalances } from "@/lib/balance";
 import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel } from "@/components/bc-ui";
+import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
 
 function currencySymbol(code: string) {
@@ -126,147 +127,53 @@ export default async function GroupsPage({
   const heroCurrency = currencySymbol(groupRows[0]?.group?.currency ?? "USD");
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100dvh",
-        background: "var(--bc-bg)",
-        color: "var(--bc-ink)",
-      }}
-    >
-      {/* Top bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 16px 4px",
-          minHeight: 52,
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 28,
-            color: "var(--bc-ink)",
-            letterSpacing: "-0.015em",
-            paddingLeft: 6,
-          }}
-        >
+    <div className="bc-page">
+      <div className="flex items-center justify-between px-4 pt-4 pb-1 min-h-13">
+        <div className="bc-wordmark pl-1.5">
           {tCommon("app_name")}
         </div>
         <Link
           href={`/${lang}/groups/new`}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 999,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--bc-ink)",
-          }}
-          className="bc-tap"
+          className="bc-tap w-10 h-10 rounded-full flex items-center justify-center text-(--bc-ink)"
         >
           <BCIcon name="users" size={20} color="var(--bc-ink)" />
         </Link>
       </div>
 
-      {/* Balance hero */}
-      <div style={{ padding: "8px 16px 0" }}>
-        <div
-          style={{
-            background: "var(--bc-ink)",
-            color: "var(--bc-bg)",
-            borderRadius: 28,
-            padding: "20px 22px",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 11,
-              color: "rgba(245,241,234,0.55)",
-              textTransform: "uppercase",
-              letterSpacing: "0.14em",
-              marginBottom: 6,
-            }}
-          >
+      <div className="px-4 pt-2">
+        <div className="bg-(--bc-ink) text-(--bc-bg) rounded-[28px] px-5.5 py-5 relative overflow-hidden">
+          <div className="font-sans text-[11px] text-[rgba(245,241,234,0.55)] uppercase tracking-[0.14em] mb-1.5">
             {tHome("your_balance")}
           </div>
           <div>
             <div
-              style={{
-                fontFamily: "var(--font-newsreader), serif",
-                fontSize: 60,
-                lineHeight: 0.95,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: "-0.02em",
-                color: netBalance >= 0 ? "#E8DCC8" : "#F2A788",
-              }}
+              className={cn(
+                "font-serif text-[60px] leading-[0.95] tabular-nums tracking-[-0.02em]",
+                netBalance >= 0 ? "text-[#E8DCC8]" : "text-[#F2A788]",
+              )}
             >
-              <span style={{ fontSize: 32, opacity: 0.6, marginRight: 4 }}>{heroCurrency}</span>
+              <span className="text-[32px] opacity-60 mr-1">{heroCurrency}</span>
               {Math.abs(netBalance).toFixed(2).split(".")[0]}
-              <span style={{ fontSize: 32, opacity: 0.55 }}>
+              <span className="text-[32px] opacity-[0.55]">
                 .{Math.abs(netBalance).toFixed(2).split(".")[1]}
               </span>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 14, marginTop: 18 }}>
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                  fontSize: 11,
-                  opacity: 0.5,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
+          <div className="flex gap-3.5 mt-[18px]">
+            <div className="flex-1">
+              <div className="font-sans text-[11px] opacity-50 tracking-[0.08em] uppercase">
                 {tHome("owed_to_you")}
               </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
-                  fontSize: 16,
-                  fontWeight: 500,
-                  marginTop: 4,
-                  color: "#9CC8A8",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
+              <div className="font-mono text-base font-medium mt-1 text-[#9CC8A8] tabular-nums">
                 {heroCurrency}{totalOwed.toFixed(2)}
               </div>
             </div>
-            <div style={{ width: 1, background: "rgba(245,241,234,0.16)" }} />
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                  fontSize: 11,
-                  opacity: 0.5,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
+            <div className="w-px bg-[rgba(245,241,234,0.16)]" />
+            <div className="flex-1">
+              <div className="font-sans text-[11px] opacity-50 tracking-[0.08em] uppercase">
                 {tHome("you_owe")}
               </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-jetbrains-mono), monospace",
-                  fontSize: 16,
-                  fontWeight: 500,
-                  marginTop: 4,
-                  color: "#F2A788",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
+              <div className="font-mono text-base font-medium mt-1 text-[#F2A788] tabular-nums">
                 {heroCurrency}{totalOwe.toFixed(2)}
               </div>
             </div>
@@ -274,46 +181,16 @@ export default async function GroupsPage({
         </div>
       </div>
 
-      {/* Groups section header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "22px 22px 10px",
-        }}
-      >
+      <div className="flex items-center justify-between px-5.5 pt-[22px] pb-[10px]">
         <BCSectionLabel>{tHome("groups_section")}</BCSectionLabel>
-        <div
-          style={{
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 12,
-            color: "var(--bc-muted)",
-          }}
-        >
+        <div className="font-sans text-xs text-(--bc-muted)">
           {tHome("active", { 0: groupRows.length })}
         </div>
       </div>
 
-      {/* Group list */}
-      <div
-        style={{
-          flex: 1,
-          padding: "0 16px 160px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
+      <div className="flex-1 px-4 pb-40 flex flex-col gap-2.5">
         {groupRows.length === 0 ? (
-          <div
-            style={{
-              padding: "40px 20px",
-              textAlign: "center",
-              color: "var(--bc-muted)",
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            }}
-          >
+          <div className="py-10 px-5 text-center text-(--bc-muted) font-sans">
             {tHome("empty")}
           </div>
         ) : (
@@ -361,84 +238,38 @@ function GroupRowCard({
   const isSettled = !isOwed && !owes;
 
   return (
-    <Link href={`/${lang}/groups/${group.id}`} style={{ textDecoration: "none" }}>
-      <BCCard padded={false} style={{ padding: "14px 16px" }} className="bc-tap">
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <Link href={`/${lang}/groups/${group.id}`} className="no-underline">
+      <BCCard padded={false} className="bc-tap px-4 py-3.5">
+        <div className="flex items-center gap-3.5">
           <BCGroupGlyph name={group.name} size={44} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontWeight: 500,
-                fontSize: 16,
-                color: "var(--bc-ink)",
-                letterSpacing: "-0.01em",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
+          <div className="flex-1 min-w-0">
+            <div className="font-sans font-medium text-base text-(--bc-ink) tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
               {group.name}
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                marginTop: 4,
-              }}
-            >
+            <div className="flex items-center gap-2 mt-1">
               <BCAvatarStack members={members} size={20} max={4} />
               {lastActivity && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                    fontSize: 12,
-                    color: "var(--bc-muted)",
-                  }}
-                >
+                <div className="font-sans text-xs text-(--bc-muted)">
                   · {relativeTime(lastActivity, lang)}
                 </div>
               )}
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div className="text-right">
             {isSettled ? (
-              <div
-                style={{
-                  fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                  fontSize: 12,
-                  color: "var(--bc-muted)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
+              <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">
                 {settled}
               </div>
             ) : (
               <>
-                <div
-                  style={{
-                    fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                    fontSize: 10,
-                    color: "var(--bc-muted)",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.08em] uppercase whitespace-nowrap">
                   {isOwed ? youreOwed : youOweShort}
                 </div>
                 <div
-                  style={{
-                    fontFamily: "var(--font-newsreader), serif",
-                    fontSize: 26,
-                    lineHeight: 1,
-                    color: isOwed ? "var(--bc-pos)" : "var(--bc-neg)",
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "-0.01em",
-                    marginTop: 2,
-                  }}
+                  className={cn(
+                    "font-serif text-[26px] leading-none tabular-nums tracking-[-0.01em] mt-0.5",
+                    isOwed ? "text-(--bc-pos)" : "text-(--bc-neg)",
+                  )}
                 >
                   {sym}{Math.abs(myBalance).toFixed(2)}
                 </div>

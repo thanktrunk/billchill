@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { BottomNav } from "@/components/bottom-nav";
 import { notFound } from "next/navigation";
 import { BCIcon } from "@/components/bc-ui";
+import { cn } from "@/lib/utils";
 import { hasLocale } from "@/lib/i18n";
 import { getTranslations } from "next-intl/server";
 
@@ -22,16 +23,8 @@ export default async function AppLayout({
   }
 
   return (
-    <div style={{ background: "var(--bc-bg)", minHeight: "100dvh" }}>
-      <div
-        className="relative min-h-dvh"
-        style={{
-          maxWidth: 480,
-          margin: "0 auto",
-          background: "var(--bc-bg)",
-          color: "var(--bc-ink)",
-        }}
-      >
+    <div className="bg-(--bc-bg) min-h-dvh">
+      <div className="relative min-h-dvh max-w-120 mx-auto bg-(--bc-bg) text-(--bc-ink)">
         <main className="pb-safe-nav">{children}</main>
         <BottomNav />
       </div>
@@ -52,143 +45,54 @@ async function LandingPage({ lang }: { lang: string }) {
   ];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100dvh",
-        background: "var(--bc-bg)",
-        color: "var(--bc-ink)",
-        maxWidth: 480,
-        margin: "0 auto",
-        padding: "env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px)",
-      }}
-    >
-      {/* Top — brand + lang indicator */}
-      <div
-        style={{
-          padding: "4px 22px 0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 28,
-            color: "var(--bc-ink)",
-            letterSpacing: "-0.015em",
-          }}
-        >
+    <div className="bc-page max-w-120 mx-auto pt-safe pb-safe">
+      <div className="flex items-center justify-between px-5.5 pt-1">
+        <div className="bc-wordmark">
           billchill
         </div>
-        <div
-          style={{
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 11,
-            color: "var(--bc-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.14em",
-          }}
-        >
+        <div className="font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.14em]">
           {lang === "vi" ? "VN" : "EN"}
         </div>
       </div>
 
-      {/* Hero */}
-      <div style={{ padding: "24px 22px 0" }}>
+      <div className="px-5.5 pt-6">
         <LedgerHero />
       </div>
 
-      {/* Tagline */}
-      <div style={{ padding: "28px 26px 0" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 40,
-            lineHeight: 1.02,
-            color: "var(--bc-ink)",
-            letterSpacing: "-0.025em",
-          }}
-        >
+      <div className="px-6.5 pt-7">
+        <div className="font-serif text-[40px] leading-[1.02] text-(--bc-ink) tracking-tight">
           {tagline.map((line, i) => (
             <div
               key={i}
-              style={{
-                fontStyle: i === 1 ? "italic" : "normal",
-                color: i === 1 ? "var(--bc-accent)" : "var(--bc-ink)",
-                whiteSpace: "nowrap",
-              }}
+              className={cn(
+                "whitespace-nowrap",
+                i === 1 ? "italic text-(--bc-accent)" : "text-(--bc-ink)",
+              )}
             >
               {line}
             </div>
           ))}
         </div>
-        <div
-          style={{
-            marginTop: 14,
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 15,
-            color: "var(--bc-muted)",
-            letterSpacing: "-0.005em",
-            lineHeight: 1.45,
-            maxWidth: 320,
-          }}
-        >
+        <div className="mt-3.5 font-sans text-[15px] text-(--bc-muted) tracking-[-0.005em] leading-[1.45] max-w-80">
           {L("subhead")}
         </div>
       </div>
 
-      {/* Features */}
-      <div style={{ flex: 1 }} />
-      <div
-        style={{
-          padding: "12px 26px 0",
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-        }}
-      >
+      <div className="flex-1" />
+      <div className="flex flex-col gap-3.5 px-6.5 pt-3">
         {features.map((f) => (
-          <div key={f.t} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div key={f.t} className="flex items-center gap-3.5">
             <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
-                flexShrink: 0,
-                background: f.tint,
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "var(--font-newsreader), serif",
-                fontSize: 20,
-              }}
+              className="w-9 h-9 rounded-xl shrink-0 text-white flex items-center justify-center font-serif text-[20px]"
+              style={{ background: f.tint }}
             >
               {f.glyph}
             </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                  fontWeight: 500,
-                  fontSize: 14,
-                  color: "var(--bc-ink)",
-                  letterSpacing: "-0.005em",
-                }}
-              >
+            <div className="min-w-0 flex-1">
+              <div className="font-sans font-medium text-sm text-(--bc-ink) tracking-[-0.005em]">
                 {f.t}
               </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                  fontSize: 12,
-                  color: "var(--bc-muted)",
-                  marginTop: 2,
-                }}
-              >
+              <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
                 {f.b}
               </div>
             </div>
@@ -196,48 +100,15 @@ async function LandingPage({ lang }: { lang: string }) {
         ))}
       </div>
 
-      {/* CTAs */}
-      <div
-        style={{
-          padding: "24px 22px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
+      <div className="flex flex-col gap-2.5 px-5.5 pt-6 pb-4">
         <a
           href={`/auth/login?returnTo=/${lang}/groups`}
-          style={{
-            background: "var(--bc-ink)",
-            color: "var(--bc-bg)",
-            border: "none",
-            padding: "16px 22px",
-            borderRadius: 999,
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontWeight: 500,
-            fontSize: 16,
-            letterSpacing: "-0.005em",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            textDecoration: "none",
-          }}
+          className="bg-(--bc-ink) text-(--bc-bg) border-0 px-5.5 py-4 rounded-full font-sans font-medium text-base tracking-[-0.005em] flex items-center justify-center gap-2.5 no-underline"
         >
           {L("cta_login")}
           <BCIcon name="arrowR" size={18} color="var(--bc-bg)" strokeWidth={2.2} />
         </a>
-        <div
-          style={{
-            marginTop: 4,
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 11,
-            color: "var(--bc-muted)",
-            textAlign: "center",
-            lineHeight: 1.4,
-            letterSpacing: "-0.005em",
-          }}
-        >
+        <div className="mt-1 font-sans text-[11px] text-(--bc-muted) text-center leading-[1.4] tracking-[-0.005em]">
           {L("legal")}
         </div>
       </div>
@@ -247,161 +118,48 @@ async function LandingPage({ lang }: { lang: string }) {
 
 function LedgerHero() {
   return (
-    <div style={{ position: "relative", height: 168 }}>
-      {/* Receipt 3 (back) */}
-      <div
-        style={{
-          position: "absolute",
-          left: 20,
-          top: 16,
-          width: 220,
-          height: 132,
-          background: "var(--bc-surface)",
-          border: "1px solid var(--bc-softhair)",
-          borderRadius: 16,
-          transform: "rotate(-6deg)",
-          padding: 14,
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-        }}
-      >
+    <div className="relative h-42">
+      <div className="absolute left-5 top-4 w-55 h-33 bg-(--bc-surface) border border-(--bc-softhair) rounded-[16px] -rotate-6 p-3.5 box-border flex flex-col gap-2">
         <ReceiptLine w="60%" />
         <ReceiptLine w="42%" />
         <ReceiptLine w="50%" />
-        <div style={{ flex: 1 }} />
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 22,
-            color: "#3F6E55",
-            letterSpacing: "-0.01em",
-            alignSelf: "flex-end",
-          }}
-        >
+        <div className="flex-1" />
+        <div className="font-serif text-[22px] text-[#3F6E55] tracking-[-0.01em] self-end">
           $84.30
         </div>
       </div>
-      {/* Receipt 2 (mid) — with avatar stack */}
-      <div
-        style={{
-          position: "absolute",
-          right: 12,
-          top: 6,
-          width: 230,
-          height: 138,
-          background: "var(--bc-surface)",
-          border: "1px solid var(--bc-softhair)",
-          borderRadius: 16,
-          transform: "rotate(4deg)",
-          padding: 14,
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
-        }}
-      >
+      <div className="absolute right-3 top-1.5 w-57.5 h-34.5 bg-(--bc-surface) border border-(--bc-softhair) rounded-[16px] rotate-[4deg] p-3.5 box-border flex flex-col gap-2 shadow-[0_6px_18px_rgba(0,0,0,0.04)]">
         <ReceiptLine w="70%" />
         <ReceiptLine w="55%" />
-        <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+        <div className="flex gap-1 mt-0.5">
           {["S", "J", "N"].map((initial, i) => (
             <div
               key={i}
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 999,
-                background: ["#E5572F", "#3F6E55", "#B7873A"][i],
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontSize: 9,
-                fontWeight: 600,
-              }}
+              className="w-5 h-5 rounded-full text-white flex items-center justify-center font-sans text-[9px] font-semibold"
+              style={{ background: ["#E5572F", "#3F6E55", "#B7873A"][i] }}
             >
               {initial}
             </div>
           ))}
         </div>
-        <div style={{ flex: 1 }} />
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 28,
-            color: "var(--bc-ink)",
-            letterSpacing: "-0.015em",
-          }}
-        >
+        <div className="flex-1" />
+        <div className="font-serif text-[28px] text-(--bc-ink) tracking-[-0.015em]">
           €88.50
         </div>
       </div>
-      {/* Receipt 1 (front) — accent */}
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          bottom: 0,
-          width: 200,
-          height: 110,
-          transform: "translateX(-50%) rotate(-1.5deg)",
-          background: "var(--bc-accent)",
-          color: "#fff",
-          borderRadius: 16,
-          padding: 14,
-          boxSizing: "border-box",
-          boxShadow: "0 14px 30px rgba(229,87,47,0.25)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-            fontSize: 10,
-            color: "rgba(255,255,255,0.7)",
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-          }}
-        >
+      <div className="absolute left-1/2 bottom-0 w-50 h-27.5 -translate-x-1/2 rotate-[-1.5deg] bg-(--bc-accent) text-white rounded-[16px] p-3.5 box-border shadow-[0_14px_30px_rgba(229,87,47,0.25)] flex flex-col">
+        <div className="font-sans text-[10px] text-[rgba(255,255,255,0.7)] uppercase tracking-[0.12em]">
           Settle up
         </div>
-        <div
-          style={{
-            fontFamily: "var(--font-newsreader), serif",
-            fontSize: 36,
-            marginTop: 4,
-            letterSpacing: "-0.02em",
-          }}
-        >
+        <div className="font-serif text-[36px] mt-1 tracking-[-0.02em]">
           $1,270.22
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.25)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <div className="flex-1" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-[22px] h-[22px] rounded-full bg-[rgba(255,255,255,0.25)] flex items-center justify-center">
             <BCIcon name="check" size={12} color="#fff" strokeWidth={2.6} />
           </div>
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 12,
-              color: "rgba(255,255,255,0.85)",
-              letterSpacing: "-0.005em",
-            }}
-          >
+          <div className="font-sans text-xs text-[rgba(255,255,255,0.85)] tracking-[-0.005em]">
             4 people · 1 transfer
           </div>
         </div>
@@ -413,7 +171,8 @@ function LedgerHero() {
 function ReceiptLine({ w }: { w: string }) {
   return (
     <div
-      style={{ width: w, height: 6, borderRadius: 6, background: "var(--bc-chip)" }}
+      className="h-1.5 rounded-[6px] bg-(--bc-chip)"
+      style={{ width: w }}
     />
   );
 }

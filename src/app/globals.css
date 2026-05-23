@@ -243,4 +243,27 @@
     from { opacity: 0.001; transform: translateX(24px); }
     to { opacity: 1; transform: none; }
   }
+  /* Reusable layout / typography utilities */
+  .bc-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background: var(--bc-bg);
+    color: var(--bc-ink);
+  }
+  .bc-wordmark {
+    font-family: var(--font-newsreader), serif;
+    font-size: 1.75rem;
+    color: var(--bc-ink);
+    letter-spacing: -0.015em;
+  }
+  .bc-nav-bottom {
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .animate-bc-spin {
+    animation: bcSpin 900ms linear infinite;
+  }
+  @keyframes bcSpin {
+    to { transform: rotate(360deg); }
+  }
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BCIcon } from "@/components/bc-ui";
+import { cn } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
 
 export function BottomNav() {
@@ -21,56 +22,20 @@ export function BottomNav() {
   }
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
-        display: "flex",
-        justifyContent: "center",
-        pointerEvents: "none",
-        zIndex: 20,
-      }}
-    >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 4,
-          padding: 6,
-          background: "var(--bc-ink)",
-          color: "var(--bc-bg)",
-          borderRadius: 999,
-          pointerEvents: "auto",
-          boxShadow: "0 14px 30px rgba(0,0,0,0.18), 0 4px 10px rgba(0,0,0,0.08)",
-        }}
-      >
+    <nav className="fixed left-0 right-0 bc-nav-bottom flex justify-center pointer-events-none z-20">
+      <div className="inline-flex items-center gap-1 p-1.5 bg-(--bc-ink) text-(--bc-bg) rounded-full pointer-events-auto shadow-[0_14px_30px_rgba(0,0,0,0.18),0_4px_10px_rgba(0,0,0,0.08)]">
         {tabs.map((t) => {
           const sel = isActive(t.href);
           return (
             <Link
               key={t.k}
               href={t.href}
-              className="bc-tap"
-              style={{
-                border: "none",
-                cursor: "pointer",
-                background: sel ? "var(--bc-bg)" : "transparent",
-                color: sel ? "var(--bc-ink)" : "rgba(245,241,234,0.8)",
-                padding: sel ? "10px 18px" : "10px 14px",
-                borderRadius: 999,
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontSize: 13,
-                fontWeight: 500,
-                letterSpacing: "-0.005em",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                transition: "background 200ms, padding 200ms, color 200ms",
-                whiteSpace: "nowrap",
-                textDecoration: "none",
-              }}
+              className={cn(
+                "bc-tap cursor-pointer rounded-full font-sans text-[13px] font-medium tracking-[-0.005em] inline-flex items-center gap-2 transition-[background,padding,color] duration-200 whitespace-nowrap no-underline",
+                sel
+                  ? "bg-(--bc-bg) text-(--bc-ink) px-4.5 py-2.5"
+                  : "bg-transparent text-[rgba(245,241,234,0.8)] px-3.5 py-2.5",
+              )}
             >
               <BCIcon
                 name={t.icon}

@@ -72,6 +72,16 @@ These rules were distilled from a full codebase review. Follow them for all new 
 
 - **Pre-index data that is looked up inside a render loop.** A `splits.filter(s => s.expenseId === id)` call inside a list render is O(n×m). Build a `Map<id, Item[]>` once before the return and use `.get()` inside the loop.
 
+### Styling — Tailwind first
+
+- **Tailwind classes are the default.** Never write an inline `style={{}}` for a value that Tailwind can express — including arbitrary values (`text-[11px]`, `rounded-[22px]`) and CSS variable references.
+- **CSS variable shorthand.** In Tailwind v4, reference design tokens as `bg-(--bc-ink)`, `text-(--bc-muted)`, `border-(--bc-softhair)` — not `bg-[var(--bc-ink)]`. Use the shorter form everywhere.
+- **Scale tokens over arbitrary pixels.** Prefer Tailwind scale tokens (`py-2.5`, `gap-3.5`, `max-w-120`, `tracking-tight`) over arbitrary values (`py-[10px]`, `gap-[14px]`, `max-w-[480px]`) whenever the scale matches.
+- **CSS utility classes for repeated patterns.** If the same combination of classes appears in 3+ places, add a named utility to `globals.css` `@layer utilities`. Current utilities: `.bc-page` (full-height page root), `.bc-wordmark` (serif app name heading), `.bc-nav-bottom` (floating nav safe-area offset), `.animate-bc-spin`.
+- **Keep inline styles only for genuinely dynamic values** — sizes and colors computed at runtime from props or data (e.g. avatar diameter from a `size` prop, tint color from a hash). These cannot be expressed as static classes.
+- **`cn()` for conditional classes.** Use `cn()` from `@/lib/utils` (which wraps `clsx` + `tailwind-merge`) whenever classes are conditional or need conflict resolution. Do not use template literals for class composition.
+- **Active/hover states via Tailwind pseudo-classes** (`active:bg-(--bc-chip)`, `hover:opacity-80`) rather than `onMouseDown`/`onTouchStart` DOM style mutations.
+
 ### Comments
 
 - **Write no comments by default.** Only add a comment when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround, or an algorithm choice (e.g. `// Greedy: match largest creditor with largest debtor to minimize transaction count.`).
