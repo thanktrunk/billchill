@@ -19,7 +19,7 @@ export default async function AppLayout({ children, params }: LayoutProps) {
   return (
     <div className="bg-(--bc-bg) min-h-dvh">
       <div className="relative min-h-dvh max-w-120 mx-auto bg-(--bc-bg) text-(--bc-ink)">
-        <main className="pb-safe-nav">{children}</main>
+        <main className="pt-safe pb-safe-nav">{children}</main>
         <BottomNav />
       </div>
     </div>
