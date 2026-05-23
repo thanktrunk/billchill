@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCCategoryBadge, BCTabs } from '@/components/bc-ui'
 import { currencySymbol } from '@/lib/utils'
+import { inviteMember, updateMember, setMemberActive } from './members/actions'
+import { updateGroup, archiveGroup } from './settings/actions'
 
 function shortDate(iso: string, lang: string) {
   const t = new Date(iso)
-  return t.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
+  return t.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' })
 }
 
 type Member = { id: string; displayName: string; userId: string | null }
+type AllMember = { id: string; displayName: string; userId: string | null; defaultShare: number; isActive: boolean }
 type Expense = {
   id: string
   description: string
@@ -26,13 +26,7 @@ type Expense = {
   createdAt: string
 }
 type Split = { expenseId: string; memberId: string; shareAmount: string }
-type Settlement = {
-  id: string
-  fromMember: string
-  toMember: string
-  amount: string
-  settledAt: string
-}
+type Settlement = { id: string; fromMember: string; toMember: string; amount: string; settledAt: string }
 type Balance = { memberId: string; displayName: string; balance: number }
 type Debt = {
   from: { memberId: string; displayName: string }
@@ -40,9 +34,12 @@ type Debt = {
   amount: number
 }
 
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'VND', 'AUD', 'CAD', 'SGD']
+
 export function GroupDetailClient({
   group,
   members,
+  allMembers,
   expenses,
   splits,
   settlements,
@@ -53,6 +50,7 @@ export function GroupDetailClient({
 }: {
   group: { id: string; name: string; currency: string }
   members: Member[]
+  allMembers: AllMember[]
   expenses: Expense[]
   splits: Split[]
   settlements: Settlement[]
@@ -65,13 +63,12 @@ export function GroupDetailClient({
   const tGroup = useTranslations('group')
   const tCommon = useTranslations('common')
 
-  const [tab, setTab] = useState<'expenses' | 'balances'>('expenses')
+  const [tab, setTab] = useState<'expenses' | 'balances' | 'members' | 'settings'>('expenses')
   const sym = currencySymbol(group.currency)
 
   const expensesSorted = [...expenses].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const settlementsSorted = [...settlements].sort((a, b) => b.settledAt.localeCompare(a.settledAt))
 
-  // Merge expenses + settlements into timeline
   const items: Array<{ kind: 'expense'; e: Expense } | { kind: 'settlement'; s: Settlement }> = [
     ...expensesSorted.map((e) => ({ kind: 'expense' as const, e })),
     ...settlementsSorted.map((s) => ({ kind: 'settlement' as const, s })),
@@ -81,7 +78,6 @@ export function GroupDetailClient({
     return tb.localeCompare(ta)
   })
 
-  // Group by day
   const dayGroups: { day: string; items: typeof items }[] = []
   items.forEach((it) => {
     const day = (it.kind === 'expense' ? it.e.createdAt : it.s.settledAt).slice(0, 10)
@@ -101,14 +97,7 @@ export function GroupDetailClient({
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100dvh',
-        background: 'var(--bc-bg)',
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: 'var(--bc-bg)' }}>
       <div
         style={{
           display: 'flex',
@@ -163,22 +152,8 @@ export function GroupDetailClient({
       </div>
 
       <div style={{ padding: '6px 16px 0' }}>
-        <BCCard
-          padded={false}
-          style={{
-            padding: '16px 18px',
-            background: 'var(--bc-ink)',
-            border: 'none',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
+        <BCCard padded={false} style={{ padding: '16px 18px', background: 'var(--bc-ink)', border: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div>
               <div
                 style={{
@@ -236,57 +211,38 @@ export function GroupDetailClient({
       <div style={{ padding: '14px 0 8px' }}>
         <BCTabs
           active={tab}
-          onChange={(k) => setTab(k as 'expenses' | 'balances')}
+          onChange={(k) => setTab(k as typeof tab)}
           tabs={[
-            {
-              k: 'expenses',
-              label: tGroup('tab_expenses', { 0: expenses.length }),
-            },
+            { k: 'expenses', label: tGroup('tab_expenses', { 0: expenses.length }) },
             { k: 'balances', label: tGroup('tab_balances') },
+            { k: 'members', label: tGroup('tab_members') },
+            { k: 'settings', label: tGroup('tab_settings') },
           ]}
         />
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '4px 16px 160px',
-        }}
-      >
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 160px' }}>
         {tab === 'expenses' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {dayGroups.map((grp) => (
               <div key={grp.day}>
-                <div
-                  style={{
-                    padding: '0 4px 8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}
-                >
+                <div style={{ padding: '0 4px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <BCSectionLabel>{shortDate(grp.day, locale)}</BCSectionLabel>
-                  <div
-                    style={{
-                      flex: 1,
-                      height: 1,
-                      background: 'var(--bc-softhair)',
-                    }}
-                  />
+                  <div style={{ flex: 1, height: 1, background: 'var(--bc-softhair)' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {grp.items.map((it) =>
                     it.kind === 'expense' ? (
-                      <ExpenseRow
-                        key={it.e.id}
-                        expense={it.e}
-                        splits={splitsByExpense.get(it.e.id) ?? []}
-                        members={members}
-                        myMemberId={myMemberId}
-                        sym={sym}
-                        tGroup={tGroup}
-                      />
+                      <Link key={it.e.id} href={`/${locale}/groups/${group.id}/expenses/${it.e.id}`} style={{ textDecoration: 'none' }}>
+                        <ExpenseRow
+                          expense={it.e}
+                          splits={splitsByExpense.get(it.e.id) ?? []}
+                          members={members}
+                          myMemberId={myMemberId}
+                          sym={sym}
+                          tGroup={tGroup}
+                        />
+                      </Link>
                     ) : (
                       <SettlementRow key={it.s.id} settlement={it.s} members={members} sym={sym} locale={locale} tGroup={tGroup} />
                     ),
@@ -322,6 +278,10 @@ export function GroupDetailClient({
             groupId={group.id}
           />
         )}
+
+        {tab === 'members' && <MembersView groupId={group.id} allMembers={allMembers} tGroup={tGroup} />}
+
+        {tab === 'settings' && <SettingsView group={group} locale={locale} tGroup={tGroup} />}
       </div>
 
       {tab === 'expenses' && (
@@ -399,14 +359,7 @@ function ExpenseRow({
           >
             {expense.description}
           </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-              fontSize: 12,
-              color: 'var(--bc-muted)',
-              marginTop: 2,
-            }}
-          >
+          <div style={{ fontFamily: 'var(--font-be-vietnam-pro), sans-serif', fontSize: 12, color: 'var(--bc-muted)', marginTop: 2 }}>
             {tGroup(splits.length === 1 ? 'paid_shares_one' : 'paid_shares_other', { 0: payerName, 1: splits.length })}
           </div>
         </div>
@@ -459,14 +412,7 @@ function SettlementRow({
   const from = members.find((m) => m.id === settlement.fromMember)
   const to = members.find((m) => m.id === settlement.toMember)
   return (
-    <BCCard
-      padded={false}
-      style={{
-        padding: '12px 14px',
-        background: 'var(--bc-chip)',
-        border: 'none',
-      }}
-    >
+    <BCCard padded={false} style={{ padding: '12px 14px', background: 'var(--bc-chip)', border: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div
           style={{
@@ -491,22 +437,10 @@ function SettlementRow({
               color: 'var(--bc-ink)',
             }}
           >
-            {tGroup('paid_to', {
-              0: from?.displayName ?? '?',
-              1: to?.displayName ?? '?',
-            })}
+            {tGroup('paid_to', { 0: from?.displayName ?? '?', 1: to?.displayName ?? '?' })}
           </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-              fontSize: 12,
-              color: 'var(--bc-muted)',
-              marginTop: 2,
-            }}
-          >
-            {tGroup('settlement_date', {
-              0: shortDate(settlement.settledAt, locale),
-            })}
+          <div style={{ fontFamily: 'var(--font-be-vietnam-pro), sans-serif', fontSize: 12, color: 'var(--bc-muted)', marginTop: 2 }}>
+            {tGroup('settlement_date', { 0: shortDate(settlement.settledAt, locale) })}
           </div>
         </div>
         <div
@@ -629,14 +563,7 @@ function BalancesView({
 
       {minimizedDebts.length > 0 && (
         <div>
-          <div
-            style={{
-              padding: '0 4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
+          <div style={{ padding: '0 4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <BCSectionLabel>{tGroup('simplified_payments')}</BCSectionLabel>
             <div
               style={{
@@ -676,10 +603,7 @@ function BalancesView({
                           letterSpacing: '-0.005em',
                         }}
                       >
-                        {tGroup('pays', {
-                          0: debt.from.displayName,
-                          1: debt.to.displayName,
-                        })}
+                        {tGroup('pays', { 0: debt.from.displayName, 1: debt.to.displayName })}
                       </div>
                     </div>
                     <div
@@ -726,6 +650,504 @@ function BalancesView({
             </Link>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+function MembersView({
+  groupId,
+  allMembers,
+  tGroup,
+}: {
+  groupId: string
+  allMembers: AllMember[]
+  tGroup: ReturnType<typeof useTranslations>
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editShare, setEditShare] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [, startTransition] = useTransition()
+
+  function startEdit(m: AllMember) {
+    setEditingId(m.id)
+    setEditName(m.displayName)
+    setEditShare(String(m.defaultShare))
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
+
+  function saveEdit(m: AllMember) {
+    const name = editName.trim()
+    const share = parseInt(editShare) || 1
+    if (!name) return
+    startTransition(async () => {
+      await updateMember(groupId, m.id, { displayName: name, defaultShare: share })
+      setEditingId(null)
+    })
+  }
+
+  function toggleActive(m: AllMember) {
+    startTransition(async () => {
+      await setMemberActive(groupId, m.id, !m.isActive)
+    })
+  }
+
+  function handleInvite() {
+    if (!inviteEmail.trim()) return
+    const email = inviteEmail.trim()
+    startTransition(async () => {
+      await inviteMember(groupId, email)
+      setInviteEmail('')
+    })
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <BCCard padded={false}>
+        {allMembers.map((m, i) => (
+          <div key={m.id}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 14px',
+                borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
+                opacity: m.isActive ? 1 : 0.5,
+              }}
+            >
+              <BCAvatar name={m.displayName} seed={m.id} size={36} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                    fontWeight: 500,
+                    fontSize: 14.5,
+                    color: 'var(--bc-ink)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {m.displayName}
+                  {!m.isActive && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        padding: '2px 6px',
+                        borderRadius: 999,
+                        background: 'var(--bc-chip)',
+                        color: 'var(--bc-muted)',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      {tGroup('member_inactive_label')}
+                    </span>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono), monospace',
+                    fontSize: 11,
+                    color: 'var(--bc-muted)',
+                    marginTop: 2,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {tGroup('member_share_label')}: {m.defaultShare}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => startEdit(m)}
+                  className="bc-tap"
+                  style={{
+                    border: 'none',
+                    background: 'var(--bc-chip)',
+                    color: 'var(--bc-ink)',
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                    fontSize: 12,
+                  }}
+                >
+                  <BCIcon name="settings" size={14} color="var(--bc-ink)" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleActive(m)}
+                  className="bc-tap"
+                  style={{
+                    border: 'none',
+                    background: m.isActive ? 'transparent' : 'var(--bc-chip)',
+                    color: m.isActive ? 'var(--bc-neg)' : 'var(--bc-pos)',
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                    fontSize: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  {m.isActive ? tGroup('member_deactivate') : tGroup('member_reactivate')}
+                </button>
+              </div>
+            </div>
+            {editingId === m.id && (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderTop: '1px solid var(--bc-softhair)',
+                  background: 'var(--bc-surface)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}
+              >
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Display name"
+                  style={{
+                    border: '1px solid var(--bc-softhair)',
+                    outline: 'none',
+                    background: 'var(--bc-bg)',
+                    borderRadius: 10,
+                    padding: '8px 12px',
+                    fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                    fontSize: 14,
+                    color: 'var(--bc-ink)',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                      fontSize: 12,
+                      color: 'var(--bc-muted)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {tGroup('member_share_label')}
+                  </div>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    value={editShare}
+                    onChange={(e) => setEditShare(e.target.value)}
+                    style={{
+                      width: 64,
+                      border: '1px solid var(--bc-softhair)',
+                      outline: 'none',
+                      background: 'var(--bc-bg)',
+                      borderRadius: 10,
+                      padding: '8px 12px',
+                      fontFamily: 'var(--font-jetbrains-mono), monospace',
+                      fontSize: 13,
+                      color: 'var(--bc-ink)',
+                      textAlign: 'right',
+                    }}
+                  />
+                  <div style={{ flex: 1 }} />
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="bc-tap"
+                    style={{
+                      border: '1px solid var(--bc-softhair)',
+                      background: 'transparent',
+                      color: 'var(--bc-muted)',
+                      padding: '8px 14px',
+                      borderRadius: 999,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                      fontSize: 13,
+                    }}
+                  >
+                    ✕
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => saveEdit(m)}
+                    className="bc-tap"
+                    style={{
+                      border: 'none',
+                      background: 'var(--bc-ink)',
+                      color: 'var(--bc-bg)',
+                      padding: '8px 14px',
+                      borderRadius: 999,
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                      fontSize: 13,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {tGroup('save_member')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </BCCard>
+
+      <div>
+        <div style={{ padding: '0 4px 8px' }}>
+          <BCSectionLabel>{tGroup('invite_section')}</BCSectionLabel>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+            placeholder={tGroup('invite_placeholder')}
+            style={{
+              flex: 1,
+              border: '1px solid var(--bc-softhair)',
+              outline: 'none',
+              background: 'var(--bc-surface)',
+              borderRadius: 14,
+              padding: '12px 14px',
+              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+              fontSize: 14,
+              color: 'var(--bc-ink)',
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleInvite}
+            disabled={!inviteEmail.trim()}
+            className="bc-tap"
+            style={{
+              border: 'none',
+              background: inviteEmail.trim() ? 'var(--bc-ink)' : 'var(--bc-chip)',
+              color: inviteEmail.trim() ? 'var(--bc-bg)' : 'var(--bc-muted)',
+              padding: '12px 20px',
+              borderRadius: 14,
+              cursor: inviteEmail.trim() ? 'pointer' : 'not-allowed',
+              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+              fontWeight: 500,
+              fontSize: 14,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {tGroup('invite_button')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SettingsView({
+  group,
+  locale,
+  tGroup,
+}: {
+  group: { id: string; name: string; currency: string }
+  locale: string
+  tGroup: ReturnType<typeof useTranslations>
+}) {
+  const [name, setName] = useState(group.name)
+  const [currency, setCurrency] = useState(group.currency)
+  const [confirmArchive, setConfirmArchive] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+
+  async function handleSave() {
+    if (saving || !name.trim()) return
+    setSaving(true)
+    try {
+      await updateGroup(group.id, { name, currency })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleArchive() {
+    if (archiving) return
+    setArchiving(true)
+    try {
+      await archiveGroup(locale, group.id)
+    } catch {
+      setArchiving(false)
+      setConfirmArchive(false)
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div>
+        <div style={{ padding: '0 4px 8px' }}>
+          <BCSectionLabel>{tGroup('settings_name')}</BCSectionLabel>
+        </div>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            width: '100%',
+            border: '1px solid var(--bc-softhair)',
+            outline: 'none',
+            background: 'var(--bc-surface)',
+            borderRadius: 14,
+            padding: '12px 14px',
+            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+            fontWeight: 500,
+            fontSize: 15,
+            color: 'var(--bc-ink)',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <div>
+        <div style={{ padding: '0 4px 8px' }}>
+          <BCSectionLabel>{tGroup('settings_currency')}</BCSectionLabel>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {CURRENCIES.map((c) => {
+            const sel = currency === c
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCurrency(c)}
+                className="bc-tap"
+                style={{
+                  border: 'none',
+                  background: sel ? 'var(--bc-ink)' : 'var(--bc-chip)',
+                  color: sel ? 'var(--bc-bg)' : 'var(--bc-ink)',
+                  padding: '8px 16px',
+                  borderRadius: 999,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                  fontWeight: 500,
+                  fontSize: 13,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {c}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        disabled={saving || !name.trim()}
+        onClick={handleSave}
+        className="bc-tap"
+        style={{
+          background: name.trim() ? 'var(--bc-accent)' : 'var(--bc-chip)',
+          color: name.trim() ? '#fff' : 'var(--bc-muted)',
+          border: 'none',
+          padding: '15px 22px',
+          borderRadius: 999,
+          cursor: name.trim() ? 'pointer' : 'not-allowed',
+          fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+          fontWeight: 500,
+          fontSize: 16,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          opacity: saving || !name.trim() ? 0.4 : 1,
+        }}
+      >
+        <BCIcon name="check" size={18} color={name.trim() ? '#fff' : 'var(--bc-muted)'} strokeWidth={2.2} />
+        {saving ? '…' : tGroup('settings_save')}
+      </button>
+
+      <div style={{ height: 1, background: 'var(--bc-softhair)', margin: '6px 0' }} />
+
+      {confirmArchive ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+              fontSize: 14,
+              color: 'var(--bc-muted)',
+              textAlign: 'center',
+              padding: '4px 8px',
+            }}
+          >
+            {tGroup('archive_confirm')}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              type="button"
+              onClick={() => setConfirmArchive(false)}
+              className="bc-tap"
+              style={{
+                flex: 1,
+                border: '1px solid var(--bc-softhair)',
+                background: 'transparent',
+                color: 'var(--bc-ink)',
+                padding: '14px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                fontWeight: 500,
+                fontSize: 15,
+              }}
+            >
+              {tGroup('archive_ok') === 'Archive' ? 'Cancel' : 'Hủy'}
+            </button>
+            <button
+              type="button"
+              onClick={handleArchive}
+              disabled={archiving}
+              className="bc-tap"
+              style={{
+                flex: 1,
+                border: 'none',
+                background: '#E5572F',
+                color: '#fff',
+                padding: '14px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                fontWeight: 500,
+                fontSize: 15,
+                opacity: archiving ? 0.5 : 1,
+              }}
+            >
+              {archiving ? '…' : tGroup('archive_ok')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirmArchive(true)}
+          className="bc-tap"
+          style={{
+            border: '1px solid var(--bc-softhair)',
+            background: 'transparent',
+            color: 'var(--bc-neg)',
+            padding: '14px',
+            borderRadius: 999,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+            fontWeight: 500,
+            fontSize: 15,
+            width: '100%',
+          }}
+        >
+          {tGroup('archive_button')}
+        </button>
       )}
     </div>
   )

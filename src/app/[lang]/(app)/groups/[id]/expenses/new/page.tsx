@@ -17,7 +17,7 @@ export default async function NewExpensePage({ params }: PageProps) {
   const [group, members] = await Promise.all([
     db.query.groups.findFirst({ where: eq(groups.id, id) }),
     db
-      .select({ id: groupMembers.id, displayName: groupMembers.displayName })
+      .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
       .from(groupMembers)
       .where(and(eq(groupMembers.groupId, id), eq(groupMembers.isActive, true))),
   ])

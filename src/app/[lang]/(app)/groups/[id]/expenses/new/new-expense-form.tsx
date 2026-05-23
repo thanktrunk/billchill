@@ -8,7 +8,8 @@ import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCNumPad, BCAmountDisplay, BC
 import { addExpense } from './actions'
 import { currencySymbol } from '@/lib/utils'
 
-type Member = { id: string; displayName: string }
+type Member = { id: string; displayName: string; defaultShare: number }
+type SplitMethod = 'equal' | 'amount' | 'shares' | 'percentage'
 
 export function NewExpenseForm({
   groupId,
@@ -34,13 +35,13 @@ export function NewExpenseForm({
   const [paidBy, setPaidBy] = useState<string | null>(members[0]?.id ?? null)
   const [category, setCategory] = useState('food')
   const [splitWith, setSplitWith] = useState<string[] | null>(null)
+  const [splitMethod, setSplitMethod] = useState<SplitMethod>('equal')
+  const [memberInputs, setMemberInputs] = useState<Record<string, string>>({})
 
   const onKey = (k: string) => {
     setAmountStr((s) => {
       if (k === 'del') return s.slice(0, -1)
-      if (k === '.') {
-        return !s.includes('.') && s.length > 0 ? s + '.' : s
-      }
+      if (k === '.') return !s.includes('.') && s.length > 0 ? s + '.' : s
       if (s.includes('.') && s.split('.')[1].length >= 2) return s
       if (s === '0' && k !== '.') return k
       return s + k
@@ -58,8 +59,59 @@ export function NewExpenseForm({
     setSplitWith(next.length ? next : cur)
   }
 
+  const switchMethod = (m: SplitMethod) => {
+    setSplitMethod(m)
+    if (m === 'shares') {
+      const inputs: Record<string, string> = {}
+      for (const member of members) inputs[member.id] = String(member.defaultShare)
+      setMemberInputs(inputs)
+    } else if (m === 'percentage') {
+      const pct = members.length > 0 ? (100 / members.length).toFixed(1) : '0'
+      const inputs: Record<string, string> = {}
+      for (const member of members) inputs[member.id] = pct
+      setMemberInputs(inputs)
+    } else if (m === 'amount') {
+      const each = amount > 0 ? (amount / members.length).toFixed(2) : ''
+      const inputs: Record<string, string> = {}
+      for (const member of members) inputs[member.id] = each
+      setMemberInputs(inputs)
+    } else {
+      setMemberInputs({})
+    }
+  }
+
+  const setInput = (mid: string, val: string) => {
+    setMemberInputs((prev) => ({ ...prev, [mid]: val }))
+  }
+
+  const totalShares = members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0)
+  const inputSum = splitMethod === 'amount' ? members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0) : 0
+  const pctSum = splitMethod === 'percentage' ? members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0) : 0
+
+  function getMemberAmount(m: Member): number {
+    if (splitMethod === 'amount') return parseFloat(memberInputs[m.id] || '0') || 0
+    if (splitMethod === 'shares') {
+      const share = parseFloat(memberInputs[m.id] || '0') || 0
+      return totalShares > 0 ? (amount * share) / totalShares : 0
+    }
+    if (splitMethod === 'percentage') {
+      const pct = parseFloat(memberInputs[m.id] || '0') || 0
+      return (amount * pct) / 100
+    }
+    return 0
+  }
+
+  const canSave = (() => {
+    if (!paidBy || !(amount > 0)) return false
+    if (splitMethod === 'equal') return selected.length > 0
+    if (splitMethod === 'amount') return inputSum > 0 && Math.abs(inputSum - amount) < 0.015
+    if (splitMethod === 'shares') return totalShares > 0
+    if (splitMethod === 'percentage') return Math.abs(pctSum - 100) < 0.5
+    return false
+  })()
+
   async function handleSave() {
-    if (pending || !paidBy || !amount) return
+    if (pending || !paidBy || !canSave) return
     setPending(true)
     try {
       const fd = new FormData()
@@ -68,10 +120,24 @@ export function NewExpenseForm({
       fd.set('paidBy', paidBy)
       fd.set('date', new Date().toISOString().split('T')[0])
       fd.set('category', category)
-      for (const mid of selected) {
-        fd.set(`split_${mid}`, perPerson.toFixed(2))
+
+      if (splitMethod === 'equal') {
+        for (const mid of selected) fd.set(`split_${mid}`, perPerson.toFixed(2))
+        await addExpense(groupId, fd, 'amount')
+      } else if (splitMethod === 'amount') {
+        for (const m of members) {
+          const val = parseFloat(memberInputs[m.id] || '0')
+          if (val > 0) fd.set(`split_${m.id}`, val.toFixed(2))
+        }
+        await addExpense(groupId, fd, 'amount')
+      } else if (splitMethod === 'shares') {
+        for (const m of members) fd.set(`split_${m.id}`, memberInputs[m.id] || '0')
+        await addExpense(groupId, fd, 'shares')
+      } else {
+        for (const m of members) fd.set(`split_${m.id}`, memberInputs[m.id] || '0')
+        await addExpense(groupId, fd, 'percentage')
       }
-      await addExpense(groupId, fd, 'amount')
+
       router.push(`/${locale}/groups/${groupId}`)
     } catch {
       setPending(false)
@@ -130,13 +196,7 @@ export function NewExpenseForm({
               boxSizing: 'border-box',
             }}
           />
-          <div
-            style={{
-              height: 1,
-              background: 'var(--bc-softhair)',
-              marginTop: 2,
-            }}
-          />
+          <div style={{ height: 1, background: 'var(--bc-softhair)', marginTop: 2 }} />
         </div>
 
         <div
@@ -305,14 +365,7 @@ export function NewExpenseForm({
           <div style={{ padding: '0 4px 8px' }}>
             <BCSectionLabel>{t('paid_by')}</BCSectionLabel>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              overflowX: 'auto',
-              padding: '0 4px',
-            }}
-          >
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 4px' }}>
             {members.map((m) => {
               const sel = m.id === paidBy
               return (
@@ -349,14 +402,7 @@ export function NewExpenseForm({
           <div style={{ padding: '0 4px 8px' }}>
             <BCSectionLabel>{t('category')}</BCSectionLabel>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              overflowX: 'auto',
-              padding: '0 4px 4px',
-            }}
-          >
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 4px 4px' }}>
             {Object.entries(BC_CATEGORIES).map(([k, c]) => {
               const sel = category === k
               return (
@@ -413,92 +459,232 @@ export function NewExpenseForm({
         </div>
 
         <div>
-          <div
-            style={{
-              padding: '0 4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
+          <div style={{ padding: '0 4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <BCSectionLabel>{t('split_with')}</BCSectionLabel>
-            <div
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                fontSize: 11,
-                color: 'var(--bc-muted)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {t('each', { 0: sym + perPerson.toFixed(2) })}
-            </div>
-          </div>
-          <BCCard padded={false}>
-            {members.map((m, i) => {
-              const has = selected.includes(m.id)
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => toggleMember(m.id)}
-                  className="bc-tap"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 14px',
-                    borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <BCAvatar name={m.displayName} seed={m.id} size={32} />
-                  <div
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['equal', 'amount', 'shares', 'percentage'] as SplitMethod[]).map((m) => {
+                const label =
+                  m === 'equal'
+                    ? t('method_equal')
+                    : m === 'amount'
+                      ? t('method_amount')
+                      : m === 'shares'
+                        ? t('method_shares')
+                        : t('method_pct')
+                const sel = splitMethod === m
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => switchMethod(m)}
+                    className="bc-tap"
                     style={{
-                      flex: 1,
-                      minWidth: 0,
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: sel ? 'var(--bc-ink)' : 'var(--bc-chip)',
+                      color: sel ? 'var(--bc-bg)' : 'var(--bc-muted)',
+                      padding: '4px 10px',
+                      borderRadius: 999,
                       fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
                       fontWeight: 500,
-                      fontSize: 14.5,
-                      color: 'var(--bc-ink)',
+                      fontSize: 11,
+                      letterSpacing: '-0.005em',
                     }}
                   >
-                    {m.displayName}
-                  </div>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {splitMethod === 'equal' && (
+            <BCCard padded={false}>
+              {members.map((m, i) => {
+                const has = selected.includes(m.id)
+                return (
                   <div
+                    key={m.id}
+                    onClick={() => toggleMember(m.id)}
+                    className="bc-tap"
                     style={{
-                      fontFamily: 'var(--font-jetbrains-mono), monospace',
-                      fontSize: 12,
-                      color: has ? 'var(--bc-ink)' : 'var(--bc-muted)',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {has ? `${sym}${perPerson.toFixed(2)}` : '—'}
-                  </div>
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 6,
-                      background: has ? 'var(--bc-accent)' : 'transparent',
-                      border: has ? 'none' : '1.6px solid var(--bc-hair)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'background 160ms',
+                      gap: 12,
+                      padding: '10px 14px',
+                      borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
+                      cursor: 'pointer',
                     }}
                   >
-                    {has && <BCIcon name="check" size={14} color="#fff" strokeWidth={2.4} />}
+                    <BCAvatar name={m.displayName} seed={m.id} size={32} />
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                        fontWeight: 500,
+                        fontSize: 14.5,
+                        color: 'var(--bc-ink)',
+                      }}
+                    >
+                      {m.displayName}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-jetbrains-mono), monospace',
+                        fontSize: 12,
+                        color: has ? 'var(--bc-ink)' : 'var(--bc-muted)',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {has ? `${sym}${perPerson.toFixed(2)}` : '—'}
+                    </div>
+                    <div
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 6,
+                        background: has ? 'var(--bc-accent)' : 'transparent',
+                        border: has ? 'none' : '1.6px solid var(--bc-hair)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 160ms',
+                      }}
+                    >
+                      {has && <BCIcon name="check" size={14} color="#fff" strokeWidth={2.4} />}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </BCCard>
+                )
+              })}
+            </BCCard>
+          )}
+
+          {splitMethod !== 'equal' && (
+            <>
+              <BCCard padded={false}>
+                {members.map((m, i) => {
+                  const inputVal = memberInputs[m.id] ?? ''
+                  const computedAmt = getMemberAmount(m)
+                  return (
+                    <div
+                      key={m.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '10px 14px',
+                        borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
+                      }}
+                    >
+                      <BCAvatar name={m.displayName} seed={m.id} size={32} />
+                      <div
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
+                          fontWeight: 500,
+                          fontSize: 14.5,
+                          color: 'var(--bc-ink)',
+                        }}
+                      >
+                        {m.displayName}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {splitMethod !== 'amount' && (
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-jetbrains-mono), monospace',
+                              fontSize: 11,
+                              color: 'var(--bc-muted)',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {sym}
+                            {computedAmt.toFixed(2)}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          {splitMethod === 'percentage' && (
+                            <span
+                              style={{
+                                fontFamily: 'var(--font-jetbrains-mono), monospace',
+                                fontSize: 12,
+                                color: 'var(--bc-muted)',
+                              }}
+                            >
+                              %
+                            </span>
+                          )}
+                          {splitMethod === 'amount' && (
+                            <span
+                              style={{
+                                fontFamily: 'var(--font-jetbrains-mono), monospace',
+                                fontSize: 12,
+                                color: 'var(--bc-muted)',
+                              }}
+                            >
+                              {sym}
+                            </span>
+                          )}
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={inputVal}
+                            onChange={(e) => setInput(m.id, e.target.value)}
+                            placeholder="0"
+                            style={{
+                              width: 64,
+                              border: 'none',
+                              outline: 'none',
+                              background: 'var(--bc-chip)',
+                              borderRadius: 8,
+                              padding: '5px 8px',
+                              fontFamily: 'var(--font-jetbrains-mono), monospace',
+                              fontSize: 13,
+                              color: 'var(--bc-ink)',
+                              textAlign: 'right',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </BCCard>
+              <div
+                style={{
+                  padding: '6px 4px 0',
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                  fontSize: 11,
+                  color:
+                    splitMethod === 'amount'
+                      ? Math.abs(inputSum - amount) < 0.015
+                        ? 'var(--bc-pos)'
+                        : 'var(--bc-neg)'
+                      : splitMethod === 'percentage'
+                        ? Math.abs(pctSum - 100) < 0.5
+                          ? 'var(--bc-pos)'
+                          : 'var(--bc-neg)'
+                        : 'var(--bc-muted)',
+                  letterSpacing: '0.04em',
+                  textAlign: 'right',
+                }}
+              >
+                {splitMethod === 'amount' && t('amount_remaining', { 0: `${sym}${Math.abs(amount - inputSum).toFixed(2)}` })}
+                {splitMethod === 'percentage' && t('pct_total', { 0: pctSum.toFixed(1) })}
+                {splitMethod === 'shares' && `${totalShares} shares`}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div style={{ padding: '4px 16px 16px' }}>
         <button
           type="button"
-          disabled={pending || !paidBy || !selected.length || !(amount > 0)}
+          disabled={pending || !canSave}
           onClick={handleSave}
           className="bc-tap"
           style={{
@@ -516,7 +702,7 @@ export function NewExpenseForm({
             alignItems: 'center',
             justifyContent: 'center',
             gap: 10,
-            opacity: pending || !paidBy || !selected.length || !(amount > 0) ? 0.4 : 1,
+            opacity: pending || !canSave ? 0.4 : 1,
           }}
         >
           <BCIcon name="check" size={18} color="#fff" strokeWidth={2.2} />

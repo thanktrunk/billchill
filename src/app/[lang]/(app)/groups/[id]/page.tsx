@@ -15,7 +15,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
   const user = await requireUser()
   await verifyGroupMembership(id, user.id)
 
-  const [group, members, groupExpenses, groupSettlements] = await Promise.all([
+  const [group, allMembers, groupExpenses, groupSettlements] = await Promise.all([
     db.query.groups.findFirst({ where: eq(groups.id, id) }),
     db.select().from(groupMembers).where(eq(groupMembers.groupId, id)),
     db.select().from(expenses).where(eq(expenses.groupId, id)),
@@ -24,14 +24,14 @@ export default async function GroupDetailPage({ params }: PageProps) {
 
   if (!group) notFound()
 
-  const myMember = members.find((m) => m.userId === user.id)
+  const myMember = allMembers.find((m) => m.userId === user.id)
 
   const expenseIds = groupExpenses.map((e) => e.id)
   const allSplitsForGroup = expenseIds.length
     ? await db.select().from(expenseSplits).where(inArray(expenseSplits.expenseId, expenseIds))
     : []
 
-  const activeMembers = members.filter((m) => m.isActive)
+  const activeMembers = allMembers.filter((m) => m.isActive)
 
   const expensesWithSplits = groupExpenses.map((e) => ({
     paidBy: e.paidBy,
@@ -76,6 +76,14 @@ export default async function GroupDetailPage({ params }: PageProps) {
     userId: m.userId,
   }))
 
+  const serializedAllMembers = allMembers.map((m) => ({
+    id: m.id,
+    displayName: m.displayName,
+    userId: m.userId,
+    defaultShare: m.defaultShare,
+    isActive: m.isActive,
+  }))
+
   return (
     <GroupDetailClient
       group={{
@@ -83,6 +91,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
         name: group.name,
         currency: group.currency,
       }}
+      allMembers={serializedAllMembers}
       members={serializedMembers}
       expenses={serializedExpenses}
       splits={allSplitsForGroup.map((s) => ({

@@ -5,6 +5,9 @@ import { BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { hasLocale } from '@/lib/i18n'
 import { getTranslations } from 'next-intl/server'
+import { db } from '@/db'
+import { notifications } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 export default async function AppLayout({ children, params }: LayoutProps) {
   const { lang } = await params
@@ -16,11 +19,17 @@ export default async function AppLayout({ children, params }: LayoutProps) {
     return <LandingPage lang={lang} />
   }
 
+  const unreadCount = await db
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(and(eq(notifications.userId, user.id), eq(notifications.isRead, false)))
+    .then((rows) => rows.length)
+
   return (
     <div className="bg-(--bc-bg) min-h-dvh">
       <div className="relative min-h-dvh max-w-120 mx-auto bg-(--bc-bg) text-(--bc-ink)">
         <main className="pt-safe pb-safe-nav">{children}</main>
-        <BottomNav />
+        <BottomNav unreadCount={unreadCount} />
       </div>
     </div>
   )
@@ -138,7 +147,7 @@ function LedgerHero({ settleUpLabel, heroMeta }: { settleUpLabel: string; heroMe
         <div className="font-serif text-[36px] mt-1 tracking-[-0.02em]">$1,270.22</div>
         <div className="flex-1" />
         <div className="flex items-center gap-1.5">
-          <div className="w-[22px] h-[22px] rounded-full bg-[rgba(255,255,255,0.25)] flex items-center justify-center">
+          <div className="w-5.5 h-5.5 rounded-full bg-[rgba(255,255,255,0.25)] flex items-center justify-center">
             <BCIcon name="check" size={12} color="#fff" strokeWidth={2.6} />
           </div>
           <div className="font-sans text-xs text-[rgba(255,255,255,0.85)] tracking-[-0.005em]">{heroMeta}</div>

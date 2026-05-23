@@ -69,6 +69,8 @@
     "settle_up": "Settle up",
     "tab_expenses": "Expenses · {0}",
     "tab_balances": "Balances",
+    "tab_members": "Members",
+    "tab_settings": "Settings",
     "no_expenses": "No expenses yet.",
     "add_expense": "Add expense",
     "member_balances": "Member balances",
@@ -85,7 +87,30 @@
     "pays": "{0} pays {1}",
     "paid_to": "{0} paid {1}",
     "settlement_date": "Settlement · {0}",
-    "you_label": "YOU"
+    "you_label": "YOU",
+    "invite_placeholder": "friend@email.com",
+    "invite_button": "Invite",
+    "invite_section": "Invite member",
+    "member_share_label": "Share weight",
+    "member_deactivate": "Remove",
+    "member_reactivate": "Restore",
+    "member_inactive_label": "INACTIVE",
+    "save_member": "Save",
+    "settings_name": "Group name",
+    "settings_currency": "Currency",
+    "settings_save": "Save changes",
+    "archive_button": "Archive group",
+    "archive_confirm": "Archive this group? It will be hidden from your list.",
+    "archive_ok": "Archive"
+  },
+  "expense": {
+    "title": "Expense",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm_delete": "Delete this expense?",
+    "split_breakdown": "Split",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "add": {
     "title": "Add expense",
@@ -97,7 +122,13 @@
     "category": "Category",
     "split_with": "Split with",
     "each": "{0} EACH",
-    "save": "Save expense"
+    "save": "Save expense",
+    "method_equal": "Equal",
+    "method_amount": "By amount",
+    "method_shares": "By shares",
+    "method_pct": "By %",
+    "amount_remaining": "{0} left",
+    "pct_total": "{0}%"
   },
   "settle": {
     "error": "Something went wrong",

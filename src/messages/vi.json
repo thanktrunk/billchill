@@ -69,6 +69,8 @@
     "settle_up": "Quyết toán",
     "tab_expenses": "Chi tiêu · {0}",
     "tab_balances": "Số dư",
+    "tab_members": "Thành viên",
+    "tab_settings": "Cài đặt",
     "no_expenses": "Chưa có chi tiêu.",
     "add_expense": "Thêm chi tiêu",
     "member_balances": "Số dư thành viên",
@@ -85,7 +87,30 @@
     "pays": "{0} trả {1}",
     "paid_to": "{0} đã trả {1}",
     "settlement_date": "Thanh toán · {0}",
-    "you_label": "BẠN"
+    "you_label": "BẠN",
+    "invite_placeholder": "ban@email.com",
+    "invite_button": "Mời",
+    "invite_section": "Mời thành viên",
+    "member_share_label": "Tỷ lệ phần",
+    "member_deactivate": "Xóa",
+    "member_reactivate": "Khôi phục",
+    "member_inactive_label": "KHÔNG HOẠT ĐỘNG",
+    "save_member": "Lưu",
+    "settings_name": "Tên nhóm",
+    "settings_currency": "Tiền tệ",
+    "settings_save": "Lưu thay đổi",
+    "archive_button": "Lưu trữ nhóm",
+    "archive_confirm": "Lưu trữ nhóm này? Nhóm sẽ bị ẩn khỏi danh sách của bạn.",
+    "archive_ok": "Lưu trữ"
+  },
+  "expense": {
+    "title": "Chi tiêu",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "confirm_delete": "Xóa chi tiêu này?",
+    "split_breakdown": "Phân chia",
+    "save": "Lưu",
+    "cancel": "Hủy"
   },
   "add": {
     "title": "Thêm chi tiêu",
@@ -97,7 +122,13 @@
     "category": "Danh mục",
     "split_with": "Chia với",
     "each": "{0} MỖI NGƯỜI",
-    "save": "Lưu chi tiêu"
+    "save": "Lưu chi tiêu",
+    "method_equal": "Đều",
+    "method_amount": "Theo số tiền",
+    "method_shares": "Theo phần",
+    "method_pct": "Theo %",
+    "amount_remaining": "Còn {0}",
+    "pct_total": "{0}%"
   },
   "settle": {
     "error": "Đã xảy ra lỗi",

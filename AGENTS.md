@@ -14,6 +14,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 2. Run `npm run lint` — fix all lint errors before proceeding.
 3. Run `npm run build` — must pass before considering work done.
 4. Run `npm run test:e2e` — review `tests/e2e/` and create or update Playwright E2E tests to cover changed or added behaviour. Every user-facing feature must have a corresponding test.
+5. Update `docs/ARCHITECTURE.md` if the change affects the stack, DB schema, auth flow, access control, algorithms, or deployment config.
+6. Update `docs/REQUIREMENTS.md` if the change adds, removes, or modifies any functional or non-functional behaviour.
 
 ---
 

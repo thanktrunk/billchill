@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { groups, groupMembers } from '@/db/schema'
+import { groups, groupMembers, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
 
 export async function createGroup(formData: FormData) {
@@ -22,11 +22,17 @@ export async function createGroup(formData: FormData) {
     })
     .returning()
 
-  // Add creator as a member
   await db.insert(groupMembers).values({
     groupId: group.id,
     userId: user.id,
     displayName: user.displayName,
+  })
+
+  await db.insert(notifications).values({
+    userId: user.id,
+    groupId: group.id,
+    type: 'member_added',
+    message: `You created the group "${name.trim()}"`,
   })
 
   return group

@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { expenses, expenseSplits, groups, groupMembers } from '@/db/schema'
+import { expenses, expenseSplits, groups, groupMembers, notifications } from '@/db/schema'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
 import { eq, and } from 'drizzle-orm'
@@ -11,7 +11,7 @@ export async function getGroupMembers(groupId: string) {
   await verifyGroupMembership(groupId, user.id)
 
   const members = await db
-    .select({ id: groupMembers.id, displayName: groupMembers.displayName })
+    .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
     .from(groupMembers)
     .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true)))
 
@@ -26,6 +26,7 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
   const amount = parseFloat(formData.get('amount') as string)
   const paidBy = formData.get('paidBy') as string
   const date = formData.get('date') as string
+  const category = (formData.get('category') as string) || null
 
   if (!description?.trim() || !amount || !paidBy || !date) {
     throw new Error('All fields are required')
@@ -58,6 +59,7 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
       amount: amount.toFixed(2),
       currency: group?.currency || 'USD',
       description: description.trim(),
+      category,
       date,
       createdBy: user.id,
     })
@@ -70,6 +72,21 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
         expenseId: expense.id,
         memberId: split.memberId,
         shareAmount: split.amount.toFixed(2),
+      })),
+    )
+  }
+
+  // Notify all other group members
+  const actor = members.find((m) => m.userId === user.id)
+  const actorName = actor?.displayName ?? 'Someone'
+  const notifRecipients = members.filter((m) => m.userId && m.userId !== user.id)
+  if (notifRecipients.length > 0) {
+    await db.insert(notifications).values(
+      notifRecipients.map((m) => ({
+        userId: m.userId!,
+        groupId,
+        type: 'expense_added' as const,
+        message: `${actorName} added "${description.trim()}" (${group?.currency ?? ''} ${amount.toFixed(2)})`,
       })),
     )
   }
