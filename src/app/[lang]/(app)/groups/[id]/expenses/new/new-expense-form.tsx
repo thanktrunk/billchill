@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar } from '@/components/bc-ui'
+import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES } from '@/components/bc-ui'
 import { addExpense } from './actions'
-import { currencySymbol } from '@/lib/currency'
+import { currencySymbol, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { CategoryPicker } from '../_components/category-picker'
 import { PaidByPicker } from '../_components/paid-by-picker'
@@ -28,6 +28,7 @@ export function NewExpenseForm({
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('add')
+  const tCat = useTranslations('cat')
   const sym = currencySymbol(currency)
   const [pending, setPending] = useState(false)
   const [step, setStep] = useState<'amount' | 'details'>('amount')
@@ -155,13 +156,37 @@ export function NewExpenseForm({
           <div className="h-px bg-(--bc-softhair) mt-0.5" />
         </div>
 
+        <div className="flex gap-2 overflow-x-auto px-5.5 py-2 no-scrollbar">
+          {Object.entries(BC_CATEGORIES).map(([key, { glyph }]) => {
+            const label = tCat(key as Parameters<typeof tCat>[0])
+            const active = category === key
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setDescription(label)
+                  setCategory(key)
+                }}
+                className={cn(
+                  'bc-tap border-0 cursor-pointer shrink-0 py-1.5 px-3 rounded-full font-sans font-medium text-[13px] inline-flex items-center gap-1.5',
+                  active ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
+                )}
+              >
+                <span className="font-mono text-[11px]">{glyph}</span>
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
         <div className="flex-1 flex flex-col justify-center items-center px-6 py-5">
           <BCSectionLabel>{t('amount')}</BCSectionLabel>
           <div className="mt-4">
             <BCAmountDisplay value={amountStr} currency={sym} size={88} />
           </div>
           <div className="flex gap-2 mt-6 flex-wrap justify-center">
-            {[10, 20, 50, 100].map((n) => (
+            {suggestedAmounts(currency).map((n) => (
               <BCChip key={n} onClick={() => setAmountStr(String(n))}>
                 {sym}
                 {n}

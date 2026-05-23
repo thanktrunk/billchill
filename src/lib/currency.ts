@@ -25,6 +25,21 @@ const LANG_LOCALES: Record<string, string> = {
   vi: 'vi-VN',
 }
 
+const SUGGESTED_AMOUNTS: Record<string, number[]> = {
+  USD: [5, 10, 20, 50],
+  EUR: [5, 10, 20, 50],
+  GBP: [5, 10, 20, 50],
+  JPY: [500, 1000, 2000, 5000],
+  VND: [50000, 100000, 200000, 500000, 1000000],
+  AUD: [5, 10, 20, 50],
+  CAD: [5, 10, 20, 50],
+  SGD: [5, 10, 20, 50],
+}
+
+export function suggestedAmounts(code: string): number[] {
+  return SUGGESTED_AMOUNTS[code] ?? [10, 20, 50, 100]
+}
+
 export function currencySymbol(code: string): string {
   return CURRENCY_SYMBOLS[code] ?? code
 }

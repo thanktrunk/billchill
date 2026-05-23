@@ -117,7 +117,7 @@
   "add": {
     "title": "Thêm chi tiêu",
     "amount": "Số tiền",
-    "placeholder_what": "Cho việc gì?",
+    "placeholder_what": "Bạn trả tiền gì?",
     "continue": "Tiếp tục",
     "untitled": "Chi tiêu chưa đặt tên",
     "paid_by": "Người trả",
@@ -181,13 +181,13 @@
     "cancel_name": "Huỷ"
   },
   "cat": {
-    "food": "Ăn uống",
+    "food": "Ăn nhậu",
     "drinks": "Đồ uống",
     "transport": "Đi lại",
-    "lodging": "Lưu trú",
+    "lodging": "Chỗ ở",
     "groceries": "Đi chợ",
     "fun": "Giải trí",
-    "utilities": "Tiện ích",
+    "utilities": "Đồ tào lao",
     "other": "Khác"
   },
   "groups": {
