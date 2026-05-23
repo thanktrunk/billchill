@@ -49,11 +49,11 @@
   },
   "home": {
     "your_balance": "Số dư còn lại",
-    "owed_to_you": "Bọn nó nợ",
-    "you_owe": "Bạn nợ",
+    "owed_to_you": "Bọn nó nợ 💸",
+    "you_owe": "Bạn nợ 😅",
     "groups_section": "Nhóm",
     "active": "{0} đang hoạt động",
-    "empty": "Chưa có nhóm. Nhấn + để bắt đầu.",
+    "empty": "Chưa có nhóm. Nhấn + để bắt đầu thí nghiệm.",
     "youre_owed": "Bọn nó nợ",
     "you_owe_short": "Bạn nợ",
     "settled": "Đã trả",
@@ -63,9 +63,9 @@
     "members_count": "{0} thành viên",
     "members_count_one": "{0} thành viên",
     "members_count_other": "{0} thành viên",
-    "all_settled": "Đã trả hết",
-    "youre_owed": "Tụi nó nợ bạn",
-    "you_owe": "Bạn nợ",
+    "all_settled": "Tất cả đã sạch sẽ ✨",
+    "youre_owed": "Tụi nó nợ bạn 💰",
+    "you_owe": "Bạn nợ 💸",
     "total_spent": "Tổng chi tiêu",
     "settle_up": "Quyết toán",
     "tab_expenses": "Chi tiêu · {0}",
@@ -133,31 +133,31 @@
     "pct_total": "{0}%"
   },
   "settle": {
-    "error": "Đã xảy ra lỗi",
+    "error": "Rồi, điều gì đó sai rồi 🤦",
     "title": "Quyết toán",
     "from": "Từ",
     "to": "Đến",
     "amount": "Số tiền",
-    "suggested": "Đề xuất {0}",
+    "suggested": "Mình đề xuất {0}",
     "record": "Trả nợ",
-    "done_title": "Đã ghi nhận.",
-    "done_subtitle": "Sổ sách nhẹ đi một bước.",
+    "done_title": "Xong! 🎉",
+    "done_subtitle": "Sổ sách bớt nặng hơn rồi.",
     "back_to_group": "Quay lại nhóm"
   },
   "activity": {
     "title": "Hoạt động",
-    "empty": "Chưa có hoạt động.",
-    "type_expense": "Chi tiêu",
-    "type_payment": "Thanh toán",
-    "type_reminder": "Nhắc nhở",
-    "type_joined": "Tham gia",
-    "mark_all_read": "Đánh dấu đã đọc hết"
+    "empty": "Im lặng vang vạc (chưa có gì xảy ra).",
+    "type_expense": "Chi tiêu 💸",
+    "type_payment": "Thanh toán ✅",
+    "type_reminder": "Nhắc nhở 📢",
+    "type_joined": "Gia nhập 👋",
+    "mark_all_read": "Lừa ứng dụng rằng mình đã đọc hết"
   },
   "notif": {
-    "expense_added": "{actor} đã thêm {what} ({amount})",
-    "settlement_sent": "{from} đã trả {to} {amount}",
-    "reminder": "{name} nợ bạn {amount}",
-    "member_joined": "{name} đã tham gia {group}"
+    "expense_added": "{actor} vừa thêm {what} ({amount}) 👀",
+    "settlement_sent": "{from} đã chuyển tiền cho {to} {amount} ✨",
+    "reminder": "{name} nợ bạn {amount} (hint hint 😉)",
+    "member_joined": "{name} vừa gia nhập {group} (bây giờ bạn có thêm người để chia chi phí)"
   },
   "profile": {
     "title": "Hồ sơ",
@@ -181,19 +181,19 @@
     "cancel_name": "Huỷ"
   },
   "cat": {
-    "food": "Ăn nhậu",
-    "drinks": "Đồ uống",
-    "transport": "Đi lại",
-    "lodging": "Chỗ ở",
-    "groceries": "Đi chợ",
-    "fun": "Giải trí",
-    "utilities": "Đồ tào lao",
-    "other": "Khác"
+    "food": "Ăn nhậu 🍖",
+    "drinks": "Đồ uống 🍺",
+    "transport": "Đi lại 🚕",
+    "lodging": "Chỗ ở 🏨",
+    "groceries": "Đi chợ 🛒",
+    "fun": "Giải trí 🎉",
+    "utilities": "Đồ tào lao 🤷",
+    "other": "Cái gì đó lạ"
   },
   "groups": {
     "title": "Nhóm của tôi",
     "new_group": "Tạo nhóm",
-    "empty": "Chưa có nhóm nào. Hãy tạo một nhóm để bắt đầu!"
+    "empty": "Chưa có nhóm nào. Tạo một nhóm để bắt đầu cuộc phiêu lưu chia chi phí!"
   },
   "new_group": {
     "title": "Tạo nhóm",
