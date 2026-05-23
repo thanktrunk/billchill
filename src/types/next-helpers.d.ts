@@ -3,12 +3,12 @@
 // at dev/build time and override these via next-env.d.ts reference.
 // These exist so `tsc --noEmit` passes without a running dev server.
 
-declare type PageProps<_Route extends string = string> = {
-  params: Promise<Record<string, string>>;
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
+declare type PageProps = {
+  params: Promise<Record<string, string>>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
 
-declare type LayoutProps<_Route extends string = string> = {
-  children: React.ReactNode;
-  params: Promise<Record<string, string>>;
-};
+declare type LayoutProps = {
+  children: React.ReactNode
+  params: Promise<Record<string, string>>
+}

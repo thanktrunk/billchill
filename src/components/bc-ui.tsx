@@ -1,67 +1,72 @@
-"use client";
+'use client'
 
-import { cn } from "@/lib/utils";
+import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 // ── Avatar color palette (stable hash) ───────────────────────────
-const AVATAR_COLORS = [
-  "#E5572F", "#3F6E55", "#B7873A", "#7B5E8C",
-  "#4A6B7C", "#A4452C", "#5B6E3F", "#8C5E3E",
-];
+const AVATAR_COLORS = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
 export function avatarColor(seed: string | number): string {
-  const s =
-    typeof seed === "string"
-      ? seed.split("").reduce((a, c) => a + c.charCodeAt(0), 0)
-      : seed;
-  return AVATAR_COLORS[Math.abs(s) % AVATAR_COLORS.length];
+  const s = typeof seed === 'string' ? seed.split('').reduce((a, c) => a + c.charCodeAt(0), 0) : seed
+  return AVATAR_COLORS[Math.abs(s) % AVATAR_COLORS.length]
 }
 
 // ── Category config ───────────────────────────────────────────────
 export const BC_CATEGORIES: Record<string, { labelKey: string; glyph: string; tint: string }> = {
-  food:      { labelKey: "cat.food",       glyph: "F", tint: "#E5572F" },
-  drinks:    { labelKey: "cat.drinks",     glyph: "D", tint: "#7B5E8C" },
-  transport: { labelKey: "cat.transport",  glyph: "T", tint: "#4A6B7C" },
-  lodging:   { labelKey: "cat.lodging",    glyph: "L", tint: "#B7873A" },
-  groceries: { labelKey: "cat.groceries",  glyph: "G", tint: "#3F6E55" },
-  fun:       { labelKey: "cat.fun",        glyph: "E", tint: "#A4452C" },
-  utilities: { labelKey: "cat.utilities",  glyph: "U", tint: "#5B6E3F" },
-  other:     { labelKey: "cat.other",      glyph: "·", tint: "#6B6359" },
-};
+  food: { labelKey: 'cat.food', glyph: 'F', tint: '#E5572F' },
+  drinks: { labelKey: 'cat.drinks', glyph: 'D', tint: '#7B5E8C' },
+  transport: { labelKey: 'cat.transport', glyph: 'T', tint: '#4A6B7C' },
+  lodging: { labelKey: 'cat.lodging', glyph: 'L', tint: '#B7873A' },
+  groceries: { labelKey: 'cat.groceries', glyph: 'G', tint: '#3F6E55' },
+  fun: { labelKey: 'cat.fun', glyph: 'E', tint: '#A4452C' },
+  utilities: { labelKey: 'cat.utilities', glyph: 'U', tint: '#5B6E3F' },
+  other: { labelKey: 'cat.other', glyph: '·', tint: '#6B6359' },
+}
 
 // ── SVG Icon ──────────────────────────────────────────────────────
 const ICON_PATHS: Record<string, React.ReactNode> = {
-  plus:     <path d="M12 5v14M5 12h14" />,
-  arrow:    <path d="M19 12H5M12 5l-7 7 7 7" />,
-  arrowR:   <path d="M5 12h14M12 5l7 7-7 7" />,
-  back:     <path d="M15 6l-6 6 6 6" />,
-  close:    <path d="M6 6l12 12M18 6L6 18" />,
-  check:    <path d="M5 12l5 5L20 7" />,
-  bell:     <path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2zM10 20a2 2 0 004 0" />,
-  user:     <path d="M20 21a8 8 0 10-16 0M16 7a4 4 0 11-8 0 4 4 0 018 0z" />,
-  users:    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm9 0a3 3 0 100-6 3 3 0 000 6zm4 10v-2a4 4 0 00-3-3.87" />,
-  dots:     <g><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></g>,
-  receipt:  <path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4" />,
-  settings: <path d="M12 9a3 3 0 100 6 3 3 0 000-6zM19.4 13a7.6 7.6 0 000-2l2-1.6-2-3.5-2.4 1a7.6 7.6 0 00-1.7-1L15 3h-4l-.3 2.4a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.5L6.6 11a7.6 7.6 0 000 2l-2 1.6 2 3.5 2.4-1a7.6 7.6 0 001.7 1L11 21h4l.3-2.4a7.6 7.6 0 001.7-1l2.4 1 2-3.5L19.4 13z" />,
-  archive:  <path d="M3 7h18l-1.5 12a2 2 0 01-2 2H6.5a2 2 0 01-2-2L3 7zM3 3h18v4H3zM10 11h4" />,
-  minus:    <path d="M5 12h14" />,
-  swap:     <path d="M7 4l-3 3 3 3M4 7h11M17 14l3 3-3 3M20 17H9" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+  arrow: <path d="M19 12H5M12 5l-7 7 7 7" />,
+  arrowR: <path d="M5 12h14M12 5l7 7-7 7" />,
+  back: <path d="M15 6l-6 6 6 6" />,
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  check: <path d="M5 12l5 5L20 7" />,
+  bell: <path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2zM10 20a2 2 0 004 0" />,
+  user: <path d="M20 21a8 8 0 10-16 0M16 7a4 4 0 11-8 0 4 4 0 018 0z" />,
+  users: (
+    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm9 0a3 3 0 100-6 3 3 0 000 6zm4 10v-2a4 4 0 00-3-3.87" />
+  ),
+  dots: (
+    <g>
+      <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </g>
+  ),
+  receipt: <path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4" />,
+  settings: (
+    <path d="M12 9a3 3 0 100 6 3 3 0 000-6zM19.4 13a7.6 7.6 0 000-2l2-1.6-2-3.5-2.4 1a7.6 7.6 0 00-1.7-1L15 3h-4l-.3 2.4a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.5L6.6 11a7.6 7.6 0 000 2l-2 1.6 2 3.5 2.4-1a7.6 7.6 0 001.7 1L11 21h4l.3-2.4a7.6 7.6 0 001.7-1l2.4 1 2-3.5L19.4 13z" />
+  ),
+  archive: <path d="M3 7h18l-1.5 12a2 2 0 01-2 2H6.5a2 2 0 01-2-2L3 7zM3 3h18v4H3zM10 11h4" />,
+  minus: <path d="M5 12h14" />,
+  swap: <path d="M7 4l-3 3 3 3M4 7h11M17 14l3 3-3 3M20 17H9" />,
   activity: <path d="M3 12h4l3-8 4 16 3-8h4" />,
-  home:     <path d="M3 11l9-8 9 8v9a2 2 0 01-2 2h-3v-7H8v7H5a2 2 0 01-2-2v-9z" />,
-  tag:      <path d="M3 12l9-9h8v8l-9 9zM15 9a1 1 0 100-2 1 1 0 000 2z" />,
+  home: <path d="M3 11l9-8 9 8v9a2 2 0 01-2 2h-3v-7H8v7H5a2 2 0 01-2-2v-9z" />,
+  tag: <path d="M3 12l9-9h8v8l-9 9zM15 9a1 1 0 100-2 1 1 0 000 2z" />,
   arrowLeft: <path d="M19 12H5m7-7l-7 7 7 7" />,
-};
+}
 
 export function BCIcon({
   name,
   size = 22,
-  color = "currentColor",
+  color = 'currentColor',
   strokeWidth = 1.6,
   className,
 }: {
-  name: string;
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-  className?: string;
+  name: string
+  size?: number
+  color?: string
+  strokeWidth?: number
+  className?: string
 }) {
   return (
     <svg
@@ -77,23 +82,13 @@ export function BCIcon({
     >
       {ICON_PATHS[name]}
     </svg>
-  );
+  )
 }
 
 // ── Avatar ────────────────────────────────────────────────────────
-export function BCAvatar({
-  name = "?",
-  seed,
-  size = 36,
-  ring = false,
-}: {
-  name?: string;
-  seed?: string;
-  size?: number;
-  ring?: boolean;
-}) {
-  const initial = (name || "?").trim().charAt(0).toUpperCase();
-  const bg = avatarColor(seed || name || "?");
+export function BCAvatar({ name = '?', seed, size = 36, ring = false }: { name?: string; seed?: string; size?: number; ring?: boolean }) {
+  const initial = (name || '?').trim().charAt(0).toUpperCase()
+  const bg = avatarColor(seed || name || '?')
   return (
     <div
       style={{
@@ -101,20 +96,20 @@ export function BCAvatar({
         height: size,
         borderRadius: size,
         background: bg,
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
         fontWeight: 600,
         fontSize: size * 0.42,
         flexShrink: 0,
-        boxShadow: ring ? "0 0 0 2px var(--bc-bg)" : "none",
+        boxShadow: ring ? '0 0 0 2px var(--bc-bg)' : 'none',
       }}
     >
       {initial}
     </div>
-  );
+  )
 }
 
 export function BCAvatarStack({
@@ -122,12 +117,12 @@ export function BCAvatarStack({
   size = 28,
   max = 4,
 }: {
-  members: { id: string; displayName: string }[];
-  size?: number;
-  max?: number;
+  members: { id: string; displayName: string }[]
+  size?: number
+  max?: number
 }) {
-  const show = members.slice(0, max);
-  const extra = members.length - show.length;
+  const show = members.slice(0, max)
+  const extra = members.length - show.length
   return (
     <div className="flex">
       {show.map((m, i) => (
@@ -142,28 +137,28 @@ export function BCAvatarStack({
             width: size,
             height: size,
             borderRadius: size,
-            background: "var(--bc-chip)",
-            color: "var(--bc-muted)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+            background: 'var(--bc-chip)',
+            color: 'var(--bc-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
             fontWeight: 600,
             fontSize: size * 0.38,
-            boxShadow: "0 0 0 2px var(--bc-bg)",
+            boxShadow: '0 0 0 2px var(--bc-bg)',
           }}
         >
           +{extra}
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ── Group glyph ───────────────────────────────────────────────────
 export function BCGroupGlyph({ name, size = 44 }: { name: string; size?: number }) {
-  const ch = (name || "?").trim().charAt(0).toUpperCase();
-  const tint = avatarColor(name);
+  const ch = (name || '?').trim().charAt(0).toUpperCase()
+  const tint = avatarColor(name)
   return (
     <div
       style={{
@@ -171,30 +166,24 @@ export function BCGroupGlyph({ name, size = 44 }: { name: string; size?: number 
         height: size,
         borderRadius: 14,
         background: tint,
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "var(--font-newsreader), serif",
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--font-newsreader), serif',
         fontSize: size * 0.55,
-        letterSpacing: "-0.02em",
+        letterSpacing: '-0.02em',
         flexShrink: 0,
       }}
     >
       {ch}
     </div>
-  );
+  )
 }
 
 // ── Category badge ────────────────────────────────────────────────
-export function BCCategoryBadge({
-  category,
-  size = 40,
-}: {
-  category: string;
-  size?: number;
-}) {
-  const c = BC_CATEGORIES[category] || BC_CATEGORIES.other;
+export function BCCategoryBadge({ category, size = 40 }: { category: string; size?: number }) {
+  const c = BC_CATEGORIES[category] || BC_CATEGORIES.other
   return (
     <div
       style={{
@@ -202,20 +191,20 @@ export function BCCategoryBadge({
         height: size,
         borderRadius: 12,
         background: c.tint,
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "var(--font-newsreader), serif",
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--font-newsreader), serif',
         fontWeight: 400,
         fontSize: size * 0.5,
-        letterSpacing: "-0.02em",
+        letterSpacing: '-0.02em',
         flexShrink: 0,
       }}
     >
       {c.glyph}
     </div>
-  );
+  )
 }
 
 // ── Card ──────────────────────────────────────────────────────────
@@ -226,44 +215,35 @@ export function BCCard({
   onClick,
   className,
 }: {
-  children: React.ReactNode;
-  padded?: boolean;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-  className?: string;
+  children: React.ReactNode
+  padded?: boolean
+  style?: React.CSSProperties
+  onClick?: () => void
+  className?: string
 }) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "bg-(--bc-surface) rounded-[22px] border border-(--bc-softhair)",
-        padded ? "p-[18px]" : "p-0",
-        onClick && "bc-tap cursor-pointer",
+        'bg-(--bc-surface) rounded-[22px] border border-(--bc-softhair)',
+        padded ? 'p-[18px]' : 'p-0',
+        onClick && 'bc-tap cursor-pointer',
         className,
       )}
       style={style}
     >
       {children}
     </div>
-  );
+  )
 }
 
 // ── Section label ─────────────────────────────────────────────────
-export function BCSectionLabel({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
+export function BCSectionLabel({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div
-      className="font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.14em] font-medium"
-      style={style}
-    >
+    <div className="font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.14em] font-medium" style={style}>
       {children}
     </div>
-  );
+  )
 }
 
 // ── Top bar ───────────────────────────────────────────────────────
@@ -273,43 +253,25 @@ export function BCTopBar({
   title,
   subtitle,
 }: {
-  left?: React.ReactNode;
-  right?: React.ReactNode;
-  title?: string;
-  subtitle?: string;
+  left?: React.ReactNode
+  right?: React.ReactNode
+  title?: string
+  subtitle?: string
 }) {
   return (
     <div className="flex items-center justify-between px-4 pt-2 pb-1 min-h-13">
       <div className="min-w-10 flex items-center">{left}</div>
       <div className="text-center flex-1">
-        {title && (
-          <div className="font-sans font-medium text-[15px] text-(--bc-ink) tracking-[-0.005em]">
-            {title}
-          </div>
-        )}
-        {subtitle && (
-          <div className="font-sans text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">
-            {subtitle}
-          </div>
-        )}
+        {title && <div className="font-sans font-medium text-[15px] text-(--bc-ink) tracking-[-0.005em]">{title}</div>}
+        {subtitle && <div className="font-sans text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">{subtitle}</div>}
       </div>
       <div className="min-w-10 flex justify-end gap-1">{right}</div>
     </div>
-  );
+  )
 }
 
 // ── Icon button ───────────────────────────────────────────────────
-export function BCIconBtn({
-  name,
-  onClick,
-  href,
-  badge,
-}: {
-  name: string;
-  onClick?: () => void;
-  href?: string;
-  badge?: number;
-}) {
+export function BCIconBtn({ name, onClick, href, badge }: { name: string; onClick?: () => void; href?: string; badge?: number }) {
   const inner = (
     <>
       <BCIcon name={name} size={20} color="var(--bc-ink)" />
@@ -319,59 +281,60 @@ export function BCIconBtn({
         </span>
       )}
     </>
-  );
+  )
 
-  const baseClass = "bc-tap w-10 h-10 rounded-full border-0 bg-transparent cursor-pointer flex items-center justify-center text-(--bc-ink) relative";
+  const baseClass =
+    'bc-tap w-10 h-10 rounded-full border-0 bg-transparent cursor-pointer flex items-center justify-center text-(--bc-ink) relative'
 
   if (href) {
     return (
       <a href={href} className={baseClass}>
         {inner}
       </a>
-    );
+    )
   }
 
   return (
     <button onClick={onClick} className={baseClass}>
       {inner}
     </button>
-  );
+  )
 }
 
 // ── Primary / ghost / quiet button ───────────────────────────────
 export function BCButton({
   children,
   onClick,
-  variant = "primary",
+  variant = 'primary',
   full,
   disabled,
   icon,
-  type = "button",
+  type = 'button',
   href,
 }: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "primary" | "accent" | "ghost" | "quiet" | "danger";
-  full?: boolean;
-  disabled?: boolean;
-  icon?: React.ReactNode;
-  type?: "button" | "submit";
-  href?: string;
+  children: React.ReactNode
+  onClick?: () => void
+  variant?: 'primary' | 'accent' | 'ghost' | 'quiet' | 'danger'
+  full?: boolean
+  disabled?: boolean
+  icon?: React.ReactNode
+  type?: 'button' | 'submit'
+  href?: string
 }) {
   const variantClass: Record<string, string> = {
-    primary: "bg-(--bc-ink) text-(--bc-bg) border-0",
-    accent:  "bg-(--bc-accent) text-white border-0",
-    ghost:   "bg-transparent text-(--bc-ink) border border-(--bc-hair)",
-    quiet:   "bg-(--bc-chip) text-(--bc-ink) border-0",
-    danger:  "bg-transparent text-(--bc-neg) border border-(--bc-softhair)",
-  };
+    primary: 'bg-(--bc-ink) text-(--bc-bg) border-0',
+    accent: 'bg-(--bc-accent) text-white border-0',
+    ghost: 'bg-transparent text-(--bc-ink) border border-(--bc-hair)',
+    quiet: 'bg-(--bc-chip) text-(--bc-ink) border-0',
+    danger: 'bg-transparent text-(--bc-neg) border border-(--bc-softhair)',
+  }
 
   const cls = cn(
-    "bc-tap px-5.5 py-[15px] rounded-full font-sans font-medium text-base tracking-[-0.005em] inline-flex items-center justify-center gap-2.5 no-underline",
+    'bc-tap px-5.5 py-[15px] rounded-full font-sans font-medium text-base tracking-[-0.005em] inline-flex items-center justify-center gap-2.5 no-underline',
     variantClass[variant],
-    full && "w-full",
-    disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
-  );
+    full && 'w-full',
+    disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
+  )
 
   if (href) {
     return (
@@ -379,7 +342,7 @@ export function BCButton({
         {icon}
         {children}
       </a>
-    );
+    )
   }
 
   return (
@@ -387,12 +350,12 @@ export function BCButton({
       {icon}
       {children}
     </button>
-  );
+  )
 }
 
 // ── Numpad ────────────────────────────────────────────────────────
 export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "del"];
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del']
   return (
     <div className="grid grid-cols-3 gap-1 px-3 pb-[10px]">
       {keys.map((k) => (
@@ -402,60 +365,44 @@ export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
           onClick={() => onKey(k)}
           className="bc-tap h-[52px] border-0 bg-transparent active:bg-(--bc-chip) font-serif text-[30px] font-normal text-(--bc-ink) rounded-[16px] cursor-pointer tabular-nums flex items-center justify-center"
         >
-          {k === "del" ? (
-            <BCIcon name="back" size={20} color="var(--bc-ink)" strokeWidth={1.6} />
-          ) : (
-            k
-          )}
+          {k === 'del' ? <BCIcon name="back" size={20} color="var(--bc-ink)" strokeWidth={1.6} /> : k}
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 // ── Amount display ────────────────────────────────────────────────
-export function BCAmountDisplay({
-  value,
-  currency,
-  size = 88,
-}: {
-  value: string;
-  currency: string;
-  size?: number;
-}) {
-  const display = value || "0";
+export function BCAmountDisplay({ value, currency, size = 88 }: { value: string; currency: string; size?: number }) {
+  const display = value || '0'
   return (
     <div className="flex items-baseline justify-center">
       <span
         style={{
-          fontFamily: "var(--font-newsreader), serif",
+          fontFamily: 'var(--font-newsreader), serif',
           fontSize: size * 0.58,
-          color: "var(--bc-muted)",
+          color: 'var(--bc-muted)',
           marginRight: 6,
-          fontVariantNumeric: "tabular-nums",
+          fontVariantNumeric: 'tabular-nums',
         }}
       >
         {currency}
       </span>
       <span
         style={{
-          fontFamily: "var(--font-newsreader), serif",
+          fontFamily: 'var(--font-newsreader), serif',
           fontSize: size,
-          color: "var(--bc-ink)",
+          color: 'var(--bc-ink)',
           lineHeight: 0.95,
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: "-0.02em",
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.02em',
         }}
       >
-        {display.includes(".") ? display.split(".")[0] : display}
-        {display.includes(".") && (
-          <span style={{ fontSize: size * 0.58, color: "var(--bc-muted)" }}>
-            .{display.split(".")[1]}
-          </span>
-        )}
+        {display.includes('.') ? display.split('.')[0] : display}
+        {display.includes('.') && <span style={{ fontSize: size * 0.58, color: 'var(--bc-muted)' }}>.{display.split('.')[1]}</span>}
       </span>
     </div>
-  );
+  )
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────
@@ -464,9 +411,9 @@ export function BCTabs({
   active,
   onChange,
 }: {
-  tabs: { k: string; label: string }[];
-  active: string;
-  onChange: (k: string) => void;
+  tabs: { k: string; label: string }[]
+  active: string
+  onChange: (k: string) => void
 }) {
   return (
     <div className="flex gap-1 p-1 bg-(--bc-chip) rounded-[18px] mx-4">
@@ -476,93 +423,68 @@ export function BCTabs({
           type="button"
           onClick={() => onChange(t.k)}
           className={cn(
-            "bc-tap flex-1 border-0 cursor-pointer text-(--bc-ink) px-3 py-2.5 rounded-[14px] font-sans font-medium text-[13px] tracking-[-0.005em] transition-[background] duration-[160ms]",
-            active === t.k
-              ? "bg-(--bc-surface) shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-              : "bg-transparent",
+            'bc-tap flex-1 border-0 cursor-pointer text-(--bc-ink) px-3 py-2.5 rounded-[14px] font-sans font-medium text-[13px] tracking-[-0.005em] transition-[background] duration-[160ms]',
+            active === t.k ? 'bg-(--bc-surface) shadow-[0_1px_2px_rgba(0,0,0,0.06)]' : 'bg-transparent',
           )}
         >
           {t.label}
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 // ── Chip / tag button ─────────────────────────────────────────────
-export function BCChip({
-  children,
-  active,
-  onClick,
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-  onClick?: () => void;
-}) {
+export function BCChip({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "bc-tap border-0 cursor-pointer px-3.5 py-2 rounded-full text-[13px] font-sans font-medium tracking-[-0.005em] shrink-0",
-        active ? "bg-(--bc-ink) text-(--bc-bg)" : "bg-(--bc-chip) text-(--bc-ink)",
+        'bc-tap border-0 cursor-pointer px-3.5 py-2 rounded-full text-[13px] font-sans font-medium tracking-[-0.005em] shrink-0',
+        active ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
       )}
     >
       {children}
     </button>
-  );
+  )
 }
 
 // ── Spinner ───────────────────────────────────────────────────────
-export function BCSpinner({ color = "var(--bc-accent)" }: { color?: string }) {
+export function BCSpinner({ color = 'var(--bc-accent)' }: { color?: string }) {
   return (
-    <svg
-      width="40"
-      height="40"
-      viewBox="0 0 40 40"
-      className="animate-bc-spin"
-    >
+    <svg width="40" height="40" viewBox="0 0 40 40" className="animate-bc-spin">
       <circle cx="20" cy="20" r="16" stroke={color} strokeOpacity="0.18" strokeWidth="3" fill="none" />
       <path d="M20 4 A 16 16 0 0 1 36 20" stroke={color} strokeWidth="3" strokeLinecap="round" fill="none" />
     </svg>
-  );
+  )
 }
 
 // ── Balance badge helper ──────────────────────────────────────────
-export function BCBalanceBadge({
-  amount,
-  currency,
-  size = 26,
-}: {
-  amount: number;
-  currency: string;
-  size?: number;
-}) {
-  const isOwed = amount > 0.005;
-  const owes = amount < -0.005;
-  const settled = !isOwed && !owes;
+export function BCBalanceBadge({ amount, currency, size = 26 }: { amount: number; currency: string; size?: number }) {
+  const tCommon = useTranslations('common')
+  const tHome = useTranslations('home')
+  const isOwed = amount > 0.005
+  const owes = amount < -0.005
+  const settled = !isOwed && !owes
   return (
     <div className="text-right">
       {settled ? (
-        <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">
-          Settled
-        </div>
+        <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">{tCommon('settled')}</div>
       ) : (
         <>
           <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.08em] uppercase whitespace-nowrap">
-            {isOwed ? "You're owed" : "You owe"}
+            {isOwed ? tHome('youre_owed') : tHome('you_owe_short')}
           </div>
           <div
-            className={cn(
-              "font-serif leading-none tabular-nums tracking-[-0.01em] mt-0.5",
-              isOwed ? "text-(--bc-pos)" : "text-(--bc-neg)",
-            )}
+            className={cn('font-serif leading-none tabular-nums tracking-[-0.01em] mt-0.5', isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)')}
             style={{ fontSize: size }}
           >
-            {currency}{Math.abs(amount).toFixed(2)}
+            {currency}
+            {Math.abs(amount).toFixed(2)}
           </div>
         </>
       )}
     </div>
-  );
+  )
 }

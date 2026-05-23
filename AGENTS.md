@@ -10,8 +10,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## After every change
 
-1. Run `npm run build` — must pass before considering work done.
-2. Review `tests/e2e/` and create or update Playwright E2E tests to cover changed or added behaviour. Every user-facing feature must have a corresponding test.
+1. Run `npm run format` — format all changed files before anything else.
+2. Run `npm run lint` — fix all lint errors before proceeding.
+3. Run `npm run build` — must pass before considering work done.
+4. Run `npm run test:e2e` — review `tests/e2e/` and create or update Playwright E2E tests to cover changed or added behaviour. Every user-facing feature must have a corresponding test.
 
 ---
 

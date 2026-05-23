@@ -22,6 +22,8 @@
     "description": "Track group expenses and settle debts easily"
   },
   "landing": {
+    "hero_settle_up": "Settle up",
+    "hero_meta": "4 people · 1 transfer",
     "tagline": "For friends, trips,\nand long shared rents",
     "subhead": "Split expenses without the spreadsheet. Track who paid, who owes, and settle up clean.",
     "feature_ledger_t": "Shared ledgers",
@@ -98,6 +100,7 @@
     "save": "Save expense"
   },
   "settle": {
+    "error": "Something went wrong",
     "title": "Settle up",
     "from": "From",
     "to": "To",

@@ -22,6 +22,8 @@
     "description": "Theo dõi chi tiêu nhóm và thanh toán dễ dàng"
   },
   "landing": {
+    "hero_settle_up": "Quyết toán",
+    "hero_meta": "4 người · 1 giao dịch",
     "tagline": "Cho bạn bè\nvà tiền nhà chung",
     "subhead": "Chia chi tiêu không cần bảng tính. Theo dõi ai trả, ai nợ, và quyết toán gọn gàng.",
     "feature_ledger_t": "Sổ chung nhóm",
@@ -98,6 +100,7 @@
     "save": "Lưu chi tiêu"
   },
   "settle": {
+    "error": "Đã xảy ra lỗi",
     "title": "Quyết toán",
     "from": "Từ",
     "to": "Đến",

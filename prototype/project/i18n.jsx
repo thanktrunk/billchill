@@ -2,7 +2,7 @@
 
 const BC_LANG = {
   en: {
-    'brand': 'billchill',
+    brand: 'billchill',
 
     // Bottom nav
     'nav.groups': 'Groups',
@@ -140,7 +140,7 @@ const BC_LANG = {
   },
 
   vi: {
-    'brand': 'billchill',
+    brand: 'billchill',
 
     'nav.groups': 'Nhóm',
     'nav.activity': 'Hoạt động',
@@ -266,57 +266,60 @@ const BC_LANG = {
     'common.days_short': '{0} ng',
     'common.app_footer': 'billchill · phiên bản 1.0',
   },
-};
+}
 
 // Translator factory — returns a t(key, vars?) function bound to a language.
 function bcMakeT(lang) {
-  const dict = BC_LANG[lang] || BC_LANG.en;
-  const fallback = BC_LANG.en;
+  const dict = BC_LANG[lang] || BC_LANG.en
+  const fallback = BC_LANG.en
   return function t(key, vars) {
-    const raw = (dict[key] !== undefined ? dict[key] : fallback[key]) ?? key;
-    if (!vars) return raw;
+    const raw = (dict[key] !== undefined ? dict[key] : fallback[key]) ?? key
+    if (!vars) return raw
     // Supports both {0} positional and {name} keyed substitution.
     if (Array.isArray(vars)) {
-      return raw.replace(/\{(\d+)\}/g, (_, i) => vars[+i] != null ? vars[+i] : '');
+      return raw.replace(/\{(\d+)\}/g, (_, i) => (vars[+i] != null ? vars[+i] : ''))
     }
-    return raw.replace(/\{(\w+)\}/g, (_, k) => vars[k] != null ? vars[k] : '');
-  };
+    return raw.replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ''))
+  }
 }
 
 // Locale-aware short date and relative time
 function bcShortDateL(iso, lang) {
-  const t = new Date(iso);
-  const locale = lang === 'vi' ? 'vi-VN' : 'en-US';
-  return t.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  const t = new Date(iso)
+  const locale = lang === 'vi' ? 'vi-VN' : 'en-US'
+  return t.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
 function bcRelativeTimeL(iso, lang) {
-  const T = bcMakeT(lang);
-  const now = new Date('2026-05-22T12:00:00Z');
-  const t = new Date(iso);
-  const diff = (now - t) / 1000;
-  if (diff < 60) return T('common.now');
-  if (diff < 3600) return T('common.minutes_short', [Math.floor(diff / 60)]);
-  if (diff < 86400) return T('common.hours_short', [Math.floor(diff / 3600)]);
-  if (diff < 86400 * 7) return T('common.days_short', [Math.floor(diff / 86400)]);
-  return bcShortDateL(iso, lang);
+  const T = bcMakeT(lang)
+  const now = new Date('2026-05-22T12:00:00Z')
+  const t = new Date(iso)
+  const diff = (now - t) / 1000
+  if (diff < 60) return T('common.now')
+  if (diff < 3600) return T('common.minutes_short', [Math.floor(diff / 60)])
+  if (diff < 86400) return T('common.hours_short', [Math.floor(diff / 3600)])
+  if (diff < 86400 * 7) return T('common.days_short', [Math.floor(diff / 86400)])
+  return bcShortDateL(iso, lang)
 }
 
 // Resolve a member's display name with localization for the current user
 function bcMemberName(state, memberOrId, T) {
-  const m = typeof memberOrId === 'string'
-    ? state.members.find((x) => x.id === memberOrId)
-    : memberOrId;
-  if (!m) return '';
-  return m.user_id === 'u_me' ? T('common.you') : m.display_name;
+  const m = typeof memberOrId === 'string' ? state.members.find((x) => x.id === memberOrId) : memberOrId
+  if (!m) return ''
+  return m.user_id === 'u_me' ? T('common.you') : m.display_name
 }
 
 // Format a notification's message from its params using the current language.
 function bcNotifMessage(notif, T) {
-  const params = notif.params || {};
-  return T('notif.' + notif.type, params);
+  const params = notif.params || {}
+  return T('notif.' + notif.type, params)
 }
 
 Object.assign(window, {
-  BC_LANG, bcMakeT, bcShortDateL, bcRelativeTimeL, bcMemberName, bcNotifMessage,
-});
+  BC_LANG,
+  bcMakeT,
+  bcShortDateL,
+  bcRelativeTimeL,
+  bcMemberName,
+  bcNotifMessage,
+})

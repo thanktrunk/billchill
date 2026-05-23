@@ -1,46 +1,42 @@
-import { notFound } from "next/navigation";
-import { db } from "@/db";
-import { groups, groupMembers, expenses, expenseSplits, settlements } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
-import { verifyGroupMembership } from "@/lib/access-control";
-import { calculateBalances, minimizeDebts } from "@/lib/balance";
-import { hasLocale } from "@/lib/i18n";
-import { GroupDetailClient } from "./group-detail-client";
+import { notFound } from 'next/navigation'
+import { db } from '@/db'
+import { groups, groupMembers, expenses, expenseSplits, settlements } from '@/db/schema'
+import { eq, inArray } from 'drizzle-orm'
+import { requireUser } from '@/lib/auth'
+import { verifyGroupMembership } from '@/lib/access-control'
+import { calculateBalances, minimizeDebts } from '@/lib/balance'
+import { hasLocale } from '@/lib/i18n'
+import { GroupDetailClient } from './group-detail-client'
 
-export default async function GroupDetailPage({
-  params,
-}: PageProps<"/[lang]/groups/[id]">) {
-  const { lang, id } = await params;
-  if (!hasLocale(lang)) notFound();
+export default async function GroupDetailPage({ params }: PageProps) {
+  const { lang, id } = await params
+  if (!hasLocale(lang)) notFound()
 
-  const user = await requireUser();
-  await verifyGroupMembership(id, user.id);
+  const user = await requireUser()
+  await verifyGroupMembership(id, user.id)
 
   const [group, members, groupExpenses, groupSettlements] = await Promise.all([
     db.query.groups.findFirst({ where: eq(groups.id, id) }),
     db.select().from(groupMembers).where(eq(groupMembers.groupId, id)),
     db.select().from(expenses).where(eq(expenses.groupId, id)),
     db.select().from(settlements).where(eq(settlements.groupId, id)),
-  ]);
+  ])
 
-  if (!group) notFound();
+  if (!group) notFound()
 
-  const myMember = members.find((m) => m.userId === user.id);
+  const myMember = members.find((m) => m.userId === user.id)
 
-  const expenseIds = groupExpenses.map((e) => e.id);
+  const expenseIds = groupExpenses.map((e) => e.id)
   const allSplitsForGroup = expenseIds.length
     ? await db.select().from(expenseSplits).where(inArray(expenseSplits.expenseId, expenseIds))
-    : [];
+    : []
 
-  const activeMembers = members.filter((m) => m.isActive);
+  const activeMembers = members.filter((m) => m.isActive)
 
   const expensesWithSplits = groupExpenses.map((e) => ({
     paidBy: e.paidBy,
-    splits: allSplitsForGroup
-      .filter((s) => s.expenseId === e.id)
-      .map((s) => ({ memberId: s.memberId, shareAmount: s.shareAmount })),
-  }));
+    splits: allSplitsForGroup.filter((s) => s.expenseId === e.id).map((s) => ({ memberId: s.memberId, shareAmount: s.shareAmount })),
+  }))
 
   const balances = calculateBalances(
     activeMembers.map((m) => ({ id: m.id, displayName: m.displayName })),
@@ -49,13 +45,11 @@ export default async function GroupDetailPage({
       fromMember: s.fromMember,
       toMember: s.toMember,
       amount: s.amount,
-    }))
-  );
+    })),
+  )
 
-  const minimizedDebts = minimizeDebts(balances);
-  const myBalance = myMember
-    ? (balances.find((b) => b.memberId === myMember.id)?.balance ?? 0)
-    : 0;
+  const minimizedDebts = minimizeDebts(balances)
+  const myBalance = myMember ? (balances.find((b) => b.memberId === myMember.id)?.balance ?? 0) : 0
 
   const serializedExpenses = groupExpenses.map((e) => ({
     id: e.id,
@@ -66,7 +60,7 @@ export default async function GroupDetailPage({
     date: e.date,
     paidBy: e.paidBy,
     createdAt: e.createdAt.toISOString(),
-  }));
+  }))
 
   const serializedSettlements = groupSettlements.map((s) => ({
     id: s.id,
@@ -74,13 +68,13 @@ export default async function GroupDetailPage({
     toMember: s.toMember,
     amount: s.amount,
     settledAt: s.settledAt.toISOString(),
-  }));
+  }))
 
   const serializedMembers = activeMembers.map((m) => ({
     id: m.id,
     displayName: m.displayName,
     userId: m.userId,
-  }));
+  }))
 
   return (
     <GroupDetailClient
@@ -102,5 +96,5 @@ export default async function GroupDetailPage({
       myMemberId={myMember?.id ?? null}
       myBalance={myBalance}
     />
-  );
+  )
 }
