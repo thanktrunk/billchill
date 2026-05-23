@@ -5,7 +5,7 @@
     "back_to_groups": "← Quay lại danh sách nhóm",
     "app_name": "billchill",
     "you": "Bạn",
-    "settled": "Đã thanh toán",
+    "settled": "Đã trả",
     "app_footer": "billchill · phiên bản 1.0",
     "now": "vừa xong",
     "minutes_short": "{0} ph",
@@ -48,24 +48,25 @@
     "cancel": "Hủy"
   },
   "home": {
-    "your_balance": "Số dư của bạn",
-    "owed_to_you": "Được nợ",
+    "your_balance": "Số dư còn lại",
+    "owed_to_you": "Bọn nó nợ",
     "you_owe": "Bạn nợ",
     "groups_section": "Nhóm",
     "active": "{0} đang hoạt động",
     "empty": "Chưa có nhóm. Nhấn + để bắt đầu.",
-    "youre_owed": "Được nợ",
+    "youre_owed": "Bọn nó nợ",
     "you_owe_short": "Bạn nợ",
-    "settled": "Đã thanh toán",
+    "settled": "Đã trả",
     "new_group": "Nhóm mới"
   },
   "group": {
     "members_count": "{0} thành viên",
     "members_count_one": "{0} thành viên",
     "members_count_other": "{0} thành viên",
-    "all_settled": "Đã thanh toán hết",
-    "youre_owed": "Bạn được nợ",
+    "all_settled": "Đã trả hết",
+    "youre_owed": "Tụi nó nợ bạn",
     "you_owe": "Bạn nợ",
+    "total_spent": "Tổng chi tiêu",
     "settle_up": "Quyết toán",
     "tab_expenses": "Chi tiêu · {0}",
     "tab_balances": "Số dư",
@@ -78,9 +79,9 @@
     "transfers": "{0} giao dịch",
     "transfers_one": "{0} giao dịch",
     "transfers_other": "{0} giao dịch",
-    "is_owed": "Được nợ",
+    "is_owed": "Bọn nó nợ",
     "owes": "Đang nợ",
-    "record_settlement": "Ghi nhận thanh toán",
+    "record_settlement": "Trả nợ",
     "paid_shares": "{0} trả · {1} phần",
     "paid_shares_one": "{0} trả · {1} phần",
     "paid_shares_other": "{0} trả · {1} phần",
@@ -110,7 +111,8 @@
     "confirm_delete": "Xóa chi tiêu này?",
     "split_breakdown": "Phân chia",
     "save": "Lưu",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "date": "Ngày"
   },
   "add": {
     "title": "Thêm chi tiêu",
@@ -137,7 +139,7 @@
     "to": "Đến",
     "amount": "Số tiền",
     "suggested": "Đề xuất {0}",
-    "record": "Ghi nhận thanh toán",
+    "record": "Trả nợ",
     "done_title": "Đã ghi nhận.",
     "done_subtitle": "Sổ sách nhẹ đi một bước.",
     "back_to_group": "Quay lại nhóm"
@@ -173,7 +175,10 @@
     "all_on": "Bật hết",
     "auto": "Tự động",
     "signed_in_as": "Đã đăng nhập với",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "edit_name": "Sửa tên",
+    "save_name": "Lưu",
+    "cancel_name": "Huỷ"
   },
   "cat": {
     "food": "Ăn uống",
@@ -193,7 +198,7 @@
   "new_group": {
     "title": "Tạo nhóm",
     "name_label": "Tên nhóm",
-    "name_placeholder": "Ví dụ: Chuyến đi Nhật Bản",
+    "name_placeholder": "Ví dụ: Chuyến đi Đà Lạt",
     "currency_label": "Tiền tệ",
     "submitting": "Đang tạo...",
     "submit": "Tạo nhóm"

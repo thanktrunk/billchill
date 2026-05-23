@@ -53,6 +53,7 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
   home: <path d="M3 11l9-8 9 8v9a2 2 0 01-2 2h-3v-7H8v7H5a2 2 0 01-2-2v-9z" />,
   tag: <path d="M3 12l9-9h8v8l-9 9zM15 9a1 1 0 100-2 1 1 0 000 2z" />,
   arrowLeft: <path d="M19 12H5m7-7l-7 7 7 7" />,
+  edit: <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />,
 }
 
 export function BCIcon({
@@ -86,15 +87,35 @@ export function BCIcon({
 }
 
 // ── Avatar ────────────────────────────────────────────────────────
-export function BCAvatar({ name = '?', seed, size = 36, ring = false }: { name?: string; seed?: string; size?: number; ring?: boolean }) {
+export function BCAvatar({
+  name = '?',
+  seed,
+  size = 36,
+  ring = false,
+  avatarUrl,
+}: {
+  name?: string
+  seed?: string
+  size?: number
+  ring?: boolean
+  avatarUrl?: string | null
+}) {
   const initial = (name || '?').trim().charAt(0).toUpperCase()
   const bg = avatarColor(seed || name || '?')
+  const baseStyle: React.CSSProperties = {
+    width: size,
+    height: size,
+    borderRadius: size,
+    flexShrink: 0,
+    boxShadow: ring ? '0 0 0 2px var(--bc-bg)' : 'none',
+  }
+  if (avatarUrl) {
+    return <img src={avatarUrl} alt={name} width={size} height={size} style={{ ...baseStyle, objectFit: 'cover' }} />
+  }
   return (
     <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: size,
+        ...baseStyle,
         background: bg,
         color: '#fff',
         display: 'flex',
@@ -103,8 +124,6 @@ export function BCAvatar({ name = '?', seed, size = 36, ring = false }: { name?:
         fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
         fontWeight: 600,
         fontSize: size * 0.42,
-        flexShrink: 0,
-        boxShadow: ring ? '0 0 0 2px var(--bc-bg)' : 'none',
       }}
     >
       {initial}

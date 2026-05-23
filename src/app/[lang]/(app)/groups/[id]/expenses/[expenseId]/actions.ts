@@ -29,6 +29,7 @@ export async function getExpenseDetail(expenseId: string) {
 }
 
 export async function updateExpense(
+  lang: string,
   expenseId: string,
   data: {
     description: string
@@ -69,7 +70,8 @@ export async function updateExpense(
     )
   }
 
-  revalidatePath(`/groups/${expense.groupId}`)
+  revalidatePath(`/${lang}/groups/${expense.groupId}`)
+  revalidatePath(`/${lang}/groups/${expense.groupId}/expenses/${expenseId}`)
 }
 
 export async function deleteExpense(lang: string, expenseId: string) {

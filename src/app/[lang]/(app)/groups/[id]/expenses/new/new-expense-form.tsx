@@ -4,12 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCNumPad, BCAmountDisplay, BCChip, BC_CATEGORIES, BCTopBar } from '@/components/bc-ui'
+import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar } from '@/components/bc-ui'
 import { addExpense } from './actions'
-import { currencySymbol } from '@/lib/utils'
+import { currencySymbol } from '@/lib/currency'
+import { cn } from '@/lib/utils'
+import { CategoryPicker } from '../_components/category-picker'
+import { PaidByPicker } from '../_components/paid-by-picker'
+import { SplitEditor, SplitMethod } from '../_components/split-editor'
 
 type Member = { id: string; displayName: string; defaultShare: number }
-type SplitMethod = 'equal' | 'amount' | 'shares' | 'percentage'
 
 export function NewExpenseForm({
   groupId,
@@ -25,7 +28,6 @@ export function NewExpenseForm({
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('add')
-  const tCat = useTranslations('cat')
   const sym = currencySymbol(currency)
   const [pending, setPending] = useState(false)
   const [step, setStep] = useState<'amount' | 'details'>('amount')
@@ -50,7 +52,6 @@ export function NewExpenseForm({
 
   const amount = parseFloat(amountStr) || 0
   const selected = splitWith ?? members.map((m) => m.id)
-  const perPerson = amount / Math.max(1, selected.length)
 
   const toggleMember = (mid: string) => {
     const cur = splitWith ?? members.map((m) => m.id)
@@ -80,26 +81,9 @@ export function NewExpenseForm({
     }
   }
 
-  const setInput = (mid: string, val: string) => {
-    setMemberInputs((prev) => ({ ...prev, [mid]: val }))
-  }
-
   const totalShares = members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0)
   const inputSum = splitMethod === 'amount' ? members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0) : 0
   const pctSum = splitMethod === 'percentage' ? members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0) : 0
-
-  function getMemberAmount(m: Member): number {
-    if (splitMethod === 'amount') return parseFloat(memberInputs[m.id] || '0') || 0
-    if (splitMethod === 'shares') {
-      const share = parseFloat(memberInputs[m.id] || '0') || 0
-      return totalShares > 0 ? (amount * share) / totalShares : 0
-    }
-    if (splitMethod === 'percentage') {
-      const pct = parseFloat(memberInputs[m.id] || '0') || 0
-      return (amount * pct) / 100
-    }
-    return 0
-  }
 
   const canSave = (() => {
     if (!paidBy || !(amount > 0)) return false
@@ -114,6 +98,7 @@ export function NewExpenseForm({
     if (pending || !paidBy || !canSave) return
     setPending(true)
     try {
+      const perPerson = amount / Math.max(1, selected.length)
       const fd = new FormData()
       fd.set('description', description || t('untitled'))
       fd.set('amount', amount.toFixed(2))
@@ -146,82 +131,36 @@ export function NewExpenseForm({
 
   if (step === 'amount') {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100dvh',
-          background: 'var(--bc-bg)',
-          color: 'var(--bc-ink)',
-        }}
-      >
+      <div className="bc-page">
         <BCTopBar
           title={t('title')}
           subtitle={groupName}
           left={
             <Link
               href={`/${locale}/groups/${groupId}`}
-              className="bc-tap"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-              }}
+              className="bc-tap w-10 h-10 rounded-full flex items-center justify-center no-underline"
             >
               <BCIcon name="close" size={20} color="var(--bc-ink)" />
             </Link>
           }
         />
 
-        <div style={{ padding: '8px 22px 0' }}>
+        <div className="px-5.5 pt-2">
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t('placeholder_what')}
-            style={{
-              width: '100%',
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-              fontWeight: 500,
-              fontSize: 18,
-              color: 'var(--bc-ink)',
-              letterSpacing: '-0.01em',
-              padding: '6px 0',
-              boxSizing: 'border-box',
-            }}
+            className="w-full border-0 outline-none bg-transparent font-sans font-medium text-[18px] text-(--bc-ink) tracking-[-0.01em] py-1.5 box-border"
           />
-          <div style={{ height: 1, background: 'var(--bc-softhair)', marginTop: 2 }} />
+          <div className="h-px bg-(--bc-softhair) mt-0.5" />
         </div>
 
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '20px 24px',
-          }}
-        >
+        <div className="flex-1 flex flex-col justify-center items-center px-6 py-5">
           <BCSectionLabel>{t('amount')}</BCSectionLabel>
-          <div style={{ marginTop: 16 }}>
+          <div className="mt-4">
             <BCAmountDisplay value={amountStr} currency={sym} size={88} />
           </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              marginTop: 24,
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-            }}
-          >
+          <div className="flex gap-2 mt-6 flex-wrap justify-center">
             {[10, 20, 50, 100].map((n) => (
               <BCChip key={n} onClick={() => setAmountStr(String(n))}>
                 {sym}
@@ -233,29 +172,15 @@ export function NewExpenseForm({
 
         <BCNumPad onKey={onKey} />
 
-        <div style={{ padding: '4px 18px 18px' }}>
+        <div className="px-4.5 pb-4.5 pt-1">
           <button
             type="button"
             disabled={!(amount > 0)}
             onClick={() => setStep('details')}
-            className="bc-tap"
-            style={{
-              background: amount > 0 ? 'var(--bc-accent)' : 'var(--bc-chip)',
-              color: amount > 0 ? '#fff' : 'var(--bc-muted)',
-              border: 'none',
-              padding: '15px 22px',
-              borderRadius: 999,
-              cursor: amount > 0 ? 'pointer' : 'not-allowed',
-              fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-              fontWeight: 500,
-              fontSize: 16,
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              opacity: amount > 0 ? 1 : 0.5,
-            }}
+            className={cn(
+              'bc-tap border-0 py-3.75 px-5.5 rounded-full font-sans font-medium text-base w-full flex items-center justify-center gap-2.5',
+              amount > 0 ? 'bg-(--bc-accent) text-white cursor-pointer' : 'bg-(--bc-chip) text-(--bc-muted) cursor-not-allowed opacity-50',
+            )}
           >
             {t('continue')}
             <BCIcon name="arrowR" size={18} color={amount > 0 ? '#fff' : 'var(--bc-muted)'} strokeWidth={2.2} />
@@ -266,15 +191,7 @@ export function NewExpenseForm({
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100dvh',
-        background: 'var(--bc-bg)',
-        color: 'var(--bc-ink)',
-      }}
-    >
+    <div className="bc-page">
       <BCTopBar
         title={t('title')}
         subtitle={groupName}
@@ -282,428 +199,65 @@ export function NewExpenseForm({
           <button
             type="button"
             onClick={() => setStep('amount')}
-            className="bc-tap"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 999,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="bc-tap w-10 h-10 rounded-full border-0 bg-transparent cursor-pointer flex items-center justify-center"
           >
             <BCIcon name="back" size={20} color="var(--bc-ink)" />
           </button>
         }
       />
 
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '8px 16px 8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: 12,
-            padding: '4px 4px',
-          }}
-        >
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                fontWeight: 500,
-                fontSize: 16,
-                color: 'var(--bc-ink)',
-                letterSpacing: '-0.005em',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
+      <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3.5">
+        <div className="flex items-baseline justify-between gap-3 px-1 py-1">
+          <div className="min-w-0 flex-1">
+            <div className="font-sans font-medium text-base text-(--bc-ink) tracking-[-0.005em] whitespace-nowrap overflow-hidden text-ellipsis">
               {description || t('untitled')}
             </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                fontSize: 11,
-                color: 'var(--bc-muted)',
-                marginTop: 2,
-                letterSpacing: '0.04em',
-              }}
-            >
+            <div className="font-mono text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">
               {new Date().toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' })}
             </div>
           </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-newsreader), serif',
-              fontSize: 36,
-              lineHeight: 1,
-              color: 'var(--bc-ink)',
-              fontVariantNumeric: 'tabular-nums',
-              letterSpacing: '-0.015em',
-            }}
-          >
+          <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em]">
             {sym}
             {amount.toFixed(2)}
           </div>
         </div>
 
         <div>
-          <div style={{ padding: '0 4px 8px' }}>
+          <div className="px-1 pb-2">
             <BCSectionLabel>{t('paid_by')}</BCSectionLabel>
           </div>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 4px' }}>
-            {members.map((m) => {
-              const sel = m.id === paidBy
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setPaidBy(m.id)}
-                  className="bc-tap"
-                  style={{
-                    flexShrink: 0,
-                    border: 'none',
-                    cursor: 'pointer',
-                    background: sel ? 'var(--bc-ink)' : 'var(--bc-chip)',
-                    color: sel ? 'var(--bc-bg)' : 'var(--bc-ink)',
-                    padding: '8px 14px 8px 8px',
-                    borderRadius: 999,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                    fontWeight: 500,
-                    fontSize: 13,
-                  }}
-                >
-                  <BCAvatar name={m.displayName} seed={m.id} size={24} />
-                  {m.displayName}
-                </button>
-              )
-            })}
-          </div>
+          <PaidByPicker members={members} paidBy={paidBy} onChange={(id) => setPaidBy(id)} />
         </div>
 
         <div>
-          <div style={{ padding: '0 4px 8px' }}>
+          <div className="px-1 pb-2">
             <BCSectionLabel>{t('category')}</BCSectionLabel>
           </div>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 4px 4px' }}>
-            {Object.entries(BC_CATEGORIES).map(([k, c]) => {
-              const sel = category === k
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setCategory(k)}
-                  className="bc-tap"
-                  style={{
-                    flexShrink: 0,
-                    border: 'none',
-                    cursor: 'pointer',
-                    background: 'transparent',
-                    padding: '4px 4px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 14,
-                      background: sel ? c.tint : 'var(--bc-chip)',
-                      color: sel ? '#fff' : c.tint,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'var(--font-newsreader), serif',
-                      fontSize: 22,
-                      letterSpacing: '-0.02em',
-                      boxShadow: sel ? `0 4px 12px ${c.tint}55` : 'none',
-                      transition: 'background 160ms, color 160ms, box-shadow 160ms',
-                    }}
-                  >
-                    {c.glyph}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                      fontSize: 11,
-                      color: sel ? 'var(--bc-ink)' : 'var(--bc-muted)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {tCat(k as Parameters<typeof tCat>[0])}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+          <CategoryPicker category={category} onChange={setCategory} />
         </div>
 
-        <div>
-          <div style={{ padding: '0 4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <BCSectionLabel>{t('split_with')}</BCSectionLabel>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {(['equal', 'amount', 'shares', 'percentage'] as SplitMethod[]).map((m) => {
-                const label =
-                  m === 'equal'
-                    ? t('method_equal')
-                    : m === 'amount'
-                      ? t('method_amount')
-                      : m === 'shares'
-                        ? t('method_shares')
-                        : t('method_pct')
-                const sel = splitMethod === m
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => switchMethod(m)}
-                    className="bc-tap"
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: sel ? 'var(--bc-ink)' : 'var(--bc-chip)',
-                      color: sel ? 'var(--bc-bg)' : 'var(--bc-muted)',
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                      fontWeight: 500,
-                      fontSize: 11,
-                      letterSpacing: '-0.005em',
-                    }}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {splitMethod === 'equal' && (
-            <BCCard padded={false}>
-              {members.map((m, i) => {
-                const has = selected.includes(m.id)
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => toggleMember(m.id)}
-                    className="bc-tap"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '10px 14px',
-                      borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <BCAvatar name={m.displayName} seed={m.id} size={32} />
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                        fontWeight: 500,
-                        fontSize: 14.5,
-                        color: 'var(--bc-ink)',
-                      }}
-                    >
-                      {m.displayName}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-jetbrains-mono), monospace',
-                        fontSize: 12,
-                        color: has ? 'var(--bc-ink)' : 'var(--bc-muted)',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {has ? `${sym}${perPerson.toFixed(2)}` : '—'}
-                    </div>
-                    <div
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 6,
-                        background: has ? 'var(--bc-accent)' : 'transparent',
-                        border: has ? 'none' : '1.6px solid var(--bc-hair)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'background 160ms',
-                      }}
-                    >
-                      {has && <BCIcon name="check" size={14} color="#fff" strokeWidth={2.4} />}
-                    </div>
-                  </div>
-                )
-              })}
-            </BCCard>
-          )}
-
-          {splitMethod !== 'equal' && (
-            <>
-              <BCCard padded={false}>
-                {members.map((m, i) => {
-                  const inputVal = memberInputs[m.id] ?? ''
-                  const computedAmt = getMemberAmount(m)
-                  return (
-                    <div
-                      key={m.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '10px 14px',
-                        borderTop: i === 0 ? 'none' : '1px solid var(--bc-softhair)',
-                      }}
-                    >
-                      <BCAvatar name={m.displayName} seed={m.id} size={32} />
-                      <div
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                          fontWeight: 500,
-                          fontSize: 14.5,
-                          color: 'var(--bc-ink)',
-                        }}
-                      >
-                        {m.displayName}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {splitMethod !== 'amount' && (
-                          <div
-                            style={{
-                              fontFamily: 'var(--font-jetbrains-mono), monospace',
-                              fontSize: 11,
-                              color: 'var(--bc-muted)',
-                              fontVariantNumeric: 'tabular-nums',
-                            }}
-                          >
-                            {sym}
-                            {computedAmt.toFixed(2)}
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          {splitMethod === 'percentage' && (
-                            <span
-                              style={{
-                                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                                fontSize: 12,
-                                color: 'var(--bc-muted)',
-                              }}
-                            >
-                              %
-                            </span>
-                          )}
-                          {splitMethod === 'amount' && (
-                            <span
-                              style={{
-                                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                                fontSize: 12,
-                                color: 'var(--bc-muted)',
-                              }}
-                            >
-                              {sym}
-                            </span>
-                          )}
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            value={inputVal}
-                            onChange={(e) => setInput(m.id, e.target.value)}
-                            placeholder="0"
-                            style={{
-                              width: 64,
-                              border: 'none',
-                              outline: 'none',
-                              background: 'var(--bc-chip)',
-                              borderRadius: 8,
-                              padding: '5px 8px',
-                              fontFamily: 'var(--font-jetbrains-mono), monospace',
-                              fontSize: 13,
-                              color: 'var(--bc-ink)',
-                              textAlign: 'right',
-                              fontVariantNumeric: 'tabular-nums',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </BCCard>
-              <div
-                style={{
-                  padding: '6px 4px 0',
-                  fontFamily: 'var(--font-jetbrains-mono), monospace',
-                  fontSize: 11,
-                  color:
-                    splitMethod === 'amount'
-                      ? Math.abs(inputSum - amount) < 0.015
-                        ? 'var(--bc-pos)'
-                        : 'var(--bc-neg)'
-                      : splitMethod === 'percentage'
-                        ? Math.abs(pctSum - 100) < 0.5
-                          ? 'var(--bc-pos)'
-                          : 'var(--bc-neg)'
-                        : 'var(--bc-muted)',
-                  letterSpacing: '0.04em',
-                  textAlign: 'right',
-                }}
-              >
-                {splitMethod === 'amount' && t('amount_remaining', { 0: `${sym}${Math.abs(amount - inputSum).toFixed(2)}` })}
-                {splitMethod === 'percentage' && t('pct_total', { 0: pctSum.toFixed(1) })}
-                {splitMethod === 'shares' && `${totalShares} shares`}
-              </div>
-            </>
-          )}
-        </div>
+        <SplitEditor
+          members={members}
+          splitMethod={splitMethod}
+          onSwitchMethod={switchMethod}
+          selected={selected}
+          onToggleMember={toggleMember}
+          memberInputs={memberInputs}
+          onChangeInput={(id, val) => setMemberInputs((prev) => ({ ...prev, [id]: val }))}
+          editedAmount={amount}
+          sym={sym}
+        />
       </div>
 
-      <div style={{ padding: '4px 16px 16px' }}>
+      <div className="px-4 pb-4 pt-1">
         <button
           type="button"
           disabled={pending || !canSave}
           onClick={handleSave}
-          className="bc-tap"
-          style={{
-            background: 'var(--bc-accent)',
-            color: '#fff',
-            border: 'none',
-            padding: '15px 22px',
-            borderRadius: 999,
-            cursor: 'pointer',
-            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-            fontWeight: 500,
-            fontSize: 16,
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10,
-            opacity: pending || !canSave ? 0.4 : 1,
-          }}
+          className={cn(
+            'bc-tap border-0 py-3.75 px-5.5 rounded-full cursor-pointer font-sans font-medium text-base w-full flex items-center justify-center gap-2.5 bg-(--bc-accent) text-white',
+            (pending || !canSave) && 'opacity-40',
+          )}
         >
           <BCIcon name="check" size={18} color="#fff" strokeWidth={2.2} />
           {pending ? '…' : t('save')}

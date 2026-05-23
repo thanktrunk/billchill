@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCNumPad, BCAmountDisplay, BCButton, BCTopBar, BCIcon, BCCard, BCSectionLabel, BCAvatar } from '@/components/bc-ui'
 import { recordSettlement } from './actions'
-import { currencySymbol } from '@/lib/utils'
+import { currencySymbol } from '@/lib/currency'
+import { cn } from '@/lib/utils'
 
 type Member = { id: string; displayName: string }
 type Debt = { from: string; to: string; amount: number }
@@ -26,50 +27,19 @@ function MemberRow({
   members: Member[]
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '10px 0',
-      }}
-    >
-      <div
-        style={{
-          width: 36,
-          fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-          fontSize: 11,
-          color: 'var(--bc-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          flexShrink: 0,
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ flex: 1, display: 'flex', gap: 8, overflowX: 'auto' }}>
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="w-9 font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.12em] shrink-0">{label}</div>
+      <div className="flex-1 flex gap-2 overflow-x-auto">
         {members.map((m) => {
           const sel = m.id === selectedId
           return (
             <button
               key={m.id}
               onClick={() => onChange(m.id)}
-              className="bc-tap"
-              style={{
-                flexShrink: 0,
-                border: 'none',
-                cursor: 'pointer',
-                background: sel ? 'var(--bc-ink)' : 'var(--bc-chip)',
-                color: sel ? 'var(--bc-bg)' : 'var(--bc-ink)',
-                padding: '6px 12px 6px 6px',
-                borderRadius: 999,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                fontWeight: 500,
-                fontSize: 13,
-              }}
+              className={cn(
+                'bc-tap border-0 cursor-pointer shrink-0 py-1.5 pr-3 pl-1.5 rounded-full inline-flex items-center gap-1.5 font-sans font-medium text-[13px]',
+                sel ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
+              )}
             >
               <BCAvatar name={m.displayName} seed={m.id} size={22} />
               {m.displayName}
@@ -138,58 +108,13 @@ export function SettleForm({
 
   if (done) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100dvh',
-          gap: 0,
-          padding: '0 24px',
-          background: 'var(--bc-bg)',
-        }}
-      >
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 999,
-            background: 'var(--bc-pos)',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 14px 30px rgba(63,110,85,0.35)',
-          }}
-        >
+      <div className="flex flex-col items-center justify-center min-h-dvh px-6 bg-(--bc-bg)">
+        <div className="w-20 h-20 rounded-full bg-(--bc-pos) text-white flex items-center justify-center shadow-[0_14px_30px_rgba(63,110,85,0.35)]">
           <BCIcon name="check" size={36} color="#fff" strokeWidth={2.4} />
         </div>
-        <div
-          style={{
-            marginTop: 28,
-            fontFamily: 'var(--font-newsreader), serif',
-            fontSize: 40,
-            color: 'var(--bc-ink)',
-            letterSpacing: '-0.02em',
-            textAlign: 'center',
-            lineHeight: 1.05,
-          }}
-        >
-          {t('done_title')}
-        </div>
-        <div
-          style={{
-            marginTop: 10,
-            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-            fontSize: 15,
-            color: 'var(--bc-muted)',
-            textAlign: 'center',
-          }}
-        >
-          {t('done_subtitle')}
-        </div>
-        <div style={{ marginTop: 40, width: '100%' }}>
+        <div className="mt-7 font-serif text-[40px] text-(--bc-ink) tracking-[-0.02em] text-center leading-[1.05]">{t('done_title')}</div>
+        <div className="mt-2.5 font-sans text-[15px] text-(--bc-muted) text-center">{t('done_subtitle')}</div>
+        <div className="mt-10 w-full">
           <BCButton variant="primary" full onClick={() => router.push(`/${locale}/groups/${groupId}`)}>
             {t('back_to_group')}
           </BCButton>
@@ -199,60 +124,26 @@ export function SettleForm({
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100dvh',
-        background: 'var(--bc-bg)',
-      }}
-    >
+    <div className="bc-page">
       <BCTopBar
         title={t('title')}
         left={
           <button
             onClick={() => router.back()}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="bc-tap bg-transparent border-0 cursor-pointer p-2 flex items-center justify-center"
           >
             <BCIcon name="close" size={20} color="var(--bc-ink)" />
           </button>
         }
       />
 
-      {/* From / Swap / To */}
-      <div style={{ padding: '12px 16px 0' }}>
-        <BCCard padded={false} style={{ padding: '4px 16px' }}>
+      <div className="px-4 pt-3">
+        <BCCard padded={false} className="px-4 py-1">
           <MemberRow label={t('from')} selectedId={fromId} onChange={setFromId} members={members} />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: '2px 0',
-            }}
-          >
+          <div className="flex justify-center py-0.5">
             <button
               onClick={swap}
-              className="bc-tap"
-              style={{
-                border: 'none',
-                background: 'var(--bc-chip)',
-                color: 'var(--bc-ink)',
-                cursor: 'pointer',
-                width: 32,
-                height: 32,
-                borderRadius: 999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className="bc-tap border-0 bg-(--bc-chip) text-(--bc-ink) cursor-pointer w-8 h-8 rounded-full flex items-center justify-center"
             >
               <BCIcon name="swap" size={14} color="var(--bc-ink)" strokeWidth={1.8} />
             </button>
@@ -261,38 +152,16 @@ export function SettleForm({
         </BCCard>
       </div>
 
-      {/* Amount */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '20px 24px',
-        }}
-      >
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-5">
         <BCSectionLabel>{t('amount')}</BCSectionLabel>
-        <div style={{ marginTop: 14 }}>
+        <div className="mt-3.5">
           <BCAmountDisplay value={amountStr} currency={sym} size={72} />
         </div>
         {suggestedDebt && (
-          <div style={{ marginTop: 16 }}>
+          <div className="mt-4">
             <button
               onClick={() => setAmountStr(suggestedDebt.amount.toFixed(2))}
-              className="bc-tap"
-              style={{
-                background: 'var(--bc-chip)',
-                border: 'none',
-                borderRadius: 999,
-                padding: '8px 14px',
-                fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-                fontSize: 13,
-                color: 'var(--bc-ink)',
-                cursor: 'pointer',
-                fontWeight: 500,
-                letterSpacing: '-0.005em',
-              }}
+              className="bc-tap bg-(--bc-chip) border-0 rounded-full px-3.5 py-2 font-sans text-[13px] text-(--bc-ink) cursor-pointer font-medium tracking-[-0.005em]"
             >
               {t('suggested', { 0: fmt(suggestedDebt.amount, sym) })}
             </button>
@@ -300,26 +169,13 @@ export function SettleForm({
         )}
       </div>
 
-      {/* Numpad */}
       <BCNumPad onKey={handleNumPad} />
 
       {error && (
-        <div
-          style={{
-            margin: '0 20px',
-            padding: '10px 14px',
-            background: 'rgba(229,87,47,0.1)',
-            borderRadius: 12,
-            fontFamily: 'var(--font-be-vietnam-pro), sans-serif',
-            fontSize: 13,
-            color: 'var(--bc-accent)',
-          }}
-        >
-          {error}
-        </div>
+        <div className="mx-5 px-3.5 py-2.5 bg-[rgba(229,87,47,0.1)] rounded-[12px] font-sans text-[13px] text-(--bc-accent)">{error}</div>
       )}
 
-      <div style={{ padding: '4px 16px 16px' }}>
+      <div className="px-4 pb-4 pt-1">
         <BCButton
           variant={amount > 0 && fromId !== toId ? 'accent' : 'ghost'}
           full

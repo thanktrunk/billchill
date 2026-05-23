@@ -4,10 +4,9 @@ import { eq, desc, inArray } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth'
 import { hasLocale } from '@/lib/i18n'
 import { notFound } from 'next/navigation'
-import { markAllAsRead } from './actions'
+import { markAllAsRead, markAsReadAndNavigate } from './actions'
 import { BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 
 function relativeTime(
@@ -93,39 +92,41 @@ export default async function NotificationsPage({ params }: PageProps) {
             const time = relativeTime(n.createdAt.toISOString(), lang, tCommon).toUpperCase()
 
             return (
-              <Link key={n.id} href={`/${lang}/groups/${n.groupId}`} className="no-underline">
-                <div
-                  className={cn(
-                    'border border-(--bc-softhair) rounded-[22px] px-4 py-3.5 cursor-pointer',
-                    n.isRead ? 'bg-(--bc-surface)' : 'bg-(--bc-bg)',
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-(--bc-chip) flex items-center justify-center shrink-0 relative">
-                      <BCIcon name={iconName} size={18} color="var(--bc-ink)" strokeWidth={1.6} />
-                      {!n.isRead && (
-                        <div className="absolute -top-px -right-px w-2.5 h-2.5 rounded-full bg-(--bc-accent) shadow-[0_0_0_2px_var(--bc-bg)]" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-1.5 mb-1 whitespace-nowrap overflow-hidden">
-                        <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.12em] uppercase font-medium shrink-0">
-                          {label}
-                        </div>
-                        {groupName && (
-                          <div className="font-sans text-[11px] text-(--bc-muted) whitespace-nowrap overflow-hidden text-ellipsis">
-                            · {groupName}
-                          </div>
+              <form key={n.id} action={markAsReadAndNavigate.bind(null, lang, n.id, n.groupId)}>
+                <button type="submit" className="w-full text-left border-0 bg-transparent p-0 cursor-pointer">
+                  <div
+                    className={cn(
+                      'border border-(--bc-softhair) rounded-[22px] px-4 py-3.5',
+                      n.isRead ? 'bg-(--bc-surface)' : 'bg-(--bc-bg)',
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-(--bc-chip) flex items-center justify-center shrink-0 relative">
+                        <BCIcon name={iconName} size={18} color="var(--bc-ink)" strokeWidth={1.6} />
+                        {!n.isRead && (
+                          <div className="absolute -top-px -right-px w-2.5 h-2.5 rounded-full bg-(--bc-accent) shadow-[0_0_0_2px_var(--bc-bg)]" />
                         )}
-                        <div className="flex-1" />
-                        <div className="font-mono text-[10px] text-(--bc-muted) tracking-[0.04em] shrink-0">{time}</div>
                       </div>
-                      <div className="font-sans text-[14.5px] text-(--bc-ink) tracking-[-0.005em] leading-[1.35]">{n.message}</div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-1.5 mb-1 whitespace-nowrap overflow-hidden">
+                          <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.12em] uppercase font-medium shrink-0">
+                            {label}
+                          </div>
+                          {groupName && (
+                            <div className="font-sans text-[11px] text-(--bc-muted) whitespace-nowrap overflow-hidden text-ellipsis">
+                              · {groupName}
+                            </div>
+                          )}
+                          <div className="flex-1" />
+                          <div className="font-mono text-[10px] text-(--bc-muted) tracking-[0.04em] shrink-0">{time}</div>
+                        </div>
+                        <div className="font-sans text-[14.5px] text-(--bc-ink) tracking-[-0.005em] leading-[1.35]">{n.message}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </button>
+              </form>
             )
           })
         )}

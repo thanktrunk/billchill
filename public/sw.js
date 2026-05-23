@@ -1,4 +1,4 @@
-const CACHE_NAME = 'billchill-v1'
+const CACHE_NAME = 'billchill-v2'
 const STATIC_ASSETS = ['/', '/groups', '/notifications']
 
 self.addEventListener('install', (event) => {
@@ -16,18 +16,15 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url)
 
-  // Cache-first for static assets (_next/static), network-first for pages
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
-      caches.match(event.request).then(
-        (cached) =>
-          cached ??
-          fetch(event.request).then((res) => {
-            const clone = res.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-            return res
-          }),
-      ),
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          return res
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || new Response('Offline', { status: 503 }))),
     )
     return
   }

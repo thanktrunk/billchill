@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { db } from '@/db'
-import { groups, groupMembers, expenses, expenseSplits, settlements } from '@/db/schema'
+import { groups, groupMembers, expenses, expenseSplits, settlements, users } from '@/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
@@ -25,6 +25,12 @@ export default async function GroupDetailPage({ params }: PageProps) {
   if (!group) notFound()
 
   const myMember = allMembers.find((m) => m.userId === user.id)
+
+  const memberUserIds = allMembers.map((m) => m.userId).filter(Boolean) as string[]
+  const memberUsers = memberUserIds.length
+    ? await db.select({ id: users.id, avatarUrl: users.avatarUrl }).from(users).where(inArray(users.id, memberUserIds))
+    : []
+  const avatarByUserId = new Map(memberUsers.map((u) => [u.id, u.avatarUrl]))
 
   const expenseIds = groupExpenses.map((e) => e.id)
   const allSplitsForGroup = expenseIds.length
@@ -74,6 +80,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
     id: m.id,
     displayName: m.displayName,
     userId: m.userId,
+    avatarUrl: m.userId ? (avatarByUserId.get(m.userId) ?? null) : null,
   }))
 
   const serializedAllMembers = allMembers.map((m) => ({
@@ -82,6 +89,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
     userId: m.userId,
     defaultShare: m.defaultShare,
     isActive: m.isActive,
+    avatarUrl: m.userId ? (avatarByUserId.get(m.userId) ?? null) : null,
   }))
 
   return (

@@ -21,7 +21,6 @@ export async function getCurrentUser() {
       target: users.auth0Id,
       set: {
         email: (email as string) || '',
-        displayName: (name as string) || (email as string) || 'User',
         avatarUrl: (picture as string) || null,
       },
     })

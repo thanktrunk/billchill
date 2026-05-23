@@ -66,6 +66,7 @@
     "all_settled": "All settled",
     "youre_owed": "You're owed",
     "you_owe": "You owe",
+    "total_spent": "Total spent",
     "settle_up": "Settle up",
     "tab_expenses": "Expenses · {0}",
     "tab_balances": "Balances",
@@ -110,7 +111,8 @@
     "confirm_delete": "Delete this expense?",
     "split_breakdown": "Split",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "date": "Date"
   },
   "add": {
     "title": "Add expense",
@@ -173,7 +175,10 @@
     "all_on": "All on",
     "auto": "Auto",
     "signed_in_as": "Signed in as",
-    "logout": "Log out"
+    "logout": "Log out",
+    "edit_name": "Edit name",
+    "save_name": "Save",
+    "cancel_name": "Cancel"
   },
   "cat": {
     "food": "Food",
