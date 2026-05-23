@@ -40,14 +40,40 @@ export const viewport: Viewport = {
   themeColor: '#0a0a0a',
 }
 
+const BASE_URL = 'https://billchill.vercel.app'
+
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
   const { lang } = await params
   if (!hasLocale(lang)) return {}
   const t = await getTranslations({ locale: lang, namespace: 'meta' })
   const tCommon = await getTranslations({ locale: lang, namespace: 'common' })
+  const title = t('title')
+  const description = t('description')
   return {
-    title: t('title'),
-    description: t('description'),
+    metadataBase: new URL(BASE_URL),
+    title,
+    description,
+    robots: { index: false, follow: false },
+    alternates: {
+      canonical: `${BASE_URL}/${lang}`,
+      languages: {
+        en: `${BASE_URL}/en`,
+        vi: `${BASE_URL}/vi`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `${BASE_URL}/${lang}`,
+      siteName: tCommon('app_name'),
+      locale: lang === 'vi' ? 'vi_VN' : 'en_US',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
@@ -75,9 +101,9 @@ export default async function RootLayout({ children, params }: LayoutProps) {
             {children}
           </NextIntlClientProvider>
           <ServiceWorkerRegister />
+          <SpeedInsights />
         </body>
       </Auth0Provider>
-      <SpeedInsights />
     </html>
   )
 }
