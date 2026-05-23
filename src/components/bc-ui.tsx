@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
@@ -100,6 +102,7 @@ export function BCAvatar({
   ring?: boolean
   avatarUrl?: string | null
 }) {
+  const [imgError, setImgError] = useState(false)
   const initial = (name || '?').trim().charAt(0).toUpperCase()
   const bg = avatarColor(seed || name || '?')
   const baseStyle: React.CSSProperties = {
@@ -109,8 +112,18 @@ export function BCAvatar({
     flexShrink: 0,
     boxShadow: ring ? '0 0 0 2px var(--bc-bg)' : 'none',
   }
-  if (avatarUrl) {
-    return <img src={avatarUrl} alt={name} width={size} height={size} style={{ ...baseStyle, objectFit: 'cover' }} />
+  if (avatarUrl && !imgError) {
+    return (
+      <Image
+        src={avatarUrl}
+        alt={name}
+        width={size}
+        height={size}
+        style={{ ...baseStyle, objectFit: 'cover' }}
+        onError={() => setImgError(true)}
+        unoptimized
+      />
+    )
   }
   return (
     <div
