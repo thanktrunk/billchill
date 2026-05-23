@@ -37,6 +37,23 @@ test.describe("Groups", () => {
     await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/);
     await expect(page.getByText(TEST_GROUP_NAME)).toBeVisible();
   });
+
+  test("group detail page renders translations without browser errors", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto("/en/groups");
+    await page.getByText(TEST_GROUP_NAME).click();
+    await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/);
+
+    // Give client-side rendering time to complete
+    await page.waitForLoadState("networkidle");
+
+    // Member count and currency should be visible (from useTranslations("group"))
+    await expect(page.getByText(/member/i)).toBeVisible();
+
+    expect(errors.filter((e) => e.includes("Cannot read properties of undefined"))).toHaveLength(0);
+  });
 });
 
 test.describe("Expenses", () => {

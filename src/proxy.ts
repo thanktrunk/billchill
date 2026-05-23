@@ -28,6 +28,12 @@ export async function proxy(req: NextRequest) {
 
   const authRes = await auth0.middleware(req);
 
+  // Propagate the locale header so server components can read it via headers()
+  const localeHeader = intlResponse.headers.get("X-NEXT-INTL-LOCALE");
+  if (localeHeader) {
+    authRes.headers.set("X-NEXT-INTL-LOCALE", localeHeader);
+  }
+
   if (isLandingRoute) {
     return authRes;
   }

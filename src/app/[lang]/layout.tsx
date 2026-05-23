@@ -78,7 +78,7 @@ export default async function RootLayout({
     >
       <Auth0Provider>
         <body className="min-h-full flex flex-col">
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={lang} messages={messages}>
             {children}
           </NextIntlClientProvider>
           <ServiceWorkerRegister />
