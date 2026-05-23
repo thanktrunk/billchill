@@ -6,5 +6,6 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 255 }).notNull(),
   avatarUrl: varchar('avatar_url', { length: 512 }),
+  preferredCurrency: varchar('preferred_currency', { length: 3 }).default('USD').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

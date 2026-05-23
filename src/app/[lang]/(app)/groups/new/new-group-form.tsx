@@ -6,7 +6,7 @@ import { createGroup } from './actions'
 import { CurrencyInput } from '@/components/currency-input'
 import { useTranslations, useLocale } from 'next-intl'
 
-export function NewGroupForm() {
+export function NewGroupForm({ defaultCurrency = 'USD' }: { defaultCurrency?: string }) {
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('new_group')
@@ -44,7 +44,7 @@ export function NewGroupForm() {
           <label htmlFor="currency" className="block text-sm font-medium mb-1">
             {t('currency_label')}
           </label>
-          <CurrencyInput defaultValue="USD" />
+          <CurrencyInput defaultValue={defaultCurrency} />
         </div>
         <button
           type="submit"

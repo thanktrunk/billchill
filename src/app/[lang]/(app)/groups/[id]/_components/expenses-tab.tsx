@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCCard, BCSectionLabel, BCCategoryBadge, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/currency'
 
 type Member = { id: string; displayName: string; userId: string | null; avatarUrl?: string | null }
 type Expense = {
@@ -19,23 +20,16 @@ type Expense = {
 type Split = { expenseId: string; memberId: string; shareAmount: string }
 type Settlement = { id: string; fromMember: string; toMember: string; amount: string; settledAt: string }
 
-function shortDate(iso: string, lang: string) {
-  const t = new Date(iso)
-  return t.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' })
-}
-
 function ExpenseRow({
   expense,
   splits,
   members,
   myMemberId,
-  sym,
 }: {
   expense: Expense
   splits: Split[]
   members: Member[]
   myMemberId: string | null
-  sym: string
 }) {
   const tGroup = useTranslations('group')
   const payer = members.find((m) => m.id === expense.paidBy)
@@ -61,12 +55,11 @@ function ExpenseRow({
         </div>
         <div className="text-right">
           <div className="font-serif text-[22px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.01em]">
-            {sym}
-            {amount.toFixed(2)}
+            {formatCurrency(expense.amount, expense.currency)}
           </div>
           {(lent > 0.005 || owe > 0.005) && (
             <div className={cn('font-mono text-[11px] mt-0.75 tracking-[0.02em]', iPaid ? 'text-(--bc-pos)' : 'text-(--bc-neg)')}>
-              {iPaid ? `+${sym}${lent.toFixed(2)}` : `−${sym}${owe.toFixed(2)}`}
+              {iPaid ? `+${formatCurrency(lent, expense.currency)}` : `−${formatCurrency(owe, expense.currency)}`}
             </div>
           )}
         </div>
@@ -75,7 +68,7 @@ function ExpenseRow({
   )
 }
 
-function SettlementRow({ settlement, members, sym }: { settlement: Settlement; members: Member[]; sym: string }) {
+function SettlementRow({ settlement, members, groupCurrency }: { settlement: Settlement; members: Member[]; groupCurrency: string }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
   const from = members.find((m) => m.id === settlement.fromMember)
@@ -91,12 +84,11 @@ function SettlementRow({ settlement, members, sym }: { settlement: Settlement; m
             {tGroup('paid_to', { 0: from?.displayName ?? '?', 1: to?.displayName ?? '?' })}
           </div>
           <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
-            {tGroup('settlement_date', { 0: shortDate(settlement.settledAt, locale) })}
+            {tGroup('settlement_date', { 0: formatDate(settlement.settledAt, locale) })}
           </div>
         </div>
         <div className="font-serif text-[22px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.01em]">
-          {sym}
-          {parseFloat(settlement.amount).toFixed(2)}
+          {formatCurrency(settlement.amount, groupCurrency)}
         </div>
       </div>
     </BCCard>
@@ -109,7 +101,7 @@ export function ExpensesTab({
   settlements,
   members,
   myMemberId,
-  sym,
+  groupCurrency,
   groupId,
 }: {
   expenses: Expense[]
@@ -117,7 +109,7 @@ export function ExpensesTab({
   settlements: Settlement[]
   members: Member[]
   myMemberId: string | null
-  sym: string
+  groupCurrency: string
   groupId: string
 }) {
   const locale = useLocale()
@@ -155,23 +147,17 @@ export function ExpensesTab({
       {dayGroups.map((grp) => (
         <div key={grp.day}>
           <div className="px-1 pb-2 flex items-center gap-2.5">
-            <BCSectionLabel>{shortDate(grp.day, locale)}</BCSectionLabel>
+            <BCSectionLabel>{formatDate(grp.day, locale)}</BCSectionLabel>
             <div className="flex-1 h-px bg-(--bc-softhair)" />
           </div>
           <div className="flex flex-col gap-2">
             {grp.items.map((it) =>
               it.kind === 'expense' ? (
                 <Link key={it.e.id} href={`/${locale}/groups/${groupId}/expenses/${it.e.id}`} className="no-underline">
-                  <ExpenseRow
-                    expense={it.e}
-                    splits={splitsByExpense.get(it.e.id) ?? []}
-                    members={members}
-                    myMemberId={myMemberId}
-                    sym={sym}
-                  />
+                  <ExpenseRow expense={it.e} splits={splitsByExpense.get(it.e.id) ?? []} members={members} myMemberId={myMemberId} />
                 </Link>
               ) : (
-                <SettlementRow key={it.s.id} settlement={it.s} members={members} sym={sym} />
+                <SettlementRow key={it.s.id} settlement={it.s} members={members} groupCurrency={groupCurrency} />
               ),
             )}
           </div>

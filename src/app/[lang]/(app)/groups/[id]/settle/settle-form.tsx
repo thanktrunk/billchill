@@ -5,15 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCNumPad, BCAmountDisplay, BCButton, BCTopBar, BCIcon, BCCard, BCSectionLabel, BCAvatar } from '@/components/bc-ui'
 import { recordSettlement } from './actions'
-import { currencySymbol } from '@/lib/currency'
+import { currencySymbol, formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 type Member = { id: string; displayName: string }
 type Debt = { from: string; to: string; amount: number }
-
-function fmt(amount: number, sym: string) {
-  return sym + amount.toFixed(2)
-}
 
 function MemberRow({
   label,
@@ -163,7 +159,7 @@ export function SettleForm({
               onClick={() => setAmountStr(suggestedDebt.amount.toFixed(2))}
               className="bc-tap bg-(--bc-chip) border-0 rounded-full px-3.5 py-2 font-sans text-[13px] text-(--bc-ink) cursor-pointer font-medium tracking-[-0.005em]"
             >
-              {t('suggested', { 0: fmt(suggestedDebt.amount, sym) })}
+              {t('suggested', { 0: formatCurrency(suggestedDebt.amount, currency) })}
             </button>
           </div>
         )}

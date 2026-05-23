@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCCard, BCSectionLabel, BCAvatar, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/currency'
 
 type Member = { id: string; displayName: string; userId: string | null; avatarUrl?: string | null }
 type Balance = { memberId: string; displayName: string; balance: number }
@@ -18,14 +19,14 @@ export function BalancesTab({
   balances,
   minimizedDebts,
   myMemberId,
-  sym,
+  currency,
   groupId,
 }: {
   members: Member[]
   balances: Balance[]
   minimizedDebts: Debt[]
   myMemberId: string | null
-  sym: string
+  currency: string
   groupId: string
 }) {
   const locale = useLocale()
@@ -64,7 +65,7 @@ export function BalancesTab({
                     Math.abs(bal) < 0.005 ? 'text-(--bc-muted)' : bal > 0 ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
                   )}
                 >
-                  {Math.abs(bal) < 0.005 ? '·' : bal > 0 ? `${sym}${bal.toFixed(2)}` : `-${sym}${Math.abs(bal).toFixed(2)}`}
+                  {Math.abs(bal) < 0.005 ? '·' : bal > 0 ? formatCurrency(bal, currency) : `-${formatCurrency(Math.abs(bal), currency)}`}
                 </div>
               </div>
             )
@@ -116,8 +117,7 @@ export function BalancesTab({
                         </div>
                       </div>
                       <div className="font-serif text-[22px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.01em]">
-                        {sym}
-                        {debt.amount.toFixed(2)}
+                        {formatCurrency(debt.amount, currency)}
                       </div>
                     </div>
                   </BCCard>

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 // ── Avatar color palette (stable hash) ───────────────────────────
-const AVATAR_COLORS = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
+export const AVATAR_COLORS = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
 export function avatarColor(seed: string | number): string {
   const s = typeof seed === 'string' ? seed.split('').reduce((a, c) => a + c.charCodeAt(0), 0) : seed
   return AVATAR_COLORS[Math.abs(s) % AVATAR_COLORS.length]

@@ -5,4 +5,4 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export { currencySymbol } from './currency'
+export { currencySymbol, formatCurrency } from './currency'

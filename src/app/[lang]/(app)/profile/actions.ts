@@ -15,3 +15,13 @@ export async function updateDisplayName(lang: string, name: string) {
 
   revalidatePath(`/${lang}/profile`)
 }
+
+export async function updatePreferredCurrency(lang: string, currency: string) {
+  const user = await requireUser()
+  const code = currency.trim().toUpperCase().slice(0, 3)
+  if (!code) throw new Error('Currency is required')
+
+  await db.update(users).set({ preferredCurrency: code }).where(eq(users.id, user.id))
+
+  revalidatePath(`/${lang}/profile`)
+}

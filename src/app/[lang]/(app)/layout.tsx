@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { BottomNav } from '@/components/bottom-nav'
 import { notFound } from 'next/navigation'
-import { BCIcon } from '@/components/bc-ui'
+import { BCIcon, AVATAR_COLORS } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { hasLocale } from '@/lib/i18n'
 import { getTranslations } from 'next-intl/server'
@@ -133,7 +133,7 @@ function LedgerHero({ settleUpLabel, heroMeta }: { settleUpLabel: string; heroMe
             <div
               key={i}
               className="w-5 h-5 rounded-full text-white flex items-center justify-center font-sans text-[9px] font-semibold"
-              style={{ background: ['#E5572F', '#3F6E55', '#B7873A'][i] }}
+              style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
             >
               {initial}
             </div>

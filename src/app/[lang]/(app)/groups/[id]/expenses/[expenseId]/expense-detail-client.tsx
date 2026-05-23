@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCCategoryBadge, BCTopBar } from '@/components/bc-ui'
-import { currencySymbol } from '@/lib/currency'
+import { formatCurrency, currencySymbol } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { updateExpense, deleteExpense } from './actions'
 import { CategoryPicker } from '../_components/category-picker'
@@ -201,8 +201,7 @@ export function ExpenseDetailClient({
                 </div>
               </div>
               <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em]">
-                {sym}
-                {amount.toFixed(2)}
+                {formatCurrency(amount, expense.currency)}
               </div>
             </div>
           </BCCard>
@@ -219,10 +218,7 @@ export function ExpenseDetailClient({
                   <div key={s.memberId} className={cn('flex items-center gap-3 px-3.5 py-2.5', i > 0 && 'border-t border-(--bc-softhair)')}>
                     <BCAvatar name={member?.displayName ?? '?'} seed={s.memberId} size={32} />
                     <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{member?.displayName ?? '?'}</div>
-                    <div className="font-mono text-[13px] text-(--bc-ink) tabular-nums">
-                      {sym}
-                      {share.toFixed(2)}
-                    </div>
+                    <div className="font-mono text-[13px] text-(--bc-ink) tabular-nums">{formatCurrency(share, expense.currency)}</div>
                   </div>
                 )
               })}

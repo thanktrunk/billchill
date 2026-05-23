@@ -9,10 +9,7 @@ import { calculateBalances } from '@/lib/balance'
 import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { getTranslations } from 'next-intl/server'
-
-function currencySymbol(code: string) {
-  return ({ USD: '$', EUR: '€', GBP: '£', JPY: '¥' } as Record<string, string>)[code] ?? code
-}
+import { currencySymbol, formatCurrency, formatDate } from '@/lib/currency'
 
 function relativeTime(
   iso: string,
@@ -26,10 +23,7 @@ function relativeTime(
   if (diff < 3600) return tCommon('minutes_short', { '0': Math.floor(diff / 60) })
   if (diff < 86400) return tCommon('hours_short', { '0': Math.floor(diff / 3600) })
   if (diff < 86400 * 7) return tCommon('days_short', { '0': Math.floor(diff / 86400) })
-  return t.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
+  return formatDate(iso, locale)
 }
 
 export default async function GroupsPage({ params }: PageProps) {
@@ -108,7 +102,7 @@ export default async function GroupsPage({ params }: PageProps) {
   const totalOwed = groupRows.reduce((s, r) => s + Math.max(0, r.myBalance), 0)
   const totalOwe = groupRows.reduce((s, r) => s + Math.max(0, -r.myBalance), 0)
   const netBalance = totalOwed - totalOwe
-  const heroCurrency = currencySymbol(groupRows[0]?.group?.currency ?? 'USD')
+  const heroCurrency = currencySymbol(user.preferredCurrency)
 
   return (
     <div className="bc-page">
@@ -211,7 +205,6 @@ function GroupRowCard({
   lastActivityStr?: string
 }) {
   const { group, members, myBalance } = row
-  const sym = currencySymbol(group.currency)
   const isOwed = myBalance > 0.005
   const owes = myBalance < -0.005
   const isSettled = !isOwed && !owes
@@ -244,8 +237,7 @@ function GroupRowCard({
                     isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
                   )}
                 >
-                  {sym}
-                  {Math.abs(myBalance).toFixed(2)}
+                  {formatCurrency(Math.abs(myBalance), group.currency)}
                 </div>
               </>
             )}

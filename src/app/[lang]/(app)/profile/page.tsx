@@ -8,29 +8,9 @@ import { BCIcon, BCCard, BCSectionLabel } from '@/components/bc-ui'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { ProfileNameEditor } from './profile-name-editor'
-import { cn } from '@/lib/utils'
-
-function GroupGlyph({ name, size = 32 }: { name: string; size?: number }) {
-  const ch = (name || '?').trim().charAt(0).toUpperCase()
-  const colors = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
-  const hash = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-  const bg = colors[Math.abs(hash) % colors.length]
-  return (
-    <div
-      className="flex items-center justify-center font-serif shrink-0 text-white"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.32,
-        background: bg,
-        fontSize: size * 0.55,
-        letterSpacing: '-0.02em',
-      }}
-    >
-      {ch}
-    </div>
-  )
-}
+import { ProfileCurrencyEditor } from './profile-currency-editor'
+import { ArchivedGroupsRow } from './archived-groups-row'
+import { cn, formatCurrency } from '@/lib/utils'
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -79,7 +59,16 @@ export default async function ProfilePage({ params }: PageProps) {
   const archivedGroups = allGroups.filter((g) => g.archivedAt)
   const totalLent = allExpenses.filter((e) => memberIds.includes(e.paidBy)).reduce((s, e) => s + parseFloat(e.amount), 0)
 
-  const sym = '$'
+  const providerLabels: Record<string, string> = {
+    'google-oauth2': 'Google',
+    github: 'GitHub',
+    auth0: 'Email',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    apple: 'Apple',
+  }
+  const providerKey = user.auth0Id.split('|')[0] ?? ''
+  const connectedProvider = providerLabels[providerKey] ?? providerKey
 
   const prefRows = [
     {
@@ -87,10 +76,9 @@ export default async function ProfilePage({ params }: PageProps) {
       value: lang === 'vi' ? 'Tiếng Việt' : 'English',
       href: lang === 'vi' ? '/en/profile' : '/vi/profile',
     },
-    { label: t('default_currency'), value: 'USD' },
     { label: t('notifications'), value: t('all_on') },
     { label: t('appearance'), value: t('auto') },
-    { label: t('connected_accounts'), value: '1' },
+    { label: t('connected_accounts'), value: connectedProvider },
   ]
 
   return (
@@ -111,10 +99,12 @@ export default async function ProfilePage({ params }: PageProps) {
           />
         </BCCard>
 
-        <div className="grid grid-cols-3 gap-2">
-          <Stat label={t('stat_groups')} value={String(activeGroups.length)} />
-          <Stat label={t('stat_expenses')} value={String(allExpenses.length)} />
-          <Stat label={t('stat_total_lent')} value={`${sym}${totalLent.toFixed(0)}`} />
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label={t('stat_groups')} value={String(activeGroups.length)} />
+            <Stat label={t('stat_expenses')} value={String(allExpenses.length)} />
+          </div>
+          <Stat label={t('stat_total_lent')} value={formatCurrency(totalLent, user.preferredCurrency)} />
         </div>
 
         <div>
@@ -122,12 +112,24 @@ export default async function ProfilePage({ params }: PageProps) {
             <BCSectionLabel>{t('preferences')}</BCSectionLabel>
           </div>
           <BCCard padded={false}>
-            {prefRows.map((r, i) => {
+            <div className="flex items-center justify-between px-4.5 py-3.5">
+              <div className="font-sans text-[15px] text-(--bc-ink)">{t('language')}</div>
+              <Link href={lang === 'vi' ? '/en/profile' : '/vi/profile'} className="flex items-center gap-2 no-underline">
+                <div className="font-sans text-sm text-(--bc-muted)">{lang === 'vi' ? 'Tiếng Việt' : 'English'}</div>
+                <BCIcon name="arrowR" size={14} color="var(--bc-muted)" strokeWidth={1.6} />
+              </Link>
+            </div>
+            <ProfileCurrencyEditor
+              preferredCurrency={user.preferredCurrency}
+              label={t('default_currency')}
+              saveLabel={t('save_name')}
+              cancelLabel={t('cancel_name')}
+            />
+            {prefRows.slice(1).map((r) => {
               const inner = (
                 <div
                   className={cn(
-                    'flex items-center justify-between px-4.5 py-3.5',
-                    i > 0 && 'border-t border-(--bc-softhair)',
+                    'flex items-center justify-between px-4.5 py-3.5 border-t border-(--bc-softhair)',
                     r.href ? 'cursor-pointer' : 'cursor-default',
                   )}
                 >
@@ -146,27 +148,11 @@ export default async function ProfilePage({ params }: PageProps) {
                 <div key={r.label}>{inner}</div>
               )
             })}
+            {archivedGroups.length > 0 && (
+              <ArchivedGroupsRow groups={archivedGroups} label={t('archived_groups')} archivedLabel={t('archived')} />
+            )}
           </BCCard>
         </div>
-
-        {archivedGroups.length > 0 && (
-          <div>
-            <div className="px-1 pb-2">
-              <BCSectionLabel>{t('archived_groups')}</BCSectionLabel>
-            </div>
-            <BCCard padded={false}>
-              {archivedGroups.map((g, i) => (
-                <div key={g.id} className={cn('flex items-center gap-3 px-4 py-3', i > 0 && 'border-t border-(--bc-softhair)')}>
-                  <GroupGlyph name={g.name} size={32} />
-                  <div className="flex-1 font-sans font-medium text-sm text-(--bc-ink)">{g.name}</div>
-                  <div className="font-sans text-[11px] text-(--bc-muted) tracking-[0.06em] uppercase whitespace-nowrap">
-                    {t('archived')}
-                  </div>
-                </div>
-              ))}
-            </BCCard>
-          </div>
-        )}
 
         <div className="text-center p-3 font-sans text-[11px] text-(--bc-muted) tracking-[0.1em] uppercase">{tCommon('app_footer')}</div>
 

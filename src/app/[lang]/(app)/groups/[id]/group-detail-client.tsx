@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCCard, BCTabs } from '@/components/bc-ui'
-import { currencySymbol } from '@/lib/currency'
+import { formatCurrency } from '@/lib/currency'
 import { ExpensesTab } from './_components/expenses-tab'
 import { BalancesTab } from './_components/balances-tab'
 import { MembersTab } from './_components/members-tab'
@@ -65,8 +65,6 @@ export function GroupDetailClient({
   const tGroup = useTranslations('group')
 
   const [tab, setTab] = useState<'expenses' | 'balances' | 'members' | 'settings'>('expenses')
-  const sym = currencySymbol(group.currency)
-
   const isOwed = myBalance > 0.005
   const isOwing = myBalance < -0.005
   const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0)
@@ -97,12 +95,10 @@ export function GroupDetailClient({
                 className="font-serif text-[44px] leading-[0.95] tracking-[-0.02em] mt-1.5"
                 style={{ color: Math.abs(myBalance) < 0.005 ? 'var(--bc-bg)' : isOwed ? '#9CC8A8' : '#F2A788' }}
               >
-                {sym}
-                {Math.abs(myBalance).toFixed(2)}
+                {formatCurrency(Math.abs(myBalance), group.currency)}
               </div>
               <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
-                {tGroup('total_spent')} {sym}
-                {totalSpent.toFixed(2)}
+                {tGroup('total_spent')} {formatCurrency(totalSpent, group.currency)}
               </div>
             </div>
             <Link
@@ -137,7 +133,7 @@ export function GroupDetailClient({
             settlements={settlements}
             members={members}
             myMemberId={myMemberId}
-            sym={sym}
+            groupCurrency={group.currency}
             groupId={group.id}
           />
         )}
@@ -147,7 +143,7 @@ export function GroupDetailClient({
             balances={balances}
             minimizedDebts={minimizedDebts}
             myMemberId={myMemberId}
-            sym={sym}
+            currency={group.currency}
             groupId={group.id}
           />
         )}
