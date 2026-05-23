@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { hasLocale } from "@/lib/i18n";
 import "../globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -84,6 +85,7 @@ export default async function RootLayout({
           <ServiceWorkerRegister />
         </body>
       </Auth0Provider>
+      <SpeedInsights />
     </html>
   );
 }
