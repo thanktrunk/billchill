@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { BCCard, BCSectionLabel, BCAvatar, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
+import { currencySymbol, formatCurrency } from '@/lib/currency'
 
 type Member = { id: string; displayName: string; defaultShare: number }
 export type SplitMethod = 'equal' | 'amount' | 'shares' | 'percentage'
@@ -16,7 +17,7 @@ export function SplitEditor({
   memberInputs,
   onChangeInput,
   editedAmount,
-  sym,
+  currency,
 }: {
   members: Member[]
   splitMethod: SplitMethod
@@ -26,7 +27,7 @@ export function SplitEditor({
   memberInputs: Record<string, string>
   onChangeInput: (id: string, val: string) => void
   editedAmount: number
-  sym: string
+  currency: string
 }) {
   const tAdd = useTranslations('add')
 
@@ -107,7 +108,7 @@ export function SplitEditor({
                 <BCAvatar name={m.displayName} seed={m.id} size={32} />
                 <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{m.displayName}</div>
                 <div className={cn('font-mono text-xs tabular-nums', has ? 'text-(--bc-ink)' : 'text-(--bc-muted)')}>
-                  {has ? `${sym}${perPerson.toFixed(2)}` : '—'}
+                  {has ? formatCurrency(perPerson, currency) : '—'}
                 </div>
                 <div
                   className={cn(
@@ -142,14 +143,11 @@ export function SplitEditor({
                   <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{m.displayName}</div>
                   <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
                     {splitMethod !== 'amount' && has && (
-                      <div className="font-mono text-[11px] text-(--bc-muted) tabular-nums">
-                        {sym}
-                        {computedAmt.toFixed(2)}
-                      </div>
+                      <div className="font-mono text-[11px] text-(--bc-muted) tabular-nums">{formatCurrency(computedAmt, currency)}</div>
                     )}
                     <div className="flex items-center gap-0.5">
                       {splitMethod === 'percentage' && <span className="font-mono text-xs text-(--bc-muted)">%</span>}
-                      {splitMethod === 'amount' && <span className="font-mono text-xs text-(--bc-muted)">{sym}</span>}
+                      {splitMethod === 'amount' && <span className="font-mono text-xs text-(--bc-muted)">{currencySymbol(currency)}</span>}
                       <input
                         type="number"
                         inputMode="decimal"
@@ -158,7 +156,7 @@ export function SplitEditor({
                         onChange={(e) => onChangeInput(m.id, e.target.value)}
                         placeholder="0"
                         className={cn(
-                          'w-16 border-0 outline-none rounded-lg px-2 py-1.5 font-mono text-[13px] text-(--bc-ink) text-right tabular-nums',
+                          'w-24 border-0 outline-none rounded-lg px-2 py-1.5 font-mono text-[13px] text-(--bc-ink) text-right tabular-nums',
                           has ? 'bg-(--bc-chip)' : 'bg-transparent',
                         )}
                       />
@@ -177,7 +175,7 @@ export function SplitEditor({
             })}
           </BCCard>
           <div className={cn('pt-1.5 px-1 font-mono text-[11px] tracking-[0.04em] text-right', summaryColor)}>
-            {splitMethod === 'amount' && tAdd('amount_remaining', { 0: `${sym}${Math.abs(editedAmount - sumOfInputs).toFixed(2)}` })}
+            {splitMethod === 'amount' && tAdd('amount_remaining', { 0: formatCurrency(Math.abs(editedAmount - sumOfInputs), currency) })}
             {splitMethod === 'percentage' && tAdd('pct_total', { 0: sumOfInputs.toFixed(1) })}
             {splitMethod === 'shares' && `${sumOfInputs} shares`}
           </div>

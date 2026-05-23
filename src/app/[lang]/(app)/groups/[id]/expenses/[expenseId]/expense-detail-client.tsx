@@ -344,7 +344,7 @@ export function ExpenseDetailClient({
           memberInputs={memberInputs}
           onChangeInput={(id, val) => setMemberInputs((prev) => ({ ...prev, [id]: val }))}
           editedAmount={editedAmount}
-          sym={sym}
+          currency={expense.currency}
         />
       </div>
 

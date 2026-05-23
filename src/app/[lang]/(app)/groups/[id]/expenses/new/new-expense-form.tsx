@@ -283,7 +283,7 @@ export function NewExpenseForm({
           memberInputs={memberInputs}
           onChangeInput={(id, val) => setMemberInputs((prev) => ({ ...prev, [id]: val }))}
           editedAmount={amount}
-          sym={sym}
+          currency={currency}
         />
       </div>
 

@@ -9,6 +9,8 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   SGD: 'S$',
 }
 
+const ZERO_DECIMAL_CURRENCIES = new Set(['JPY', 'VND'])
+
 const CURRENCY_LOCALES: Record<string, string> = {
   USD: 'en-US',
   EUR: 'de-DE',
@@ -56,6 +58,7 @@ export function formatCurrency(amount: number | string, currencyCode: string): s
       return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: normalizedCode,
+        ...(ZERO_DECIMAL_CURRENCIES.has(normalizedCode) && { maximumFractionDigits: 0, minimumFractionDigits: 0 }),
       }).format(safeNum)
     } catch {
       // Fall back to plain number formatting for custom/non-ISO labels.
