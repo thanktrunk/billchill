@@ -10,10 +10,7 @@ export interface DebtTransaction {
   amount: number;
 }
 
-/**
- * Calculate net balance for each member in a group.
- * balance = (total paid by member) - (total owed by member via splits)
- */
+// balance = (total paid by member) - (total owed by member via splits)
 export function calculateBalances(
   members: { id: string; displayName: string }[],
   expenses: { paidBy: string; splits: { memberId: string; shareAmount: string }[] }[],
@@ -22,43 +19,23 @@ export function calculateBalances(
   const balanceMap = new Map<string, number>();
   const nameMap = new Map<string, string>();
 
-  // Initialize all members
   for (const member of members) {
     balanceMap.set(member.id, 0);
     nameMap.set(member.id, member.displayName);
   }
 
-  // Process expenses
   for (const expense of expenses) {
-    // Payer gets credit for total they paid (sum of all splits)
     for (const split of expense.splits) {
       const amount = parseFloat(split.shareAmount);
-      // Payer is owed this amount
-      balanceMap.set(
-        expense.paidBy,
-        (balanceMap.get(expense.paidBy) || 0) + amount
-      );
-      // Member owes this amount
-      balanceMap.set(
-        split.memberId,
-        (balanceMap.get(split.memberId) || 0) - amount
-      );
+      balanceMap.set(expense.paidBy, (balanceMap.get(expense.paidBy) || 0) + amount);
+      balanceMap.set(split.memberId, (balanceMap.get(split.memberId) || 0) - amount);
     }
   }
 
-  // Process settlements
   for (const settlement of settlements) {
     const amount = parseFloat(settlement.amount);
-    // fromMember paid, so their debt decreases (balance goes up)
-    balanceMap.set(
-      settlement.fromMember,
-      (balanceMap.get(settlement.fromMember) || 0) + amount
-    );
-    // toMember received, so their credit decreases (balance goes down)
-    balanceMap.set(
-      settlement.toMember,
-      (balanceMap.get(settlement.toMember) || 0) - amount
-    );
+    balanceMap.set(settlement.fromMember, (balanceMap.get(settlement.fromMember) || 0) + amount);
+    balanceMap.set(settlement.toMember, (balanceMap.get(settlement.toMember) || 0) - amount);
   }
 
   return members.map((member) => ({
@@ -68,14 +45,10 @@ export function calculateBalances(
   }));
 }
 
-/**
- * Minimize the number of transactions needed to settle all debts.
- * Greedy algorithm: match largest creditor with largest debtor.
- */
+// Greedy: match largest creditor with largest debtor to minimize transaction count.
 export function minimizeDebts(balances: MemberBalance[]): DebtTransaction[] {
   const transactions: DebtTransaction[] = [];
 
-  // Separate into debtors (negative balance = owes money) and creditors (positive balance = owed money)
   const debtors = balances
     .filter((b) => b.balance < -0.01)
     .map((b) => ({ ...b, amount: Math.abs(b.balance) }))

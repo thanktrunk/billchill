@@ -1,52 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   BCIcon, BCCard, BCSectionLabel, BCAvatar, BCCategoryBadge,
-  BCNumPad, BCAmountDisplay, BCChip, BC_CATEGORIES,
+  BCNumPad, BCAmountDisplay, BCChip, BC_CATEGORIES, BCTopBar,
 } from "@/components/bc-ui";
-import { addExpense, getGroupMembers } from "./actions";
+import { addExpense } from "./actions";
+import { currencySymbol } from "@/lib/utils";
 
 type Member = { id: string; displayName: string };
-
-function currencySymbol(code: string) {
-  return ({ USD: "$", EUR: "€", GBP: "£", JPY: "¥" } as Record<string, string>)[code] ?? code;
-}
 
 export function NewExpenseForm({
   lang,
   groupId,
   groupName,
   currency,
+  members,
 }: {
   lang: string;
   groupId: string;
   groupName: string;
   currency: string;
+  members: Member[];
 }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("add");
   const sym = currencySymbol(currency);
   const [pending, setPending] = useState(false);
-  const [members, setMembers] = useState<Member[]>([]);
   const [step, setStep] = useState<"amount" | "details">("amount");
 
   const [description, setDescription] = useState("");
   const [amountStr, setAmountStr] = useState("");
-  const [paidBy, setPaidBy] = useState<string | null>(null);
+  const [paidBy, setPaidBy] = useState<string | null>(members[0]?.id ?? null);
   const [category, setCategory] = useState("food");
   const [splitWith, setSplitWith] = useState<string[] | null>(null);
-
-  useEffect(() => {
-    getGroupMembers(groupId).then((ms) => {
-      setMembers(ms);
-      setPaidBy(ms[0]?.id ?? null);
-    });
-  }, [groupId]);
 
   const onKey = (k: string) => {
     setAmountStr((s) => {
@@ -75,24 +66,22 @@ export function NewExpenseForm({
     if (pending || !paidBy || !amount) return;
     setPending(true);
     try {
-      const formData = new FormData();
-      formData.set("description", description || t("untitled"));
-      formData.set("amount", amount.toFixed(2));
-      formData.set("paidBy", paidBy);
-      formData.set("date", new Date().toISOString().split("T")[0]);
-      formData.set("category", category);
-      const splitList = selected;
-      formData.set("splitMembers", JSON.stringify(splitList));
-      formData.set("perPerson", perPerson.toFixed(2));
-
-      await addExpenseWithSplit(groupId, formData, splitList, perPerson);
+      const fd = new FormData();
+      fd.set("description", description || t("untitled"));
+      fd.set("amount", amount.toFixed(2));
+      fd.set("paidBy", paidBy);
+      fd.set("date", new Date().toISOString().split("T")[0]);
+      fd.set("category", category);
+      for (const mid of selected) {
+        fd.set(`split_${mid}`, perPerson.toFixed(2));
+      }
+      await addExpense(groupId, fd, "amount");
       router.push(`/${locale}/groups/${groupId}`);
     } catch {
       setPending(false);
     }
   }
 
-  // Amount step
   if (step === "amount") {
     return (
       <div
@@ -104,49 +93,20 @@ export function NewExpenseForm({
           color: "var(--bc-ink)",
         }}
       >
-        {/* Top bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "8px 16px 4px",
-            minHeight: 52,
-          }}
-        >
-          <Link
-            href={`/${locale}/groups/${groupId}`}
-            className="bc-tap"
-            style={{
-              width: 40, height: 40, borderRadius: 999, border: "none",
-              background: "transparent", display: "flex", alignItems: "center",
-              justifyContent: "center", textDecoration: "none",
-            }}
-          >
-            <BCIcon name="close" size={20} color="var(--bc-ink)" />
-          </Link>
-          <div style={{ textAlign: "center", flex: 1 }}>
-            <div
-              style={{
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontWeight: 500, fontSize: 15, color: "var(--bc-ink)",
-              }}
+        <BCTopBar
+          title={t("title")}
+          subtitle={groupName}
+          left={
+            <Link
+              href={`/${locale}/groups/${groupId}`}
+              className="bc-tap"
+              style={{ width: 40, height: 40, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
             >
-              {t("title")}
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-                fontSize: 11, color: "var(--bc-muted)", marginTop: 2,
-              }}
-            >
-              {groupName}
-            </div>
-          </div>
-          <div style={{ width: 40 }} />
-        </div>
+              <BCIcon name="close" size={20} color="var(--bc-ink)" />
+            </Link>
+          }
+        />
 
-        {/* Description input */}
         <div style={{ padding: "8px 22px 0" }}>
           <input
             value={description}
@@ -169,7 +129,7 @@ export function NewExpenseForm({
           <div style={{ height: 1, background: "var(--bc-softhair)", marginTop: 2 }} />
         </div>
 
-        {/* Amount display */}
+
         <div
           style={{
             flex: 1,
@@ -184,7 +144,6 @@ export function NewExpenseForm({
           <div style={{ marginTop: 16 }}>
             <BCAmountDisplay value={amountStr} currency={sym} size={88} />
           </div>
-          {/* Quick-fill chips */}
           <div
             style={{
               display: "flex",
@@ -202,10 +161,10 @@ export function NewExpenseForm({
           </div>
         </div>
 
-        {/* Numpad */}
+
         <BCNumPad onKey={onKey} />
 
-        {/* Continue button */}
+
         <div style={{ padding: "4px 18px 18px" }}>
           <button
             type="button"
@@ -238,7 +197,6 @@ export function NewExpenseForm({
     );
   }
 
-  // Details step
   return (
     <div
       style={{
@@ -249,48 +207,20 @@ export function NewExpenseForm({
         color: "var(--bc-ink)",
       }}
     >
-      {/* Top bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 16px 4px",
-          minHeight: 52,
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setStep("amount")}
-          className="bc-tap"
-          style={{
-            width: 40, height: 40, borderRadius: 999, border: "none",
-            background: "transparent", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <BCIcon name="back" size={20} color="var(--bc-ink)" />
-        </button>
-        <div style={{ textAlign: "center", flex: 1 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontWeight: 500, fontSize: 15, color: "var(--bc-ink)",
-            }}
+      <BCTopBar
+        title={t("title")}
+        subtitle={groupName}
+        left={
+          <button
+            type="button"
+            onClick={() => setStep("amount")}
+            className="bc-tap"
+            style={{ width: 40, height: 40, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            {t("title")}
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-be-vietnam-pro), sans-serif",
-              fontSize: 11, color: "var(--bc-muted)", marginTop: 2,
-            }}
-          >
-            {groupName}
-          </div>
-        </div>
-        <div style={{ width: 40 }} />
-      </div>
+            <BCIcon name="back" size={20} color="var(--bc-ink)" />
+          </button>
+        }
+      />
 
       <div
         style={{
@@ -302,7 +232,7 @@ export function NewExpenseForm({
           gap: 14,
         }}
       >
-        {/* Summary */}
+
         <div
           style={{
             display: "flex",
@@ -344,7 +274,7 @@ export function NewExpenseForm({
           </div>
         </div>
 
-        {/* Paid by */}
+
         <div>
           <div style={{ padding: "0 4px 8px" }}>
             <BCSectionLabel>{t("paid_by")}</BCSectionLabel>
@@ -376,7 +306,7 @@ export function NewExpenseForm({
           </div>
         </div>
 
-        {/* Category */}
+
         <div>
           <div style={{ padding: "0 4px 8px" }}>
             <BCSectionLabel>{t("category")}</BCSectionLabel>
@@ -429,7 +359,7 @@ export function NewExpenseForm({
           </div>
         </div>
 
-        {/* Split with */}
+
         <div>
           <div
             style={{
@@ -500,7 +430,7 @@ export function NewExpenseForm({
         </div>
       </div>
 
-      {/* Save button */}
+
       <div style={{ padding: "4px 16px 16px" }}>
         <button
           type="button"
@@ -529,29 +459,3 @@ export function NewExpenseForm({
   );
 }
 
-// Wrapper that calls addExpense with the pre-computed even splits
-async function addExpenseWithSplit(
-  groupId: string,
-  formData: FormData,
-  splitWith: string[],
-  perPerson: number
-) {
-  const description = formData.get("description") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const paidBy = formData.get("paidBy") as string;
-  const date = formData.get("date") as string;
-  const category = formData.get("category") as string;
-
-  const fd = new FormData();
-  fd.set("description", description);
-  fd.set("amount", amount.toFixed(2));
-  fd.set("paidBy", paidBy);
-  fd.set("date", date);
-  fd.set("category", category);
-
-  for (const mid of splitWith) {
-    fd.set(`split_${mid}`, perPerson.toFixed(2));
-  }
-
-  await addExpense(groupId, fd, "amount");
-}

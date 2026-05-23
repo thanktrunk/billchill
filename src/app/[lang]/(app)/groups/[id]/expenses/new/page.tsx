@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { groups } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { groups, groupMembers } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
 import { hasLocale } from "@/lib/i18n";
@@ -16,7 +16,14 @@ export default async function NewExpensePage({
   const user = await requireUser();
   await verifyGroupMembership(id, user.id);
 
-  const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
+  const [group, members] = await Promise.all([
+    db.query.groups.findFirst({ where: eq(groups.id, id) }),
+    db
+      .select({ id: groupMembers.id, displayName: groupMembers.displayName })
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, id), eq(groupMembers.isActive, true))),
+  ]);
+
   if (!group) notFound();
 
   return (
@@ -25,6 +32,7 @@ export default async function NewExpensePage({
       groupId={id}
       groupName={group.name}
       currency={group.currency}
+      members={members}
     />
   );
 }

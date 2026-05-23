@@ -4,13 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
-  BCIcon, BCCard, BCSectionLabel, BCAvatar, BCAvatarStack,
-  BCGroupGlyph, BCCategoryBadge, BCTabs, avatarColor,
+  BCIcon, BCCard, BCSectionLabel, BCAvatar,
+  BCCategoryBadge, BCTabs,
 } from "@/components/bc-ui";
-
-function currencySymbol(code: string) {
-  return ({ USD: "$", EUR: "€", GBP: "£", JPY: "¥" } as Record<string, string>)[code] ?? code;
-}
+import { currencySymbol } from "@/lib/utils";
 
 function shortDate(iso: string, lang: string) {
   const t = new Date(iso);
@@ -20,7 +17,6 @@ function shortDate(iso: string, lang: string) {
   });
 }
 
-// ── Types ─────────────────────────────────────────────────────────
 type Member = { id: string; displayName: string; userId: string | null };
 type Expense = {
   id: string; description: string; amount: string; currency: string;
@@ -38,9 +34,7 @@ type Debt = {
   amount: number;
 };
 
-// ── Main component ────────────────────────────────────────────────
 export function GroupDetailClient({
-  lang,
   group,
   members,
   expenses,
@@ -51,7 +45,6 @@ export function GroupDetailClient({
   myMemberId,
   myBalance,
 }: {
-  lang: string;
   group: { id: string; name: string; currency: string };
   members: Member[];
   expenses: Expense[];
@@ -97,7 +90,13 @@ export function GroupDetailClient({
 
   const isOwed = myBalance > 0.005;
   const isOwing = myBalance < -0.005;
-  const membersCount = members.length;
+
+  const splitsByExpense = new Map<string, Split[]>();
+  for (const s of splits) {
+    const arr = splitsByExpense.get(s.expenseId) ?? [];
+    arr.push(s);
+    splitsByExpense.set(s.expenseId, arr);
+  }
 
   return (
     <div
@@ -108,7 +107,7 @@ export function GroupDetailClient({
         background: "var(--bc-bg)",
       }}
     >
-      {/* Top bar */}
+
       <div
         style={{
           display: "flex",
@@ -145,13 +144,13 @@ export function GroupDetailClient({
               fontSize: 11, color: "var(--bc-muted)", marginTop: 2, letterSpacing: "0.04em",
             }}
           >
-            {tGroup(membersCount === 1 ? "members_count_one" : "members_count_other", { 0: membersCount })} · {group.currency}
+            {tGroup(members.length === 1 ? "members_count_one" : "members_count_other", { 0: members.length })} · {group.currency}
           </div>
         </div>
         <div style={{ width: 40 }} />
       </div>
 
-      {/* Balance hero */}
+
       <div style={{ padding: "6px 16px 0" }}>
         <BCCard
           padded={false}
@@ -200,7 +199,7 @@ export function GroupDetailClient({
         </BCCard>
       </div>
 
-      {/* Tabs */}
+
       <div style={{ padding: "14px 0 8px" }}>
         <BCTabs
           active={tab}
@@ -215,7 +214,7 @@ export function GroupDetailClient({
         />
       </div>
 
-      {/* Content */}
+
       <div
         style={{
           flex: 1,
@@ -246,7 +245,7 @@ export function GroupDetailClient({
                       <ExpenseRow
                         key={it.e.id}
                         expense={it.e}
-                        splits={splits.filter((s) => s.expenseId === it.e.id)}
+                        splits={splitsByExpense.get(it.e.id) ?? []}
                         members={members}
                         myMemberId={myMemberId}
                         sym={sym}
@@ -296,7 +295,7 @@ export function GroupDetailClient({
         )}
       </div>
 
-      {/* FAB — add expense */}
+
       {tab === "expenses" && (
         <div style={{ position: "fixed", bottom: 100, right: 18, zIndex: 25 }}>
           <Link
@@ -329,7 +328,6 @@ export function GroupDetailClient({
   );
 }
 
-// ── Expense row ───────────────────────────────────────────────────
 function ExpenseRow({
   expense,
   splits,
@@ -406,7 +404,6 @@ function ExpenseRow({
   );
 }
 
-// ── Settlement row ────────────────────────────────────────────────
 function SettlementRow({
   settlement,
   members,
@@ -470,7 +467,6 @@ function SettlementRow({
   );
 }
 
-// ── Balances view ─────────────────────────────────────────────────
 function BalancesView({
   members, balances, minimizedDebts, myMemberId, sym, locale, tGroup, tCommon, groupId,
 }: {
@@ -486,7 +482,7 @@ function BalancesView({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Member balances */}
+
       <div>
         <div style={{ padding: "0 4px 8px" }}>
           <BCSectionLabel>{tGroup("member_balances")}</BCSectionLabel>
@@ -557,7 +553,7 @@ function BalancesView({
         </BCCard>
       </div>
 
-      {/* Simplified payments */}
+
       {minimizedDebts.length > 0 && (
         <div>
           <div

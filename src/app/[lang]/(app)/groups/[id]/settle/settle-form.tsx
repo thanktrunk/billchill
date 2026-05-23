@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { BCNumPad, BCAmountDisplay, BCButton, BCTopBar, BCIcon, BCCard, BCSectionLabel, BCAvatar } from "@/components/bc-ui";
 import { recordSettlement } from "./actions";
+import { currencySymbol } from "@/lib/utils";
 
 type Member = { id: string; displayName: string };
 type Debt = { from: string; to: string; amount: number };
@@ -90,8 +91,7 @@ export function SettleForm({
   const locale = useLocale();
   const t = useTranslations("settle");
 
-  const syms: Record<string, string> = { USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
-  const sym = syms[currency] ?? currency;
+  const sym = currencySymbol(currency);
 
   const [fromId, setFromId] = useState(suggestedDebt?.from ?? members[0]?.id ?? "");
   const [toId, setToId] = useState(suggestedDebt?.to ?? members[1]?.id ?? "");

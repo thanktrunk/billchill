@@ -107,15 +107,22 @@ src/
 │   └── schema/                   # groups, groupMembers, expenses, expenseSplits,
 │                                 #   settlements, notifications, users
 ├── dictionaries/
-│   ├── en.json                   # English strings (~100 keys)
+│   ├── en.json                   # English strings (~150 keys)
 │   └── vi.json                   # Vietnamese strings
+├── i18n/
+│   ├── request.ts                # next-intl request config
+│   └── routing.ts                # next-intl routing config
 ├── lib/
 │   ├── auth.ts                   # getCurrentUser / requireUser (Auth0 → DB upsert)
 │   ├── auth0.ts                  # Auth0Client singleton
 │   ├── access-control.ts         # verifyGroupMembership
 │   ├── balance.ts                # calculateBalances + minimizeDebts
 │   ├── i18n.ts                   # locales, hasLocale, defaultLocale
-│   └── locale-context.tsx        # LocaleProvider + useLocale hook
+│   ├── locale-context.tsx        # LocaleProvider + useLocale hook
+│   └── utils.ts                  # cn() and misc helpers
+├── messages/
+│   ├── en.json                   # next-intl English messages
+│   └── vi.json                   # next-intl Vietnamese messages
 ├── proxy.ts                      # Edge middleware: locale redirect + Auth0 + auth guard
 └── types/
     └── next-helpers.d.ts         # PageProps / LayoutProps generics
@@ -127,19 +134,30 @@ src/
 
 ```
 users            id, auth0_id, email, display_name, avatar_url, created_at
-groups           id, name, currency, created_by, created_at, archived_at
-group_members    id, group_id, user_id, display_name, default_share, is_active, created_at
-expenses         id, group_id, paid_by (→ member), amount, currency, description,
-                   category, date, created_by, created_at
-expense_splits   id, expense_id, member_id, share_amount
-settlements      id, group_id, from_member, to_member, amount, settled_at, created_by
-notifications    id, user_id, group_id, type, message, is_read, created_at
+groups           id, name, currency, created_by→users, created_at, archived_at
+group_members    id, group_id→groups, user_id→users, display_name, default_share, is_active, created_at
+expenses         id, group_id→groups, paid_by→group_members, amount, currency,
+                   description, category, date, created_by→users, created_at
+expense_splits   id, expense_id→expenses, member_id→group_members, share_amount
+settlements      id, group_id→groups, from_member→group_members,
+                   to_member→group_members, amount, settled_at, created_by→users
+notifications    id, user_id→users, group_id→groups, type(enum), message, is_read, created_at
 ```
 
 All IDs are UUIDs. `currency` is a 3-char ISO code (USD, EUR, GBP, JPY…).  
 `expense_splits.share_amount` and `expenses.amount` are `numeric(12,2)` stored as strings in JS.
 
 ---
+
+## Request flow
+
+```
+Request
+  └─ src/proxy.ts (middleware)
+       ├─ /auth/* → Auth0 handler (login / callback / logout)
+       ├─ no locale prefix → detect from Accept-Language → redirect to /{locale}/...
+       └─ /{locale}/* → verify Auth0 session → allow or redirect to /auth/login
+```
 
 ## Auth flow
 
@@ -198,4 +216,12 @@ Dictionary keys follow the pattern `section.key`, e.g. `group.settle_up`, `landi
 
 ## E2E tests
 
-Playwright tests live in `tests/e2e/`. Run with `npm run test:e2e`. Every user-facing feature should have a corresponding test (see `AGENTS.md`).
+Playwright tests live in `tests/e2e/`. Credentials are set via `E2E_EMAIL` and `E2E_PASSWORD` in `.env.local`; the auth session is cached at `tests/e2e/.auth/session.json`.
+
+```bash
+npm run test:e2e         # run all tests (headless)
+npm run test:e2e:ui      # open Playwright UI
+npm run test:e2e:report  # show last HTML report
+```
+
+Every user-facing feature must have a corresponding test. The `auth.setup.ts` project logs in once and saves the session for all other tests.

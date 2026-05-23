@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { groups, groupMembers, expenses, expenseSplits, settlements } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { verifyGroupMembership } from "@/lib/access-control";
 import { calculateBalances, minimizeDebts } from "@/lib/balance";
@@ -17,42 +17,21 @@ export default async function GroupDetailPage({
   const user = await requireUser();
   await verifyGroupMembership(id, user.id);
 
-  const group = await db.query.groups.findFirst({ where: eq(groups.id, id) });
-  if (!group) notFound();
+  const [group, members, groupExpenses, groupSettlements] = await Promise.all([
+    db.query.groups.findFirst({ where: eq(groups.id, id) }),
+    db.select().from(groupMembers).where(eq(groupMembers.groupId, id)),
+    db.select().from(expenses).where(eq(expenses.groupId, id)),
+    db.select().from(settlements).where(eq(settlements.groupId, id)),
+  ]);
 
-  const members = await db
-    .select()
-    .from(groupMembers)
-    .where(eq(groupMembers.groupId, id));
+  if (!group) notFound();
 
   const myMember = members.find((m) => m.userId === user.id);
 
-  const groupExpenses = await db
-    .select()
-    .from(expenses)
-    .where(eq(expenses.groupId, id));
-
   const expenseIds = groupExpenses.map((e) => e.id);
-  const allSplits = expenseIds.length
-    ? await db
-        .select()
-        .from(expenseSplits)
-        .where(eq(expenseSplits.expenseId, expenseIds[0]))
+  const allSplitsForGroup = expenseIds.length
+    ? await db.select().from(expenseSplits).where(inArray(expenseSplits.expenseId, expenseIds))
     : [];
-
-  let allSplitsForGroup: typeof allSplits = [];
-  if (expenseIds.length > 0) {
-    const { inArray } = await import("drizzle-orm");
-    allSplitsForGroup = await db
-      .select()
-      .from(expenseSplits)
-      .where(inArray(expenseSplits.expenseId, expenseIds));
-  }
-
-  const groupSettlements = await db
-    .select()
-    .from(settlements)
-    .where(eq(settlements.groupId, id));
 
   const activeMembers = members.filter((m) => m.isActive);
 
@@ -105,7 +84,6 @@ export default async function GroupDetailPage({
 
   return (
     <GroupDetailClient
-      lang={lang}
       group={{
         id: group.id,
         name: group.name,
