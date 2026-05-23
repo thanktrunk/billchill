@@ -70,7 +70,7 @@ export function ExpenseDetailClient({
   const pctSum = inputSum
 
   const canSave = (() => {
-    if (!description.trim() || !paidBy || editedAmount <= 0) return false
+    if (!description.trim() || !paidBy || !editDate || editedAmount <= 0) return false
     if (splitMethod === 'equal') return selected.length > 0
     if (splitMethod === 'amount') return Math.abs(inputSum - editedAmount) < 0.015
     if (splitMethod === 'shares') return totalShares > 0

@@ -153,7 +153,7 @@ export function SettleForm({
       <div className="flex-1 flex flex-col justify-center items-center px-6 py-5">
         <BCSectionLabel>{t('amount')}</BCSectionLabel>
         <div className="mt-3.5">
-          <BCAmountDisplay value={amountStr} currency={sym} size={72} />
+          <BCAmountDisplay value={amountStr} currency={currency} size={72} />
         </div>
         {suggestedDebt && (
           <div className="mt-4">

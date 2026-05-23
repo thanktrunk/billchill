@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/currency'
 
 // ── Avatar color palette (stable hash) ───────────────────────────
 export const AVATAR_COLORS = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
@@ -406,20 +407,9 @@ export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
 
 // ── Amount display ────────────────────────────────────────────────
 export function BCAmountDisplay({ value, currency, size = 88 }: { value: string; currency: string; size?: number }) {
-  const display = value || '0'
+  const display = formatCurrency(value || '0', currency)
   return (
     <div className="flex items-baseline justify-center">
-      <span
-        style={{
-          fontFamily: 'var(--font-newsreader), serif',
-          fontSize: size * 0.58,
-          color: 'var(--bc-muted)',
-          marginRight: 6,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {currency}
-      </span>
       <span
         style={{
           fontFamily: 'var(--font-newsreader), serif',
@@ -430,8 +420,7 @@ export function BCAmountDisplay({ value, currency, size = 88 }: { value: string;
           letterSpacing: '-0.02em',
         }}
       >
-        {display.includes('.') ? display.split('.')[0] : display}
-        {display.includes('.') && <span style={{ fontSize: size * 0.58, color: 'var(--bc-muted)' }}>.{display.split('.')[1]}</span>}
+        {display}
       </span>
     </div>
   )

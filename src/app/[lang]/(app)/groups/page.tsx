@@ -102,9 +102,11 @@ export default async function GroupsPage({ params }: PageProps) {
   const totalOwed = groupRows.reduce((s, r) => s + Math.max(0, r.myBalance), 0)
   const totalOwe = groupRows.reduce((s, r) => s + Math.max(0, -r.myBalance), 0)
   const netBalance = totalOwed - totalOwe
-  const formattedNetBalance = formatCurrency(Math.abs(netBalance), user.preferredCurrency)
+  const formattedNetBalance =
+    netBalance < 0 ? `-${formatCurrency(Math.abs(netBalance), user.preferredCurrency)}` : formatCurrency(netBalance, user.preferredCurrency)
   const formattedTotalOwed = formatCurrency(totalOwed, user.preferredCurrency)
-  const formattedTotalOwe = formatCurrency(totalOwe, user.preferredCurrency)
+  const formattedTotalOwe =
+    totalOwe > 0 ? `-${formatCurrency(totalOwe, user.preferredCurrency)}` : formatCurrency(totalOwe, user.preferredCurrency)
 
   return (
     <div className="bc-page">
@@ -231,7 +233,7 @@ function GroupRowCard({
                     isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
                   )}
                 >
-                  {formatCurrency(Math.abs(myBalance), group.currency)}
+                  {owes ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(myBalance, group.currency)}
                 </div>
               </>
             )}

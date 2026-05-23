@@ -95,7 +95,7 @@ export function GroupDetailClient({
                 className="font-serif text-[44px] leading-[0.95] tracking-[-0.02em] mt-1.5"
                 style={{ color: Math.abs(myBalance) < 0.005 ? 'var(--bc-bg)' : isOwed ? '#9CC8A8' : '#F2A788' }}
               >
-                {formatCurrency(Math.abs(myBalance), group.currency)}
+                {isOwing ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(Math.abs(myBalance), group.currency)}
               </div>
               <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
                 {tGroup('total_spent')} {formatCurrency(totalSpent, group.currency)}
@@ -152,7 +152,7 @@ export function GroupDetailClient({
       </div>
 
       {tab === 'expenses' && (
-        <div className="fixed bottom-25 right-4.5 z-25">
+        <div className="fixed right-4.5 z-25 bottom-[calc(6.25rem+env(safe-area-inset-bottom,0px))]">
           <Link
             href={`/${locale}/groups/${group.id}/expenses/new`}
             className="bc-tap bg-(--bc-accent) text-white border-0 cursor-pointer py-3.5 pr-5.5 pl-4.5 rounded-full inline-flex items-center gap-2 font-sans font-medium text-[15px] tracking-[-0.005em] shadow-[0_14px_30px_rgba(229,87,47,0.35),0_4px_10px_rgba(0,0,0,0.12)] no-underline"

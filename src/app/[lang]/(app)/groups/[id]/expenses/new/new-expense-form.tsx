@@ -29,12 +29,14 @@ export function NewExpenseForm({
   const locale = useLocale()
   const t = useTranslations('add')
   const tCat = useTranslations('cat')
+  const tExpense = useTranslations('expense')
   const sym = currencySymbol(currency)
   const [pending, setPending] = useState(false)
   const [step, setStep] = useState<'amount' | 'details'>('amount')
 
   const [description, setDescription] = useState('')
   const [amountStr, setAmountStr] = useState('')
+  const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0])
   const [paidBy, setPaidBy] = useState<string | null>(members[0]?.id ?? null)
   const [category, setCategory] = useState('food')
   const [splitWith, setSplitWith] = useState<string[] | null>(null)
@@ -87,7 +89,7 @@ export function NewExpenseForm({
   const pctSum = splitMethod === 'percentage' ? members.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0) : 0
 
   const canSave = (() => {
-    if (!paidBy || !(amount > 0)) return false
+    if (!paidBy || !(amount > 0) || !expenseDate) return false
     if (splitMethod === 'equal') return selected.length > 0
     if (splitMethod === 'amount') return inputSum > 0 && Math.abs(inputSum - amount) < 0.015
     if (splitMethod === 'shares') return totalShares > 0
@@ -104,7 +106,7 @@ export function NewExpenseForm({
       fd.set('description', description || t('untitled'))
       fd.set('amount', amount.toFixed(2))
       fd.set('paidBy', paidBy)
-      fd.set('date', new Date().toISOString().split('T')[0])
+      fd.set('date', expenseDate)
       fd.set('category', category)
 
       if (splitMethod === 'equal') {
@@ -183,7 +185,7 @@ export function NewExpenseForm({
         <div className="flex-1 flex flex-col justify-center items-center px-6 py-5">
           <BCSectionLabel>{t('amount')}</BCSectionLabel>
           <div className="mt-4">
-            <BCAmountDisplay value={amountStr} currency={sym} size={88} />
+            <BCAmountDisplay value={amountStr} currency={currency} size={88} />
           </div>
           <div className="flex gap-2 mt-6 flex-wrap justify-center">
             {suggestedAmounts(currency).map((n) => (
@@ -238,13 +240,25 @@ export function NewExpenseForm({
               {description || t('untitled')}
             </div>
             <div className="font-mono text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">
-              {new Date().toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' })}
+              {new Date(expenseDate).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' })}
             </div>
           </div>
           <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em]">
             {sym}
             {amount.toFixed(2)}
           </div>
+        </div>
+
+        <div>
+          <div className="px-1 pb-2">
+            <BCSectionLabel>{tExpense('date')}</BCSectionLabel>
+          </div>
+          <input
+            type="date"
+            value={expenseDate}
+            onChange={(e) => setExpenseDate(e.target.value)}
+            className="w-full border border-(--bc-softhair) outline-none bg-(--bc-surface) rounded-[14px] px-3.5 py-3 font-sans font-medium text-[15px] text-(--bc-ink) box-border"
+          />
         </div>
 
         <div>
