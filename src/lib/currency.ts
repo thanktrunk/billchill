@@ -46,11 +46,28 @@ export function currencySymbol(code: string): string {
 
 export function formatCurrency(amount: number | string, currencyCode: string): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  const locale = CURRENCY_LOCALES[currencyCode] ?? 'en-US'
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: currencyCode,
-  }).format(num)
+  const safeNum = Number.isFinite(num) ? num : 0
+  const rawCode = currencyCode.trim()
+  const normalizedCode = rawCode.toUpperCase()
+  const locale = CURRENCY_LOCALES[normalizedCode] ?? 'en-US'
+
+  if (/^[A-Z]{3}$/.test(normalizedCode)) {
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: normalizedCode,
+      }).format(safeNum)
+    } catch {
+      // Fall back to plain number formatting for custom/non-ISO labels.
+    }
+  }
+
+  const formattedNumber = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(safeNum)
+
+  return rawCode ? `${formattedNumber} ${rawCode}` : formattedNumber
 }
 
 export function formatDate(iso: string, lang: string, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }): string {

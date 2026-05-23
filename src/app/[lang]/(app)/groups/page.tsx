@@ -9,7 +9,7 @@ import { calculateBalances } from '@/lib/balance'
 import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { getTranslations } from 'next-intl/server'
-import { currencySymbol, formatCurrency, formatDate } from '@/lib/currency'
+import { formatCurrency, formatDate } from '@/lib/currency'
 
 function relativeTime(
   iso: string,
@@ -102,7 +102,9 @@ export default async function GroupsPage({ params }: PageProps) {
   const totalOwed = groupRows.reduce((s, r) => s + Math.max(0, r.myBalance), 0)
   const totalOwe = groupRows.reduce((s, r) => s + Math.max(0, -r.myBalance), 0)
   const netBalance = totalOwed - totalOwe
-  const heroCurrency = currencySymbol(user.preferredCurrency)
+  const formattedNetBalance = formatCurrency(Math.abs(netBalance), user.preferredCurrency)
+  const formattedTotalOwed = formatCurrency(totalOwed, user.preferredCurrency)
+  const formattedTotalOwe = formatCurrency(totalOwe, user.preferredCurrency)
 
   return (
     <div className="bc-page">
@@ -125,32 +127,24 @@ export default async function GroupsPage({ params }: PageProps) {
                 netBalance >= 0 ? 'text-[#E8DCC8]' : 'text-[#F2A788]',
               )}
             >
-              <span className="text-[32px] opacity-60 mr-1">{heroCurrency}</span>
-              {Math.abs(netBalance).toFixed(2).split('.')[0]}
-              <span className="text-[32px] opacity-[0.55]">.{Math.abs(netBalance).toFixed(2).split('.')[1]}</span>
+              {formattedNetBalance}
             </div>
           </div>
-          <div className="flex gap-3.5 mt-[18px]">
+          <div className="flex gap-3.5 mt-4.5">
             <div className="flex-1">
               <div className="font-sans text-[11px] opacity-50 tracking-[0.08em] uppercase">{tHome('owed_to_you')}</div>
-              <div className="font-mono text-base font-medium mt-1 text-[#9CC8A8] tabular-nums">
-                {heroCurrency}
-                {totalOwed.toFixed(2)}
-              </div>
+              <div className="font-mono text-base font-medium mt-1 text-[#9CC8A8] tabular-nums">{formattedTotalOwed}</div>
             </div>
             <div className="w-px bg-[rgba(245,241,234,0.16)]" />
             <div className="flex-1">
               <div className="font-sans text-[11px] opacity-50 tracking-[0.08em] uppercase">{tHome('you_owe')}</div>
-              <div className="font-mono text-base font-medium mt-1 text-[#F2A788] tabular-nums">
-                {heroCurrency}
-                {totalOwe.toFixed(2)}
-              </div>
+              <div className="font-mono text-base font-medium mt-1 text-[#F2A788] tabular-nums">{formattedTotalOwe}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-5.5 pt-[22px] pb-[10px]">
+      <div className="flex items-center justify-between px-5.5 pt-5.5 pb-2.5">
         <BCSectionLabel>{tHome('groups_section')}</BCSectionLabel>
         <div className="font-sans text-xs text-(--bc-muted)">{tHome('active', { 0: groupRows.length })}</div>
       </div>
