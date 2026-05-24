@@ -3,6 +3,7 @@
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
 import { revalidatePath } from 'next/cache'
+import { searchAppUsers } from '@/db/queries/users'
 import {
   createGroupMember,
   createMemberAddedNotifications,
@@ -16,6 +17,13 @@ import {
   setGroupMemberActive,
   updateGroupMember,
 } from '@/db/mutations/group-members'
+
+export async function searchUsers(query: string) {
+  await requireUser()
+  const q = query.trim()
+  if (q.length < 2) return []
+  return searchAppUsers(q)
+}
 
 export async function inviteMember(groupId: string, email: string) {
   const currentUser = await requireUser()
