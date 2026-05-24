@@ -5,8 +5,7 @@ import { useLocale } from 'next-intl'
 import { BCIcon } from '@/components/bc-ui'
 import { updatePreferredCurrency } from './actions'
 import { cn } from '@/lib/utils'
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'VND', 'AUD', 'CAD', 'SGD']
+import { CURRENCIES } from '@/lib/currency'
 
 interface Props {
   preferredCurrency: string

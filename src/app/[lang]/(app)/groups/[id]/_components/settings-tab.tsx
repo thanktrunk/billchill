@@ -7,8 +7,7 @@ import { cn } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
 import { updateGroup, archiveGroup, toggleGroupVisibility } from '../settings/actions'
 import { MembersTab } from './members-tab'
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'VND', 'AUD', 'CAD', 'SGD']
+import { CURRENCIES } from '@/lib/currency'
 
 type AllMember = {
   id: string
