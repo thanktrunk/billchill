@@ -1,6 +1,18 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { expenseSplits, expenses, groupMembers, groups, settlements, users } from '@/db/schema'
+
+export async function getJoinPageData(token: string) {
+  const group = await db.query.groups.findFirst({ where: eq(groups.inviteToken, token) })
+  if (!group || !group.isPublic || group.archivedAt) return null
+
+  const [{ value: memberCount }] = await db
+    .select({ value: count() })
+    .from(groupMembers)
+    .where(and(eq(groupMembers.groupId, group.id), eq(groupMembers.isActive, true)))
+
+  return { group, memberCount }
+}
 
 export async function getGroupListDataForUser(userId: string) {
   const myMemberships = await db

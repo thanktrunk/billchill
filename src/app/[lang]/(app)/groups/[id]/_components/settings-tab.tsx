@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCSectionLabel, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
-import { updateGroup, archiveGroup } from '../settings/actions'
+import { updateGroup, archiveGroup, toggleGroupVisibility } from '../settings/actions'
 import { MembersTab } from './members-tab'
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'VND', 'AUD', 'CAD', 'SGD']
@@ -20,7 +20,13 @@ type AllMember = {
   userName?: string | null
 }
 
-export function SettingsTab({ group, allMembers }: { group: { id: string; name: string; currency: string }; allMembers: AllMember[] }) {
+export function SettingsTab({
+  group,
+  allMembers,
+}: {
+  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null }
+  allMembers: AllMember[]
+}) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
   const [name, setName] = useState(group.name)
@@ -28,6 +34,31 @@ export function SettingsTab({ group, allMembers }: { group: { id: string; name: 
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [saving, setSaving] = useState(false)
   const [archiving, setArchiving] = useState(false)
+  const [isPublic, setIsPublic] = useState(group.isPublic)
+  const [inviteToken, setInviteToken] = useState(group.inviteToken)
+  const [togglingVisibility, setTogglingVisibility] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function handleToggleVisibility() {
+    if (togglingVisibility) return
+    setTogglingVisibility(true)
+    try {
+      const next = !isPublic
+      const result = await toggleGroupVisibility(group.id, next, inviteToken)
+      setIsPublic(next)
+      setInviteToken(result.token)
+    } finally {
+      setTogglingVisibility(false)
+    }
+  }
+
+  async function handleCopyLink() {
+    if (!inviteToken) return
+    const url = `${window.location.origin}/${locale}/join/${inviteToken}`
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   async function handleSave() {
     if (saving || !name.trim()) return
@@ -53,6 +84,57 @@ export function SettingsTab({ group, allMembers }: { group: { id: string; name: 
   return (
     <div className="flex flex-col gap-5.5">
       <MembersTab groupId={group.id} allMembers={allMembers} />
+
+      <div className="h-px bg-(--bc-softhair)" />
+
+      <div>
+        <div className="px-1 pb-2">
+          <BCSectionLabel>{tGroup('visibility_label')}</BCSectionLabel>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleVisibility}
+          disabled={togglingVisibility}
+          className={cn(
+            'bc-tap w-full flex items-center justify-between gap-3 border border-(--bc-softhair) rounded-[14px] px-3.5 py-3 cursor-pointer',
+            togglingVisibility && 'opacity-50',
+          )}
+        >
+          <div className="text-left">
+            <div className="font-sans font-medium text-[15px] text-(--bc-ink)">
+              {isPublic ? tGroup('visibility_public') : tGroup('visibility_private')}
+            </div>
+            <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">
+              {isPublic ? tGroup('visibility_hint_public') : tGroup('visibility_hint_private')}
+            </div>
+          </div>
+          <div
+            className={cn('relative w-11 h-6 rounded-full transition-colors shrink-0', isPublic ? 'bg-(--bc-accent)' : 'bg-(--bc-chip)')}
+          >
+            <span
+              className={cn(
+                'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform',
+                isPublic ? 'translate-x-5.5' : 'translate-x-0.5',
+              )}
+            />
+          </div>
+        </button>
+
+        {isPublic && inviteToken && (
+          <div className="mt-2 flex items-center gap-2 border border-(--bc-softhair) rounded-[14px] px-3.5 py-2.5">
+            <div className="flex-1 font-mono text-[12px] text-(--bc-muted) truncate">
+              {typeof window !== 'undefined' ? `${window.location.origin}/${locale}/join/${inviteToken}` : `…/join/${inviteToken}`}
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="bc-tap shrink-0 font-sans font-medium text-[13px] text-(--bc-accent) cursor-pointer border-0 bg-transparent px-1"
+            >
+              {copied ? tGroup('link_copied') : tGroup('copy_link')}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="h-px bg-(--bc-softhair)" />
 

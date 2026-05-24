@@ -114,7 +114,31 @@
     "settings_save": "Lưu",
     "archive_button": "Lưu vào kho",
     "archive_confirm": "Lưu nhóm này vào kho? Nó sẽ ẩn khỏi danh sách.",
-    "archive_ok": "Lưu vào kho"
+    "archive_ok": "Lưu vào kho",
+    "visibility_label": "Ai được vô? 🚪",
+    "visibility_public": "Mở toang 🎉",
+    "visibility_private": "VIP mới vô được 🔒",
+    "visibility_hint_public": "Quăng link, ai cũng nhảy vô được",
+    "visibility_hint_private": "Tự tay kéo từng đứa vô",
+    "copy_link": "Chép link 🔗",
+    "link_copied": "Chép rồi! ✅",
+    "join_group": "Nhảy vô nhóm",
+    "join_already_member": "Ủa bạn ở đây rồi mà 👑",
+    "join_member_count_one": "{0} người đang trong nhóm",
+    "join_member_count_other": "{0} người đang trong nhóm",
+    "join_not_found": "Link này chết rồi 💀 Xin link mới đi.",
+    "join_login_prompt": "Đăng nhập trước rồi nhảy vô sau nha 😏"
+  },
+  "join": {
+    "title": "Có chỗ cho mày rồi 🎟️",
+    "subtitle": "Tụi nó đang chờ mày trên billchill đó",
+    "join_button": "Vô nhóm thôi 🎉",
+    "already_member": "Ủa mày ở đây rồi mà 👀",
+    "go_to_group": "Về nhóm đi →",
+    "not_found": "Link này hỏng rồi 💀 Xin link mới từ bạn bè đi.",
+    "sign_in_to_join": "Đăng nhập trước đã 🔑",
+    "join_member_count_one": "{0} đứa đang trong nhóm",
+    "join_member_count_other": "{0} đứa đang trong nhóm"
   },
   "expense": {
     "title": "Chi tiêu",

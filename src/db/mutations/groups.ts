@@ -2,6 +2,14 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { groupMembers, groups, notifications } from '@/db/schema'
 
+export async function updateGroupVisibility(groupId: string, isPublic: boolean, token: string | null) {
+  await db.update(groups).set({ isPublic, inviteToken: token }).where(eq(groups.id, groupId))
+}
+
+export async function findGroupByInviteToken(token: string) {
+  return db.query.groups.findFirst({ where: eq(groups.inviteToken, token) })
+}
+
 export async function createGroupWithOwner(owner: { id: string; displayName: string }, data: { name: string; currency: string }) {
   const [group] = await db
     .insert(groups)

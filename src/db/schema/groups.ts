@@ -8,6 +8,8 @@ export const groups = pgTable('groups', {
   createdBy: uuid('created_by')
     .references(() => users.id)
     .notNull(),
+  isPublic: boolean('is_public').notNull().default(false),
+  inviteToken: varchar('invite_token', { length: 64 }).unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   archivedAt: timestamp('archived_at'),
 })

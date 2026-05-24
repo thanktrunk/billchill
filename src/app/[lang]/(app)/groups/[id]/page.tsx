@@ -82,6 +82,8 @@ export default async function GroupDetailPage({ params }: PageProps) {
         id: group.id,
         name: group.name,
         currency: group.currency,
+        isPublic: group.isPublic,
+        inviteToken: group.inviteToken ?? null,
       }}
       allMembers={serializedAllMembers}
       members={serializedMembers}

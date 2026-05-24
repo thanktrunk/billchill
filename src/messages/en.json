@@ -114,7 +114,31 @@
     "settings_save": "Save",
     "archive_button": "Archive group",
     "archive_confirm": "Archive this group? We'll tuck it away from your main list.",
-    "archive_ok": "Archive"
+    "archive_ok": "Archive",
+    "visibility_label": "Who can join? 🚪",
+    "visibility_public": "Open party 🎉",
+    "visibility_private": "VIP only 🔒",
+    "visibility_hint_public": "Drop the link, anyone can crash in",
+    "visibility_hint_private": "Handpick your crew manually",
+    "copy_link": "Grab link 🔗",
+    "link_copied": "Snagged! ✅",
+    "join_group": "Join the crew",
+    "join_already_member": "You're already in, legend 👑",
+    "join_member_count_one": "{0} person in",
+    "join_member_count_other": "{0} people in",
+    "join_not_found": "That link's dead 💀 Ask for a new one.",
+    "join_login_prompt": "Log in first, then crash the group 😏"
+  },
+  "join": {
+    "title": "You're in 🎟️",
+    "subtitle": "Someone's saving you a seat on billchill",
+    "join_button": "Crash the party 🎉",
+    "already_member": "Bro, you're already here 👀",
+    "go_to_group": "Back to the squad →",
+    "not_found": "Link's cooked 💀 Ask your friend for a fresh one.",
+    "sign_in_to_join": "Log in first 🔑",
+    "join_member_count_one": "{0} person already in",
+    "join_member_count_other": "{0} people already in"
   },
   "expense": {
     "title": "Expense",

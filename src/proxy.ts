@@ -37,8 +37,10 @@ export async function proxy(req: NextRequest) {
     return authRes
   }
 
+  const isJoinRoute = /^\/[a-z]{2}\/join\//.test(pathname)
+
   const session = await auth0.getSession(req)
-  if (!session) {
+  if (!session && !isJoinRoute) {
     return NextResponse.redirect(new URL('/auth/login?returnTo=' + encodeURIComponent(pathname), req.url))
   }
 
