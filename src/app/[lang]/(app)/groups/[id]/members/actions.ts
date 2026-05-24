@@ -6,6 +6,9 @@ import { revalidatePath } from 'next/cache'
 import {
   createGroupMember,
   createMemberAddedNotifications,
+  createMemberRenamedNotifications,
+  findActiveGroupMemberUserIds,
+  findGroupMemberById,
   findGroupMemberByUser,
   findGroupName,
   findUserByEmail,
@@ -89,7 +92,22 @@ export async function updateMember(groupId: string, memberId: string, data: { di
   const user = await requireUser()
   await verifyGroupMembership(groupId, user.id)
 
-  await updateGroupMember(groupId, memberId, { displayName: data.displayName.trim(), defaultShare: data.defaultShare })
+  const newName = data.displayName.trim()
+  const [existing, memberUserIds] = await Promise.all([findGroupMemberById(groupId, memberId), findActiveGroupMemberUserIds(groupId)])
+
+  await updateGroupMember(groupId, memberId, { displayName: newName, defaultShare: data.defaultShare })
+
+  if (existing && existing.displayName !== newName) {
+    const rows = memberUserIds.map((uid) => ({
+      userId: uid,
+      groupId,
+      message:
+        uid === user.id
+          ? `You renamed "${existing.displayName}" to "${newName}"`
+          : `${user.displayName} renamed "${existing.displayName}" to "${newName}"`,
+    }))
+    await createMemberRenamedNotifications(rows)
+  }
 
   revalidatePath(`/groups/${groupId}`)
 }

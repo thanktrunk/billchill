@@ -2,7 +2,7 @@ import { pgTable, uuid, varchar, boolean, timestamp, pgEnum } from 'drizzle-orm/
 import { users } from './users'
 import { groups } from './groups'
 
-export const notificationTypeEnum = pgEnum('notification_type', ['expense_added', 'settlement_recorded', 'member_added'])
+export const notificationTypeEnum = pgEnum('notification_type', ['expense_added', 'settlement_recorded', 'member_added', 'member_renamed'])
 
 export const notifications = pgTable('notifications', {
   id: uuid('id').defaultRandom().primaryKey(),

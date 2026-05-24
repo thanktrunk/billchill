@@ -15,6 +15,13 @@
       "when": 1779535094240,
       "tag": "0001_supreme_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779599020052,
+      "tag": "0002_gifted_karen_page",
+      "breakpoints": true
     }
   ]
 }
