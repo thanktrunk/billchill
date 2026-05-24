@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCSectionLabel, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
+import { Switch } from '@/components/ui/switch'
 import { updateGroup, archiveGroup, toggleGroupVisibility } from '../settings/actions'
 import { MembersTab } from './members-tab'
 
@@ -91,12 +92,9 @@ export function SettingsTab({
         <div className="px-1 pb-2">
           <BCSectionLabel>{tGroup('visibility_label')}</BCSectionLabel>
         </div>
-        <button
-          type="button"
-          onClick={handleToggleVisibility}
-          disabled={togglingVisibility}
+        <div
           className={cn(
-            'bc-tap w-full flex items-center justify-between gap-3 border border-(--bc-softhair) rounded-[14px] px-3.5 py-3 cursor-pointer',
+            'w-full flex items-center justify-between gap-3 border border-(--bc-softhair) rounded-[14px] px-3.5 py-3',
             togglingVisibility && 'opacity-50',
           )}
         >
@@ -108,17 +106,8 @@ export function SettingsTab({
               {isPublic ? tGroup('visibility_hint_public') : tGroup('visibility_hint_private')}
             </div>
           </div>
-          <div
-            className={cn('relative w-11 h-6 rounded-full transition-colors shrink-0', isPublic ? 'bg-(--bc-accent)' : 'bg-(--bc-chip)')}
-          >
-            <span
-              className={cn(
-                'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform',
-                isPublic ? 'translate-x-5.5' : 'translate-x-0.5',
-              )}
-            />
-          </div>
-        </button>
+          <Switch checked={isPublic} onCheckedChange={handleToggleVisibility} disabled={togglingVisibility} />
+        </div>
 
         {isPublic && inviteToken && (
           <div className="mt-2 flex items-center gap-2 border border-(--bc-softhair) rounded-[14px] px-3.5 py-2.5">

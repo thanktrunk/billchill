@@ -73,6 +73,7 @@ These rules were distilled from a full codebase review. Follow them for all new 
 
 - **Currency symbols** — use `currencySymbol(code)` from `@/lib/utils`. Do not inline the lookup table.
 - **UI primitives** — use components from `@/components/bc-ui.tsx` (`BCTopBar`, `BCButton`, `BCCard`, `BCNumPad`, etc.) before writing raw JSX equivalents. Check the file before building any layout primitive.
+- **shadcn components** — prefer shadcn/ui components (`src/components/ui/`) over hand-rolling equivalent UI (toggles, switches, dialogs, selects, etc.). Add missing components with `npx shadcn@latest add <component>` rather than building from scratch.
 - **Shared logic** — before writing a helper, grep `src/lib/` and `src/components/` for existing utilities (`cn()`, `currencySymbol()`, etc.).
 
 ### Data fetching — server components
