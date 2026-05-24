@@ -17,8 +17,24 @@ export function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
     { k: 'profile', href: `/${locale}/profile`, label: t('profile'), icon: 'user', badge: 0 },
   ]
 
+  const mainRoutes = [`/${locale}/groups`, `/${locale}/notifications`, `/${locale}/profile`]
+  const isMainPage = mainRoutes.some((r) => pathname === r)
+
   function isActive(href: string) {
     return pathname === href || (href !== `/${locale}` && pathname.startsWith(href))
+  }
+
+  if (!isMainPage) {
+    return (
+      <nav className="fixed left-0 bc-nav-bottom flex justify-start pl-5 pointer-events-none z-20">
+        <Link
+          href={`/${locale}/groups`}
+          className="bc-tap pointer-events-auto w-12 h-12 rounded-full bg-(--bc-ink) flex items-center justify-center shadow-[0_14px_30px_rgba(0,0,0,0.18),0_4px_10px_rgba(0,0,0,0.08)]"
+        >
+          <BCIcon name="home" size={20} color="rgba(245,241,234,0.9)" strokeWidth={1.7} />
+        </Link>
+      </nav>
+    )
   }
 
   return (
