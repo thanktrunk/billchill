@@ -54,7 +54,10 @@ export async function getGroupDetailData(groupId: string) {
 
   const memberUserIds = allMembers.map((member) => member.userId).filter(Boolean) as string[]
   const memberUsers = memberUserIds.length
-    ? await db.select({ id: users.id, avatarUrl: users.avatarUrl }).from(users).where(inArray(users.id, memberUserIds))
+    ? await db
+        .select({ id: users.id, avatarUrl: users.avatarUrl, email: users.email, displayName: users.displayName })
+        .from(users)
+        .where(inArray(users.id, memberUserIds))
     : []
 
   const expenseIds = groupExpenses.map((expense) => expense.id)
@@ -68,7 +71,7 @@ export async function getGroupDetailData(groupId: string) {
     groupExpenses,
     groupSettlements,
     allSplitsForGroup,
-    avatarByUserId: new Map(memberUsers.map((memberUser) => [memberUser.id, memberUser.avatarUrl])),
+    userDataById: new Map(memberUsers.map((u) => [u.id, { avatarUrl: u.avatarUrl, email: u.email, userName: u.displayName }])),
   }
 }
 

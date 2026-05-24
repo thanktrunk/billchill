@@ -14,7 +14,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
   const user = await requireUser()
   await verifyGroupMembership(id, user.id)
 
-  const { group, allMembers, groupExpenses, groupSettlements, allSplitsForGroup, avatarByUserId } = await getGroupDetailData(id)
+  const { group, allMembers, groupExpenses, groupSettlements, allSplitsForGroup, userDataById } = await getGroupDetailData(id)
 
   if (!group) notFound()
 
@@ -59,17 +59,22 @@ export default async function GroupDetailPage({ params }: PageProps) {
     id: m.id,
     displayName: m.displayName,
     userId: m.userId,
-    avatarUrl: m.userId ? (avatarByUserId.get(m.userId) ?? null) : null,
+    avatarUrl: m.userId ? (userDataById.get(m.userId)?.avatarUrl ?? null) : null,
   }))
 
-  const serializedAllMembers = allMembers.map((m) => ({
-    id: m.id,
-    displayName: m.displayName,
-    userId: m.userId,
-    defaultShare: m.defaultShare,
-    isActive: m.isActive,
-    avatarUrl: m.userId ? (avatarByUserId.get(m.userId) ?? null) : null,
-  }))
+  const serializedAllMembers = allMembers.map((m) => {
+    const userData = m.userId ? userDataById.get(m.userId) : undefined
+    return {
+      id: m.id,
+      displayName: m.displayName,
+      userId: m.userId,
+      defaultShare: m.defaultShare,
+      isActive: m.isActive,
+      avatarUrl: userData?.avatarUrl ?? null,
+      userEmail: userData?.email ?? null,
+      userName: userData?.userName ?? null,
+    }
+  })
 
   return (
     <GroupDetailClient

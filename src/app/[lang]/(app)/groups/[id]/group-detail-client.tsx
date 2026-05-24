@@ -20,6 +20,8 @@ type AllMember = {
   defaultShare: number
   isActive: boolean
   avatarUrl?: string | null
+  userEmail?: string | null
+  userName?: string | null
 }
 type Expense = {
   id: string

@@ -13,6 +13,8 @@ type AllMember = {
   defaultShare: number
   isActive: boolean
   avatarUrl?: string | null
+  userEmail?: string | null
+  userName?: string | null
 }
 
 export function MembersTab({ groupId, allMembers }: { groupId: string; allMembers: AllMember[] }) {
@@ -76,6 +78,11 @@ export function MembersTab({ groupId, allMembers }: { groupId: string; allMember
                     </span>
                   )}
                 </div>
+                {m.userId && (m.userName || m.userEmail) && (
+                  <div className="font-sans text-[11px] text-(--bc-muted) mt-0.5 truncate">
+                    {m.userName && m.userName !== m.displayName ? m.userName : m.userEmail}
+                  </div>
+                )}
                 <div className="font-mono text-[11px] text-(--bc-muted) mt-0.5 tracking-[0.04em]">
                   {tGroup('member_share_label')}: {m.defaultShare}
                 </div>
