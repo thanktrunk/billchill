@@ -208,6 +208,19 @@ export function ExpenseDetailClient({
 
           <div>
             <div className="px-1 pb-2">
+              <BCSectionLabel>{t('paid_by')}</BCSectionLabel>
+            </div>
+            <BCCard padded={false}>
+              <div className="flex items-center gap-3 px-3.5 py-2.5">
+                <BCAvatar name={payer?.displayName ?? '?'} seed={paidBy} size={32} />
+                <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{payer?.displayName ?? '?'}</div>
+                <div className="font-mono text-[13px] text-(--bc-ink) tabular-nums">{formatCurrency(amount, expense.currency)}</div>
+              </div>
+            </BCCard>
+          </div>
+
+          <div>
+            <div className="px-1 pb-2">
               <BCSectionLabel>{t('split_breakdown')}</BCSectionLabel>
             </div>
             <BCCard padded={false}>

@@ -12,6 +12,7 @@ const TYPE_ICON: Record<string, string> = {
   expense_added: 'receipt',
   settlement_recorded: 'check',
   member_added: 'users',
+  member_renamed: 'edit',
 }
 
 export default async function NotificationsPage({ params }: PageProps) {
@@ -32,6 +33,7 @@ export default async function NotificationsPage({ params }: PageProps) {
     expense_added: t('type_expense'),
     settlement_recorded: t('type_payment'),
     member_added: t('type_joined'),
+    member_renamed: t('type_renamed'),
   }
 
   return (

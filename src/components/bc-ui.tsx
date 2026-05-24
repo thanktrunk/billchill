@@ -397,7 +397,16 @@ export function BCButton({
   )
 }
 
-// ── Numpad ────────────────────────────────────────────────────────
+export function numPadReducer(s: string, k: string): string {
+  if (k === 'clear') return ''
+  if (k === 'del') return s.slice(0, -1)
+  if (k === '.') return !s.includes('.') && s.length > 0 ? s + '.' : s
+  if (s.includes('.') && s.split('.')[1].length >= 2) return s
+  if (s === '0' && k !== '.') return k
+  if (k === '00' || k === '000') return s === '' ? s : s + k
+  return s + k
+}
+
 export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del']
   return (
@@ -412,6 +421,27 @@ export function BCNumPad({ onKey }: { onKey: (k: string) => void }) {
           {k === 'del' ? <BCIcon name="back" size={20} color="var(--bc-ink)" strokeWidth={1.6} /> : k}
         </button>
       ))}
+      <button
+        type="button"
+        onClick={() => onKey('00')}
+        className="bc-tap h-[52px] border-0 bg-transparent active:bg-(--bc-chip) font-serif text-[24px] font-normal text-(--bc-ink) rounded-[16px] cursor-pointer tabular-nums flex items-center justify-center"
+      >
+        00
+      </button>
+      <button
+        type="button"
+        onClick={() => onKey('000')}
+        className="bc-tap h-[52px] border-0 bg-transparent active:bg-(--bc-chip) font-serif text-[24px] font-normal text-(--bc-ink) rounded-[16px] cursor-pointer tabular-nums flex items-center justify-center"
+      >
+        000
+      </button>
+      <button
+        type="button"
+        onClick={() => onKey('clear')}
+        className="bc-tap h-[52px] border-0 bg-transparent active:bg-(--bc-chip) font-sans text-[15px] font-medium text-(--bc-muted) rounded-[16px] cursor-pointer flex items-center justify-center"
+      >
+        C
+      </button>
     </div>
   )
 }

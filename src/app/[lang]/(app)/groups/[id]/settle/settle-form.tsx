@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCNumPad, BCAmountDisplay, BCButton, BCTopBar, BCIcon, BCCard, BCSectionLabel, BCAvatar } from '@/components/bc-ui'
+import { BCNumPad, BCAmountDisplay, BCButton, BCTopBar, BCIcon, BCCard, BCSectionLabel, BCAvatar, numPadReducer } from '@/components/bc-ui'
 import { recordSettlement } from './actions'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
@@ -26,9 +26,7 @@ function MemberRow({
     <div className="flex items-center gap-3 py-2.5">
       <div className="w-9 font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.12em] shrink-0">{label}</div>
       <div className="flex-1 flex gap-2 overflow-x-auto">
-        {[...members]
-          .sort((a, b) => (b.id === selectedId ? 1 : 0) - (a.id === selectedId ? 1 : 0))
-          .map((m) => {
+        {members.map((m) => {
             const sel = m.id === selectedId
             return (
               <button
@@ -74,13 +72,7 @@ export function SettleForm({
   const amount = parseFloat(amountStr) || 0
 
   function handleNumPad(key: string) {
-    setAmountStr((s) => {
-      if (key === 'del') return s.slice(0, -1)
-      if (key === '.') return !s.includes('.') && s.length > 0 ? s + '.' : s
-      if (s.includes('.') && s.split('.')[1].length >= 2) return s
-      if (s === '0' && key !== '.') return key
-      return s + key
-    })
+    setAmountStr((s) => numPadReducer(s, key))
   }
 
   function swap() {

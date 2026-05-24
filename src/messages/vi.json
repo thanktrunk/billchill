@@ -158,6 +158,7 @@
     "edit": "Chỉnh",
     "delete": "Xoá",
     "confirm_delete": "Xoá bản ghi này?",
+    "paid_by": "Ai trả",
     "split_breakdown": "Chia như thế nào",
     "save": "Lưu",
     "cancel": "Thôi",
@@ -200,6 +201,7 @@
     "type_payment": "Thanh toán ✅",
     "type_reminder": "Nhắc nhở 📢",
     "type_joined": "Vào nhóm 👋",
+    "type_renamed": "Đổi tên ✏️",
     "mark_all_read": "Bỏ qua hết"
   },
   "notif": {

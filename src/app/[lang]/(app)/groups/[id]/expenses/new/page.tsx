@@ -16,5 +16,5 @@ export default async function NewExpensePage({ params }: PageProps) {
 
   if (!group) notFound()
 
-  return <NewExpenseForm groupId={id} groupName={group.name} currency={group.currency} members={members} />
+  return <NewExpenseForm groupId={id} groupName={group.name} currency={group.currency} members={members} currentUserId={user.id} />
 }

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES } from '@/components/bc-ui'
+import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES, numPadReducer } from '@/components/bc-ui'
 import { addExpense } from './actions'
 import { currencySymbol, formatCurrency, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
@@ -19,11 +19,13 @@ export function NewExpenseForm({
   groupName,
   currency,
   members,
+  currentUserId,
 }: {
   groupId: string
   groupName: string
   currency: string
   members: Member[]
+  currentUserId: string
 }) {
   const router = useRouter()
   const locale = useLocale()
@@ -37,21 +39,13 @@ export function NewExpenseForm({
   const [description, setDescription] = useState('')
   const [amountStr, setAmountStr] = useState('')
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [paidBy, setPaidBy] = useState<string | null>(members[0]?.id ?? null)
+  const [paidBy, setPaidBy] = useState<string | null>(members.find((m) => m.id === currentUserId)?.id ?? members[0]?.id ?? null)
   const [category, setCategory] = useState('food')
   const [splitWith, setSplitWith] = useState<string[] | null>(null)
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('equal')
   const [memberInputs, setMemberInputs] = useState<Record<string, string>>({})
 
-  const onKey = (k: string) => {
-    setAmountStr((s) => {
-      if (k === 'del') return s.slice(0, -1)
-      if (k === '.') return !s.includes('.') && s.length > 0 ? s + '.' : s
-      if (s.includes('.') && s.split('.')[1].length >= 2) return s
-      if (s === '0' && k !== '.') return k
-      return s + k
-    })
-  }
+  const onKey = (k: string) => setAmountStr((s) => numPadReducer(s, k))
 
   const amount = parseFloat(amountStr) || 0
   const selected = splitWith ?? members.map((m) => m.id)

@@ -158,6 +158,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "confirm_delete": "Delete this expense for real?",
+    "paid_by": "Paid by",
     "split_breakdown": "Split",
     "save": "Save",
     "cancel": "Cancel",
@@ -200,6 +201,7 @@
     "type_payment": "Payment ✅",
     "type_reminder": "Reminder 📢",
     "type_joined": "Joined 👋",
+    "type_renamed": "Renamed ✏️",
     "mark_all_read": "Mark all read"
   },
   "notif": {
