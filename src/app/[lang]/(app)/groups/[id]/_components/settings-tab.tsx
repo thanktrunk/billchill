@@ -5,10 +5,22 @@ import { useTranslations, useLocale } from 'next-intl'
 import { BCSectionLabel, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { updateGroup, archiveGroup } from '../settings/actions'
+import { MembersTab } from './members-tab'
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'VND', 'AUD', 'CAD', 'SGD']
 
-export function SettingsTab({ group }: { group: { id: string; name: string; currency: string } }) {
+type AllMember = {
+  id: string
+  displayName: string
+  userId: string | null
+  defaultShare: number
+  isActive: boolean
+  avatarUrl?: string | null
+  userEmail?: string | null
+  userName?: string | null
+}
+
+export function SettingsTab({ group, allMembers }: { group: { id: string; name: string; currency: string }; allMembers: AllMember[] }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
   const [name, setName] = useState(group.name)
@@ -40,6 +52,10 @@ export function SettingsTab({ group }: { group: { id: string; name: string; curr
 
   return (
     <div className="flex flex-col gap-5.5">
+      <MembersTab groupId={group.id} allMembers={allMembers} />
+
+      <div className="h-px bg-(--bc-softhair)" />
+
       <div>
         <div className="px-1 pb-2">
           <BCSectionLabel>{tGroup('settings_name')}</BCSectionLabel>
