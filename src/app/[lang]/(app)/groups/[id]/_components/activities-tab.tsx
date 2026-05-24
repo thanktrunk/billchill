@@ -31,6 +31,10 @@ type DeletedExpense = {
   deletedBy: string | null
 }
 
+function formatTime(iso: string, lang: string): string {
+  return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso))
+}
+
 function ExpenseRow({
   expense,
   splits,
@@ -43,6 +47,7 @@ function ExpenseRow({
   myMemberId: string | null
 }) {
   const tGroup = useTranslations('group')
+  const locale = useLocale()
   const payer = members.find((m) => m.id === expense.paidBy)
   const payerName = payer?.displayName ?? '?'
   const mySplit = splits.find((s) => s.memberId === myMemberId)
@@ -58,7 +63,11 @@ function ExpenseRow({
             {expense.description}
           </div>
           <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
-            {tGroup(splits.length === 1 ? 'paid_shares_one' : 'paid_shares_other', { 0: payerName, 1: splits.length })}
+            {formatTime(expense.createdAt, locale)}
+            {' · '}
+            {tGroup(splits.length === 1 ? 'share_count_one' : 'share_count_other', { 0: splits.length })}
+            {' · '}
+            {payerName}
           </div>
         </div>
         <div className="text-right">
@@ -91,9 +100,7 @@ function SettlementRow({ settlement, members, groupCurrency }: { settlement: Set
           <div className="font-sans font-medium text-[14.5px] text-(--bc-ink)">
             {tGroup('paid_to', { 0: from?.displayName ?? '?', 1: to?.displayName ?? '?' })}
           </div>
-          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
-            {tGroup('settlement_date', { 0: formatDate(settlement.settledAt, locale) })}
-          </div>
+          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">{formatTime(settlement.settledAt, locale)}</div>
         </div>
         <div className="font-serif text-[22px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.01em]">
           {formatCurrency(settlement.amount, groupCurrency)}
@@ -105,6 +112,7 @@ function SettlementRow({ settlement, members, groupCurrency }: { settlement: Set
 
 function MemberJoinedRow({ member }: { member: ActivityMember }) {
   const tGroup = useTranslations('group')
+  const locale = useLocale()
   return (
     <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0">
       <div className="flex items-center gap-3">
@@ -113,7 +121,11 @@ function MemberJoinedRow({ member }: { member: ActivityMember }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-sans font-medium text-[14.5px] text-(--bc-ink)">{member.displayName}</div>
-          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">{tGroup('activity_member_joined')}</div>
+          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
+            {formatTime(member.createdAt, locale)}
+            {' · '}
+            {tGroup('activity_member_joined')}
+          </div>
         </div>
       </div>
     </BCCard>
@@ -122,6 +134,7 @@ function MemberJoinedRow({ member }: { member: ActivityMember }) {
 
 function DeletedExpenseRow({ expense, members }: { expense: DeletedExpense; members: Member[] }) {
   const tGroup = useTranslations('group')
+  const locale = useLocale()
   const deleter = expense.deletedBy ? members.find((m) => m.id === expense.deletedBy) : null
   return (
     <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0 opacity-60">
@@ -132,6 +145,8 @@ function DeletedExpenseRow({ expense, members }: { expense: DeletedExpense; memb
             {expense.description}
           </div>
           <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
+            {formatTime(expense.deletedAt, locale)}
+            {' · '}
             {deleter ? tGroup('activity_expense_deleted_by', { 0: deleter.displayName }) : tGroup('activity_expense_deleted')}
           </div>
         </div>
@@ -143,8 +158,9 @@ function DeletedExpenseRow({ expense, members }: { expense: DeletedExpense; memb
   )
 }
 
-function GroupCreatedRow() {
+function GroupCreatedRow({ ts }: { ts: string }) {
   const tGroup = useTranslations('group')
+  const locale = useLocale()
   return (
     <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0">
       <div className="flex items-center gap-3">
@@ -153,6 +169,7 @@ function GroupCreatedRow() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-sans font-medium text-[14.5px] text-(--bc-ink)">{tGroup('activity_group_created')}</div>
+          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">{formatTime(ts, locale)}</div>
         </div>
       </div>
     </BCCard>
@@ -241,7 +258,7 @@ export function ActivitiesTab({
               if (it.kind === 'member_joined') {
                 return <MemberJoinedRow key={it.m.id} member={it.m} />
               }
-              return <GroupCreatedRow key={`group_created_${i}`} />
+              return <GroupCreatedRow key={`group_created_${i}`} ts={it.ts} />
             })}
           </div>
         </div>

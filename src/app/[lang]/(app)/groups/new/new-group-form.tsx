@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createGroup } from './actions'
 import { CurrencyInput } from '@/components/currency-input'
+import { BCTopBar, BCIconBtn } from '@/components/bc-ui'
 import { useTranslations, useLocale } from 'next-intl'
 
 export function NewGroupForm({ defaultCurrency = 'USD' }: { defaultCurrency?: string }) {
@@ -24,9 +25,9 @@ export function NewGroupForm({ defaultCurrency = 'USD' }: { defaultCurrency?: st
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-md">
-      <h1 className="text-2xl font-bold mb-6">{t('title')}</h1>
-      <form action={handleSubmit} className="space-y-4">
+    <div className="container mx-auto max-w-md">
+      <BCTopBar title={t('title')} left={<BCIconBtn name="back" onClick={() => router.push(`/${locale}/groups`)} />} />
+      <form action={handleSubmit} className="space-y-4 px-4 py-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium mb-1">
             {t('name_label')}

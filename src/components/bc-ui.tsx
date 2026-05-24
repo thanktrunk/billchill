@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // ── Avatar color palette (stable hash) ───────────────────────────
 export const AVATAR_COLORS = ['#E5572F', '#3F6E55', '#B7873A', '#7B5E8C', '#4A6B7C', '#A4452C', '#5B6E3F', '#8C5E3E']
@@ -437,7 +438,6 @@ export function BCAmountDisplay({ value, currency, size = 88 }: { value: string;
   )
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────
 export function BCTabs({
   tabs,
   active,
@@ -448,21 +448,19 @@ export function BCTabs({
   onChange: (k: string) => void
 }) {
   return (
-    <div className="flex gap-1 p-1 bg-(--bc-chip) rounded-[18px] mx-4">
-      {tabs.map((t) => (
-        <button
-          key={t.k}
-          type="button"
-          onClick={() => onChange(t.k)}
-          className={cn(
-            'bc-tap flex-1 border-0 cursor-pointer text-(--bc-ink) px-3 py-2.5 rounded-[14px] font-sans font-medium text-[13px] tracking-[-0.005em] transition-[background] duration-[160ms]',
-            active === t.k ? 'bg-(--bc-surface) shadow-[0_1px_2px_rgba(0,0,0,0.06)]' : 'bg-transparent',
-          )}
-        >
-          {t.label}
-        </button>
-      ))}
-    </div>
+    <Tabs value={active} onValueChange={onChange} className="mx-4">
+      <TabsList className="w-full bg-(--bc-chip) rounded-[18px] h-16! p-1 gap-1">
+        {tabs.map((t) => (
+          <TabsTrigger
+            key={t.k}
+            value={t.k}
+            className="bc-tap flex-1 rounded-[14px] font-sans font-medium text-[13px] tracking-[-0.005em] text-(--bc-ink) data-active:bg-(--bc-surface) data-active:shadow-[0_1px_2px_rgba(0,0,0,0.06)] data-active:text-(--bc-ink)"
+          >
+            {t.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }
 

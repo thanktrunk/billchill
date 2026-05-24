@@ -102,6 +102,8 @@
     "paid_shares": "{0} paid · {1} shares",
     "paid_shares_one": "{0} paid · {1} share",
     "paid_shares_other": "{0} paid · {1} shares",
+    "share_count_one": "{0} share",
+    "share_count_other": "{0} shares",
     "pays": "{0} pays {1}",
     "paid_to": "{0} paid {1}",
     "settlement_date": "Settlement · {0}",

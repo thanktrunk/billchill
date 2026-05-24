@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { BCCard, BCSectionLabel, BCAvatar, BCIcon, BCConfirmDialog } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { inviteMember, updateMember, setMemberActive, searchUsers } from '../members/actions'
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 
 type AllMember = {
   id: string
@@ -253,27 +254,30 @@ export function MembersTab({ groupId, allMembers }: { groupId: string; allMember
                 className="w-full border border-(--bc-softhair) outline-none bg-(--bc-surface) rounded-[14px] px-3.5 py-3 font-sans text-sm text-(--bc-ink)"
               />
               {showSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-(--bc-surface) border border-(--bc-softhair) rounded-[14px] overflow-hidden z-10 shadow-sm">
-                  {suggestions.map((u, i) => (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onPointerDown={(e) => {
-                        e.preventDefault()
-                        selectSuggestion(u)
-                      }}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3.5 py-2.5 text-left active:bg-(--bc-chip) cursor-pointer',
-                        i > 0 && 'border-t border-(--bc-softhair)',
-                      )}
-                    >
-                      <BCAvatar name={u.displayName} seed={u.id} size={32} avatarUrl={u.avatarUrl} />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-sans font-medium text-[13.5px] text-(--bc-ink) truncate">{u.displayName}</div>
-                        <div className="font-sans text-[11px] text-(--bc-muted) truncate">{u.email}</div>
-                      </div>
-                    </button>
-                  ))}
+                <div className="absolute top-full left-0 right-0 mt-1.5 z-10">
+                  <Command
+                    shouldFilter={false}
+                    className="bg-(--bc-surface) border border-(--bc-softhair) rounded-[14px] shadow-sm overflow-hidden"
+                  >
+                    <CommandList>
+                      <CommandGroup>
+                        {suggestions.map((u) => (
+                          <CommandItem
+                            key={u.id}
+                            value={u.email}
+                            onSelect={() => selectSuggestion(u)}
+                            className="gap-3 px-3.5 py-2.5 rounded-none border-t border-(--bc-softhair) first:border-t-0 cursor-pointer"
+                          >
+                            <BCAvatar name={u.displayName} seed={u.id} size={32} avatarUrl={u.avatarUrl} />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-sans font-medium text-[13.5px] text-(--bc-ink) truncate">{u.displayName}</div>
+                              <div className="font-sans text-[11px] text-(--bc-muted) truncate">{u.email}</div>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
                 </div>
               )}
             </div>

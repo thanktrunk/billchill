@@ -1,5 +1,7 @@
 'use client'
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 const COMMON_CURRENCIES = [
   { code: 'USD', label: 'USD – US Dollar' },
   { code: 'EUR', label: 'EUR – Euro' },
@@ -13,32 +15,29 @@ const COMMON_CURRENCIES = [
   { code: 'HKD', label: 'HKD – Hong Kong Dollar' },
   { code: 'KRW', label: 'KRW – South Korean Won' },
   { code: 'CNY', label: 'CNY – Chinese Yuan' },
+  { code: 'THB', label: 'THB – Thai Baht' },
+  { code: 'MYR', label: 'MYR – Malaysian Ringgit' },
+  { code: 'IDR', label: 'IDR – Indonesian Rupiah' },
+  { code: 'INR', label: 'INR – Indian Rupee' },
+  { code: 'SEK', label: 'SEK – Swedish Krona' },
+  { code: 'NOK', label: 'NOK – Norwegian Krone' },
+  { code: 'DKK', label: 'DKK – Danish Krone' },
+  { code: 'NZD', label: 'NZD – New Zealand Dollar' },
 ]
 
 export function CurrencyInput({ defaultValue = 'USD' }: { defaultValue?: string }) {
   return (
-    <>
-      <input
-        id="currency"
-        name="currency"
-        type="text"
-        list="currency-list"
-        defaultValue={defaultValue}
-        maxLength={3}
-        required
-        placeholder="USD"
-        className="w-full rounded-md border px-3 py-2 text-sm uppercase"
-        onInput={(e) => {
-          ;(e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.toUpperCase()
-        }}
-      />
-      <datalist id="currency-list">
+    <Select name="currency" defaultValue={defaultValue}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select currency" />
+      </SelectTrigger>
+      <SelectContent>
         {COMMON_CURRENCIES.map((c) => (
-          <option key={c.code} value={c.code}>
+          <SelectItem key={c.code} value={c.code}>
             {c.label}
-          </option>
+          </SelectItem>
         ))}
-      </datalist>
-    </>
+      </SelectContent>
+    </Select>
   )
 }

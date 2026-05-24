@@ -102,6 +102,8 @@
     "paid_shares": "{0} trả · {1} phần",
     "paid_shares_one": "{0} trả · {1} phần",
     "paid_shares_other": "{0} trả · {1} phần",
+    "share_count_one": "{0} phần",
+    "share_count_other": "{0} phần",
     "pays": "{0} chuyển cho {1}",
     "paid_to": "{0} đã chuyển cho {1}",
     "settlement_date": "Trả · {0}",
