@@ -9,11 +9,6 @@ export async function searchAppUsers(query: string) {
   return db
     .select({ id: users.id, displayName: users.displayName, email: users.email, avatarUrl: users.avatarUrl })
     .from(users)
-    .where(
-      or(
-        sql`${users.displayName} ~* ${nameRegex}`,
-        sql`${users.email} ilike ${emailPattern}`,
-      ),
-    )
+    .where(or(sql`${users.displayName} ~* ${nameRegex}`, sql`${users.email} ilike ${emailPattern}`))
     .limit(6)
 }
