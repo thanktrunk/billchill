@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { expenseSplits, expenses, groups, groupMembers, notifications } from '@/db/schema'
 
@@ -59,7 +59,7 @@ export async function createExpenseAddedNotifications(rows: { userId: string; gr
 }
 
 export async function findExpenseById(expenseId: string) {
-  return db.query.expenses.findFirst({ where: eq(expenses.id, expenseId) })
+  return db.query.expenses.findFirst({ where: and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)) })
 }
 
 export async function updateExpenseById(
@@ -78,6 +78,6 @@ export async function updateExpenseById(
     .where(and(eq(expenses.id, expenseId)))
 }
 
-export async function deleteExpenseById(expenseId: string) {
-  await db.delete(expenses).where(eq(expenses.id, expenseId))
+export async function deleteExpenseById(expenseId: string, deletedBy: string) {
+  await db.update(expenses).set({ deletedAt: new Date(), deletedBy }).where(eq(expenses.id, expenseId))
 }

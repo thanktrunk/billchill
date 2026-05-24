@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from '@/lib/currency'
 import { AppCalculations } from '@/lib/app-calculations'
 
 type Member = { id: string; displayName: string; userId: string | null; avatarUrl?: string | null }
+type ActivityMember = { id: string; displayName: string; createdAt: string; isActive: boolean }
 type Expense = {
   id: string
   description: string
@@ -20,6 +21,15 @@ type Expense = {
 }
 type Split = { expenseId: string; memberId: string; shareAmount: string }
 type Settlement = { id: string; fromMember: string; toMember: string; amount: string; settledAt: string }
+type DeletedExpense = {
+  id: string
+  description: string
+  amount: string
+  currency: string
+  category: string | null
+  deletedAt: string
+  deletedBy: string | null
+}
 
 function ExpenseRow({
   expense,
@@ -93,41 +103,106 @@ function SettlementRow({ settlement, members, groupCurrency }: { settlement: Set
   )
 }
 
-export function ExpensesTab({
+function MemberJoinedRow({ member }: { member: ActivityMember }) {
+  const tGroup = useTranslations('group')
+  return (
+    <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-(--bc-bg) flex items-center justify-center border border-dashed border-(--bc-hair)">
+          <BCIcon name="user" size={18} color="var(--bc-ink)" strokeWidth={1.8} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-sans font-medium text-[14.5px] text-(--bc-ink)">{member.displayName}</div>
+          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">{tGroup('activity_member_joined')}</div>
+        </div>
+      </div>
+    </BCCard>
+  )
+}
+
+function DeletedExpenseRow({ expense, members }: { expense: DeletedExpense; members: Member[] }) {
+  const tGroup = useTranslations('group')
+  const deleter = expense.deletedBy ? members.find((m) => m.id === expense.deletedBy) : null
+  return (
+    <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0 opacity-60">
+      <div className="flex items-center gap-3">
+        <BCCategoryBadge category={expense.category ?? 'other'} size={40} />
+        <div className="flex-1 min-w-0">
+          <div className="font-sans font-medium text-[14.5px] text-(--bc-ink) tracking-[-0.005em] whitespace-nowrap overflow-hidden text-ellipsis line-through">
+            {expense.description}
+          </div>
+          <div className="font-sans text-xs text-(--bc-muted) mt-0.5">
+            {deleter ? tGroup('activity_expense_deleted_by', { 0: deleter.displayName }) : tGroup('activity_expense_deleted')}
+          </div>
+        </div>
+        <div className="font-serif text-[22px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.01em] line-through">
+          {formatCurrency(expense.amount, expense.currency)}
+        </div>
+      </div>
+    </BCCard>
+  )
+}
+
+function GroupCreatedRow() {
+  const tGroup = useTranslations('group')
+  return (
+    <BCCard padded={false} className="px-3.5 py-3 bg-(--bc-chip) border-0">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-(--bc-bg) flex items-center justify-center border border-dashed border-(--bc-hair)">
+          <BCIcon name="activity" size={18} color="var(--bc-ink)" strokeWidth={1.8} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-sans font-medium text-[14.5px] text-(--bc-ink)">{tGroup('activity_group_created')}</div>
+        </div>
+      </div>
+    </BCCard>
+  )
+}
+
+export function ActivitiesTab({
   expenses,
+  deletedExpenses,
   splits,
   settlements,
   members,
+  allMembers,
   myMemberId,
   groupCurrency,
   groupId,
+  groupCreatedAt,
 }: {
   expenses: Expense[]
+  deletedExpenses: DeletedExpense[]
   splits: Split[]
   settlements: Settlement[]
   members: Member[]
+  allMembers: ActivityMember[]
   myMemberId: string | null
   groupCurrency: string
   groupId: string
+  groupCreatedAt: string
 }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
 
-  const expensesSorted = [...expenses].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  const settlementsSorted = [...settlements].sort((a, b) => b.settledAt.localeCompare(a.settledAt))
+  type TimelineItem =
+    | { kind: 'expense'; e: Expense; ts: string }
+    | { kind: 'expense_deleted'; d: DeletedExpense; ts: string }
+    | { kind: 'settlement'; s: Settlement; ts: string }
+    | { kind: 'member_joined'; m: ActivityMember; ts: string }
+    | { kind: 'group_created'; ts: string }
 
-  const items: Array<{ kind: 'expense'; e: Expense } | { kind: 'settlement'; s: Settlement }> = [
-    ...expensesSorted.map((e) => ({ kind: 'expense' as const, e })),
-    ...settlementsSorted.map((s) => ({ kind: 'settlement' as const, s })),
-  ].sort((a, b) => {
-    const ta = a.kind === 'expense' ? a.e.createdAt : a.s.settledAt
-    const tb = b.kind === 'expense' ? b.e.createdAt : b.s.settledAt
-    return tb.localeCompare(ta)
-  })
+  const items: TimelineItem[] = [
+    ...expenses.map((e) => ({ kind: 'expense' as const, e, ts: e.createdAt })),
+    ...deletedExpenses.map((d) => ({ kind: 'expense_deleted' as const, d, ts: d.deletedAt })),
+    ...settlements.map((s) => ({ kind: 'settlement' as const, s, ts: s.settledAt })),
+    ...allMembers.map((m) => ({ kind: 'member_joined' as const, m, ts: m.createdAt })),
+    { kind: 'group_created' as const, ts: groupCreatedAt },
+  ].sort((a, b) => b.ts.localeCompare(a.ts))
 
-  const dayGroups: { day: string; items: typeof items }[] = []
+  const dayGroups: { day: string; items: TimelineItem[] }[] = []
   items.forEach((it) => {
-    const day = (it.kind === 'expense' ? it.e.createdAt : it.s.settledAt).slice(0, 10)
+    const day = it.ts.slice(0, 10)
     const last = dayGroups[dayGroups.length - 1]
     if (last && last.day === day) last.items.push(it)
     else dayGroups.push({ day, items: [it] })
@@ -149,19 +224,29 @@ export function ExpensesTab({
             <div className="flex-1 h-px bg-(--bc-softhair)" />
           </div>
           <div className="flex flex-col gap-2">
-            {grp.items.map((it) =>
-              it.kind === 'expense' ? (
-                <Link key={it.e.id} href={`/${locale}/groups/${groupId}/expenses/${it.e.id}`} className="no-underline">
-                  <ExpenseRow expense={it.e} splits={splitsByExpense.get(it.e.id) ?? []} members={members} myMemberId={myMemberId} />
-                </Link>
-              ) : (
-                <SettlementRow key={it.s.id} settlement={it.s} members={members} groupCurrency={groupCurrency} />
-              ),
-            )}
+            {grp.items.map((it, i) => {
+              if (it.kind === 'expense') {
+                return (
+                  <Link key={it.e.id} href={`/${locale}/groups/${groupId}/expenses/${it.e.id}`} className="no-underline">
+                    <ExpenseRow expense={it.e} splits={splitsByExpense.get(it.e.id) ?? []} members={members} myMemberId={myMemberId} />
+                  </Link>
+                )
+              }
+              if (it.kind === 'expense_deleted') {
+                return <DeletedExpenseRow key={it.d.id} expense={it.d} members={members} />
+              }
+              if (it.kind === 'settlement') {
+                return <SettlementRow key={it.s.id} settlement={it.s} members={members} groupCurrency={groupCurrency} />
+              }
+              if (it.kind === 'member_joined') {
+                return <MemberJoinedRow key={it.m.id} member={it.m} />
+              }
+              return <GroupCreatedRow key={`group_created_${i}`} />
+            })}
           </div>
         </div>
       ))}
-      {items.length === 0 && <div className="px-5 py-10 text-center text-(--bc-muted) font-sans">{tGroup('no_expenses')}</div>}
+      {items.length === 0 && <div className="px-5 py-10 text-center text-(--bc-muted) font-sans">{tGroup('no_activities')}</div>}
     </div>
   )
 }

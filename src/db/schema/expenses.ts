@@ -19,6 +19,8 @@ export const expenses = pgTable('expenses', {
     .references(() => users.id)
     .notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+  deletedBy: uuid('deleted_by').references(() => groupMembers.id),
 })
 
 export const expenseSplits = pgTable('expense_splits', {

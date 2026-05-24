@@ -200,7 +200,7 @@ export function ExpenseDetailClient({
                   {expense.date} · {payer?.displayName ?? '?'}
                 </div>
               </div>
-              <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em]">
+              <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em] whitespace-nowrap shrink-0">
                 {formatCurrency(amount, expense.currency)}
               </div>
             </div>

@@ -57,9 +57,9 @@ export async function deleteExpense(lang: string, expenseId: string) {
   const expense = await findExpenseById(expenseId)
   if (!expense) throw new Error('Expense not found')
 
-  await verifyGroupMembership(expense.groupId, user.id)
+  const member = await verifyGroupMembership(expense.groupId, user.id)
 
-  await deleteExpenseById(expenseId)
+  await deleteExpenseById(expenseId, member.id)
 
   redirect(`/${lang}/groups/${expense.groupId}`)
 }

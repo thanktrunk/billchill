@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCCard, BCTabs } from '@/components/bc-ui'
 import { formatCurrency } from '@/lib/currency'
 import { AppCalculations } from '@/lib/app-calculations'
-import { ExpensesTab } from './_components/expenses-tab'
+import { ActivitiesTab } from './_components/activities-tab'
 import { BalancesTab } from './_components/balances-tab'
 import { SettingsTab } from './_components/settings-tab'
 import { StatsTab } from './_components/stats-tab'
@@ -18,6 +18,7 @@ type AllMember = {
   userId: string | null
   defaultShare: number
   isActive: boolean
+  createdAt: string
   avatarUrl?: string | null
   userEmail?: string | null
   userName?: string | null
@@ -34,6 +35,15 @@ type Expense = {
 }
 type Split = { expenseId: string; memberId: string; shareAmount: string }
 type Settlement = { id: string; fromMember: string; toMember: string; amount: string; settledAt: string }
+type DeletedExpense = {
+  id: string
+  description: string
+  amount: string
+  currency: string
+  category: string | null
+  deletedAt: string
+  deletedBy: string | null
+}
 type Balance = { memberId: string; displayName: string; balance: number }
 type Debt = {
   from: { memberId: string; displayName: string }
@@ -46,6 +56,7 @@ export function GroupDetailClient({
   members,
   allMembers,
   expenses,
+  deletedExpenses,
   splits,
   settlements,
   balances,
@@ -53,10 +64,11 @@ export function GroupDetailClient({
   myMemberId,
   myBalance,
 }: {
-  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null }
+  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null; createdAt: string }
   members: Member[]
   allMembers: AllMember[]
   expenses: Expense[]
+  deletedExpenses: DeletedExpense[]
   splits: Split[]
   settlements: Settlement[]
   balances: Balance[]
@@ -67,7 +79,7 @@ export function GroupDetailClient({
   const locale = useLocale()
   const tGroup = useTranslations('group')
 
-  const [tab, setTab] = useState<'expenses' | 'balances' | 'settings' | 'stats'>('expenses')
+  const [tab, setTab] = useState<'activities' | 'balances' | 'settings' | 'stats'>('activities')
   const { isOwed, isOwing } = AppCalculations.getBalanceFlags(myBalance)
   const totalSpent = AppCalculations.sumAmountStrings(expenses)
 
@@ -119,7 +131,10 @@ export function GroupDetailClient({
           active={tab}
           onChange={(k) => setTab(k as typeof tab)}
           tabs={[
-            { k: 'expenses', label: tGroup('tab_expenses', { 0: expenses.length }) },
+            {
+              k: 'activities',
+              label: tGroup('tab_activities', { 0: expenses.length + deletedExpenses.length + settlements.length + allMembers.length + 1 }),
+            },
             { k: 'balances', label: tGroup('tab_balances') },
             { k: 'stats', label: tGroup('tab_stats') },
             { k: 'settings', label: tGroup('tab_settings') },
@@ -128,15 +143,18 @@ export function GroupDetailClient({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-1 pb-40">
-        {tab === 'expenses' && (
-          <ExpensesTab
+        {tab === 'activities' && (
+          <ActivitiesTab
             expenses={expenses}
+            deletedExpenses={deletedExpenses}
             splits={splits}
             settlements={settlements}
             members={members}
+            allMembers={allMembers}
             myMemberId={myMemberId}
             groupCurrency={group.currency}
             groupId={group.id}
+            groupCreatedAt={group.createdAt}
           />
         )}
         {tab === 'balances' && (
@@ -162,8 +180,8 @@ export function GroupDetailClient({
         )}
       </div>
 
-      {tab === 'expenses' && (
-        <div className="fixed right-4.5 z-25 bottom-[calc(6.25rem+env(safe-area-inset-bottom,0px))]">
+      {tab === 'activities' && (
+        <div className="fixed right-4.5 z-25 bottom-[calc(6.25rem+env(safe-area-inset-bottom,0))]">
           <Link
             href={`/${locale}/groups/${group.id}/expenses/new`}
             className="bc-tap bg-(--bc-accent) text-white border-0 cursor-pointer py-3.5 pr-5.5 pl-4.5 rounded-full inline-flex items-center gap-2 font-sans font-medium text-[15px] tracking-[-0.005em] shadow-[0_14px_30px_rgba(229,87,47,0.35),0_4px_10px_rgba(0,0,0,0.12)] no-underline"

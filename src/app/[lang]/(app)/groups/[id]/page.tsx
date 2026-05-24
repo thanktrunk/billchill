@@ -14,7 +14,8 @@ export default async function GroupDetailPage({ params }: PageProps) {
   const user = await requireUser()
   await verifyGroupMembership(id, user.id)
 
-  const { group, allMembers, groupExpenses, groupSettlements, allSplitsForGroup, userDataById } = await getGroupDetailData(id)
+  const { group, allMembers, groupExpenses, deletedExpenses, groupSettlements, allSplitsForGroup, userDataById } =
+    await getGroupDetailData(id)
 
   if (!group) notFound()
 
@@ -47,6 +48,16 @@ export default async function GroupDetailPage({ params }: PageProps) {
     createdAt: e.createdAt.toISOString(),
   }))
 
+  const serializedDeletedExpenses = deletedExpenses.map((e) => ({
+    id: e.id,
+    description: e.description,
+    amount: e.amount,
+    currency: e.currency,
+    category: e.category,
+    deletedAt: e.deletedAt!.toISOString(),
+    deletedBy: e.deletedBy ?? null,
+  }))
+
   const serializedSettlements = groupSettlements.map((s) => ({
     id: s.id,
     fromMember: s.fromMember,
@@ -70,6 +81,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
       userId: m.userId,
       defaultShare: m.defaultShare,
       isActive: m.isActive,
+      createdAt: m.createdAt.toISOString(),
       avatarUrl: userData?.avatarUrl ?? null,
       userEmail: userData?.email ?? null,
       userName: userData?.userName ?? null,
@@ -84,6 +96,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
         currency: group.currency,
         isPublic: group.isPublic,
         inviteToken: group.inviteToken ?? null,
+        createdAt: group.createdAt.toISOString(),
       }}
       allMembers={serializedAllMembers}
       members={serializedMembers}
@@ -93,6 +106,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
         memberId: s.memberId,
         shareAmount: s.shareAmount,
       }))}
+      deletedExpenses={serializedDeletedExpenses}
       settlements={serializedSettlements}
       balances={balances}
       minimizedDebts={minimizedDebts}

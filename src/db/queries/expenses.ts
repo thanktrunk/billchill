@@ -1,9 +1,9 @@
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { expenseSplits, expenses, groupMembers } from '@/db/schema'
 
 export async function getExpenseDetailData(expenseId: string) {
-  const expense = await db.query.expenses.findFirst({ where: eq(expenses.id, expenseId) })
+  const expense = await db.query.expenses.findFirst({ where: and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)) })
   if (!expense) return null
 
   const splits = await db.select().from(expenseSplits).where(eq(expenseSplits.expenseId, expenseId))

@@ -1,4 +1,4 @@
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, isNotNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { expenseSplits, expenses, groupMembers, groups, settlements, users } from '@/db/schema'
 
@@ -39,7 +39,10 @@ export async function getGroupListDataForUser(userId: string) {
       .select()
       .from(groupMembers)
       .where(and(inArray(groupMembers.groupId, groupIds), eq(groupMembers.isActive, true))),
-    db.select().from(expenses).where(inArray(expenses.groupId, groupIds)),
+    db
+      .select()
+      .from(expenses)
+      .where(and(inArray(expenses.groupId, groupIds), isNull(expenses.deletedAt))),
     db.select().from(settlements).where(inArray(settlements.groupId, groupIds)),
   ])
 
@@ -57,10 +60,17 @@ export async function getGroupListDataForUser(userId: string) {
 }
 
 export async function getGroupDetailData(groupId: string) {
-  const [group, allMembers, groupExpenses, groupSettlements] = await Promise.all([
+  const [group, allMembers, groupExpenses, deletedExpenses, groupSettlements] = await Promise.all([
     db.query.groups.findFirst({ where: eq(groups.id, groupId) }),
     db.select().from(groupMembers).where(eq(groupMembers.groupId, groupId)),
-    db.select().from(expenses).where(eq(expenses.groupId, groupId)),
+    db
+      .select()
+      .from(expenses)
+      .where(and(eq(expenses.groupId, groupId), isNull(expenses.deletedAt))),
+    db
+      .select()
+      .from(expenses)
+      .where(and(eq(expenses.groupId, groupId), isNotNull(expenses.deletedAt))),
     db.select().from(settlements).where(eq(settlements.groupId, groupId)),
   ])
 
@@ -81,6 +91,7 @@ export async function getGroupDetailData(groupId: string) {
     group,
     allMembers,
     groupExpenses,
+    deletedExpenses,
     groupSettlements,
     allSplitsForGroup,
     userDataById: new Map(memberUsers.map((u) => [u.id, { avatarUrl: u.avatarUrl, email: u.email, userName: u.displayName }])),
@@ -90,7 +101,10 @@ export async function getGroupDetailData(groupId: string) {
 export async function getSettlePageData(groupId: string) {
   const group = await db.query.groups.findFirst({ where: eq(groups.id, groupId) })
   const members = await db.select().from(groupMembers).where(eq(groupMembers.groupId, groupId))
-  const groupExpenses = await db.select().from(expenses).where(eq(expenses.groupId, groupId))
+  const groupExpenses = await db
+    .select()
+    .from(expenses)
+    .where(and(eq(expenses.groupId, groupId), isNull(expenses.deletedAt)))
 
   const expenseIds = groupExpenses.map((expense) => expense.id)
   const allSplits = expenseIds.length ? await db.select().from(expenseSplits).where(inArray(expenseSplits.expenseId, expenseIds)) : []
