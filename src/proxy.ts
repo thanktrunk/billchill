@@ -37,9 +37,10 @@ export async function proxy(req: NextRequest) {
     authRes.headers.set('X-NEXT-INTL-LOCALE', localeHeader)
   }
 
-  // Propagate the locale cookie so the browser persists the chosen locale
+  // Propagate the locale cookie so the browser persists the chosen locale (1 year)
   for (const value of intlResponse.headers.getSetCookie()) {
-    authRes.headers.append('Set-Cookie', value)
+    const persistent = value.replace(/;\s*expires=[^;]*/i, '').replace(/;\s*max-age=\d+/i, '') + '; Max-Age=31536000'
+    authRes.headers.append('Set-Cookie', persistent)
   }
 
   if (isLandingRoute) {
