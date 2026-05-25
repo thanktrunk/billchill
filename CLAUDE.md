@@ -53,6 +53,7 @@ Before writing any code, review and follow the coding conventions and styling ru
 - **Locale** — `lang` comes from the `[lang]` route segment; pass it through server layouts; client components use `useLocale()`.
 - **DB amounts** — stored as `numeric(12,2)` strings; always `parseFloat()` before arithmetic.
 - **i18n** — dictionary keys follow `section.key` (e.g. `group.settle_up`); server-side imports from `src/dictionaries/`; client components use `useLocale()`. Migration to `next-intl` is in progress — see `docs/MIGRATE-NEXT-INTL.md`.
+- **New text/labels** — never hardcode user-visible strings in JSX. Always add a key to both `src/messages/en.json` and `src/messages/vi.json`. Keep copy casual and fun — this is a social app, not a bank. Short, punchy phrases beat formal labels (e.g. `"Your faves ⭐"` not `"Starred groups"`). Emoji are welcome on section labels and empty states, but not on every string.
 
 ### Refactor summary (2026-05-23)
 
