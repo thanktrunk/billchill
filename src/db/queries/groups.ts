@@ -124,7 +124,12 @@ export async function getNewExpensePageData(groupId: string) {
   const [group, members] = await Promise.all([
     db.query.groups.findFirst({ where: eq(groups.id, groupId) }),
     db
-      .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
+      .select({
+        id: groupMembers.id,
+        userId: groupMembers.userId,
+        displayName: groupMembers.displayName,
+        defaultShare: groupMembers.defaultShare,
+      })
       .from(groupMembers)
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true))),
   ])
@@ -137,7 +142,12 @@ export async function getNewExpensePageData(groupId: string) {
 
 export async function getActiveMembersByGroupId(groupId: string) {
   return db
-    .select({ id: groupMembers.id, displayName: groupMembers.displayName, defaultShare: groupMembers.defaultShare })
+    .select({
+      id: groupMembers.id,
+      userId: groupMembers.userId,
+      displayName: groupMembers.displayName,
+      defaultShare: groupMembers.defaultShare,
+    })
     .from(groupMembers)
     .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true)))
 }

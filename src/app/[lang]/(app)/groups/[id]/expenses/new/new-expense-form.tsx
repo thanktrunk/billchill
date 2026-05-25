@@ -12,13 +12,13 @@ import { CategoryPicker } from '../_components/category-picker'
 import { PaidByPicker } from '../_components/paid-by-picker'
 import { SplitEditor, SplitMethod } from '../_components/split-editor'
 
-type Member = { id: string; displayName: string; defaultShare: number }
+type Member = { id: string; userId: string | null; displayName: string; defaultShare: number }
 
 export function NewExpenseForm({
   groupId,
   groupName,
   currency,
-  members,
+  members: rawMembers,
   currentUserId,
 }: {
   groupId: string
@@ -27,6 +27,7 @@ export function NewExpenseForm({
   members: Member[]
   currentUserId: string
 }) {
+  const members = [...rawMembers].sort((a) => (a.userId === currentUserId ? -1 : 1))
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('add')
@@ -39,7 +40,7 @@ export function NewExpenseForm({
   const [description, setDescription] = useState('')
   const [amountStr, setAmountStr] = useState('')
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [paidBy, setPaidBy] = useState<string | null>(members.find((m) => m.id === currentUserId)?.id ?? members[0]?.id ?? null)
+  const [paidBy, setPaidBy] = useState<string | null>(members[0]?.id ?? null)
   const [category, setCategory] = useState('food')
   const [splitWith, setSplitWith] = useState<string[] | null>(null)
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('equal')
