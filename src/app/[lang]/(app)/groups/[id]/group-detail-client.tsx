@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCCard, BCTabs } from '@/components/bc-ui'
@@ -78,8 +79,15 @@ export function GroupDetailClient({
 }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
+  const router = useRouter()
 
   const [tab, setTab] = useState<'activities' | 'balances' | 'settings' | 'stats'>('activities')
+
+  function handleTabChange(k: string) {
+    const next = k as typeof tab
+    if (next === 'activities') router.refresh()
+    setTab(next)
+  }
   const { isOwed, isOwing } = AppCalculations.getBalanceFlags(myBalance)
   const totalSpent = AppCalculations.sumAmountStrings(expenses)
 
@@ -129,7 +137,7 @@ export function GroupDetailClient({
       <div className="pt-3.5 pb-2">
         <BCTabs
           active={tab}
-          onChange={(k) => setTab(k as typeof tab)}
+          onChange={handleTabChange}
           tabs={[
             {
               k: 'activities',
