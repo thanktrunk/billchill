@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCCard, BCSectionLabel, BCCategoryBadge, BCIcon } from '@/components/bc-ui'
+import { BCCard, BCSectionLabel, BCCategoryBadge, BCIcon, BCChip } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatDate } from '@/lib/currency'
 import { AppCalculations } from '@/lib/app-calculations'
@@ -201,6 +202,7 @@ export function ActivitiesTab({
 }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
+  const [filter, setFilter] = useState<'all' | 'expenses' | 'settlements' | 'system'>('all')
 
   type TimelineItem =
     | { kind: 'expense'; e: Expense; ts: string }
@@ -217,8 +219,15 @@ export function ActivitiesTab({
     { kind: 'group_created' as const, ts: groupCreatedAt },
   ].sort((a, b) => b.ts.localeCompare(a.ts))
 
+  const filteredItems = items.filter((it) => {
+    if (filter === 'expenses') return it.kind === 'expense'
+    if (filter === 'settlements') return it.kind === 'settlement'
+    if (filter === 'system') return it.kind === 'expense_deleted' || it.kind === 'member_joined' || it.kind === 'group_created'
+    return true
+  })
+
   const dayGroups: { day: string; items: TimelineItem[] }[] = []
-  items.forEach((it) => {
+  filteredItems.forEach((it) => {
     const day = it.ts.slice(0, 10)
     const last = dayGroups[dayGroups.length - 1]
     if (last && last.day === day) last.items.push(it)
@@ -234,6 +243,20 @@ export function ActivitiesTab({
 
   return (
     <div className="flex flex-col gap-4.5">
+      <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none -mx-4 px-4">
+        <BCChip active={filter === 'all'} onClick={() => setFilter('all')}>
+          {tGroup('filter_all')}
+        </BCChip>
+        <BCChip active={filter === 'expenses'} onClick={() => setFilter('expenses')}>
+          {tGroup('filter_expenses')}
+        </BCChip>
+        <BCChip active={filter === 'settlements'} onClick={() => setFilter('settlements')}>
+          {tGroup('filter_settlements')}
+        </BCChip>
+        <BCChip active={filter === 'system'} onClick={() => setFilter('system')}>
+          {tGroup('filter_system')}
+        </BCChip>
+      </div>
       {dayGroups.map((grp) => (
         <div key={grp.day}>
           <div className="px-1 pb-2 flex items-center gap-2.5">
@@ -263,7 +286,7 @@ export function ActivitiesTab({
           </div>
         </div>
       ))}
-      {items.length === 0 && <div className="px-5 py-10 text-center text-(--bc-muted) font-sans">{tGroup('no_activities')}</div>}
+      {filteredItems.length === 0 && <div className="px-5 py-10 text-center text-(--bc-muted) font-sans">{tGroup('no_activities')}</div>}
     </div>
   )
 }
