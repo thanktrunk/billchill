@@ -46,12 +46,6 @@ export function SplitEditor({
     return parseFloat(memberInputs[m.id] || '0') || 0
   }
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const aSelected = selected.includes(a.id) ? 0 : 1
-    const bSelected = selected.includes(b.id) ? 0 : 1
-    return aSelected - bSelected
-  })
-
   const summaryColor =
     splitMethod === 'amount'
       ? Math.abs(sumOfInputs - editedAmount) < 0.015
@@ -97,7 +91,7 @@ export function SplitEditor({
 
       {splitMethod === 'equal' ? (
         <BCCard padded={false}>
-          {sortedMembers.map((m, i) => {
+          {members.map((m, i) => {
             const has = selected.includes(m.id)
             return (
               <div
@@ -125,7 +119,7 @@ export function SplitEditor({
       ) : (
         <>
           <BCCard padded={false}>
-            {sortedMembers.map((m, i) => {
+            {members.map((m, i) => {
               const has = selected.includes(m.id)
               const inputVal = memberInputs[m.id] ?? ''
               const computedAmt = getMemberAmount(m)

@@ -8,7 +8,6 @@ import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC
 import { addExpense } from './actions'
 import { currencySymbol, formatCurrency, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
-import { CategoryPicker } from '../_components/category-picker'
 import { PaidByPicker } from '../_components/paid-by-picker'
 import { SplitEditor, SplitMethod } from '../_components/split-editor'
 
@@ -260,13 +259,6 @@ export function NewExpenseForm({
             <BCSectionLabel>{t('paid_by')}</BCSectionLabel>
           </div>
           <PaidByPicker members={members} paidBy={paidBy} onChange={(id) => setPaidBy(id)} />
-        </div>
-
-        <div>
-          <div className="px-1 pb-2">
-            <BCSectionLabel>{t('category')}</BCSectionLabel>
-          </div>
-          <CategoryPicker category={category} onChange={setCategory} />
         </div>
 
         <SplitEditor

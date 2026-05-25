@@ -111,9 +111,9 @@ export function GroupDetailClient({
               >
                 {isOwing ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(Math.abs(myBalance), group.currency)}
               </div>
-              <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
+              {/* <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
                 {tGroup('total_spent')} {formatCurrency(totalSpent, group.currency)}
-              </div>
+              </div> */}
             </div>
             <Link
               href={`/${locale}/groups/${group.id}/settle`}
