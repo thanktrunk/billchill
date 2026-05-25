@@ -35,7 +35,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self'; connect-src 'self' https://*.auth0.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://s.gravatar.com",
+            value:
+              "default-src 'self'; script-src 'self'; connect-src 'self' https://*.auth0.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://s.gravatar.com",
           },
         ],
       },

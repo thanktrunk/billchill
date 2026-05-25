@@ -68,6 +68,14 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
   tag: <path d="M3 12l9-9h8v8l-9 9zM15 9a1 1 0 100-2 1 1 0 000 2z" />,
   arrowLeft: <path d="M19 12H5m7-7l-7 7 7 7" />,
   edit: <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />,
+  star: <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />,
+  starFill: (
+    <path
+      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      fill="currentColor"
+      stroke="none"
+    />
+  ),
 }
 
 export function BCIcon({

@@ -24,4 +24,5 @@ export const groupMembers = pgTable('group_members', {
   defaultShare: integer('default_share').default(1).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  starredAt: timestamp('starred_at'),
 })

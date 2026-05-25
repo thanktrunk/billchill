@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { getTranslations } from 'next-intl/server'
 import { formatCurrency } from '@/lib/currency'
 import { getGroupListDataForUser } from '@/db/queries/groups'
+import { StarButton } from './star-button'
 
 export default async function GroupsPage({ params }: PageProps) {
   const { lang } = await params
@@ -21,7 +22,7 @@ export default async function GroupsPage({ params }: PageProps) {
 
   const { myMemberships, allGroups, allMembers, allExpenses, allSettlements, allSplits } = await getGroupListDataForUser(user.id)
 
-  const membershipMap = new Map(myMemberships.map((m) => [m.groupId, m.myMemberId]))
+  const membershipMap = new Map(myMemberships.map((m) => [m.groupId, { myMemberId: m.myMemberId, starredAt: m.starredAt }]))
 
   let groupRows: GroupRow[] = []
 
@@ -29,11 +30,12 @@ export default async function GroupsPage({ params }: PageProps) {
     groupRows = allGroups
       .filter((g) => !g.archivedAt)
       .map((g) => {
+        const membership = membershipMap.get(g.id)
         const members = allMembers.filter((m) => m.groupId === g.id)
         const gExpenses = allExpenses.filter((e) => e.groupId === g.id)
         const gSettlements = allSettlements.filter((s) => s.groupId === g.id)
 
-        const myMemberId = membershipMap.get(g.id)
+        const myMemberId = membership?.myMemberId
         const balances = AppCalculations.calculateGroupBalances(
           members.map((m) => ({ id: m.id, displayName: m.displayName })),
           gExpenses.map((e) => ({ id: e.id, paidBy: e.paidBy })),
@@ -55,10 +57,14 @@ export default async function GroupsPage({ params }: PageProps) {
           myBalance: myBal,
           lastActivity: lastExpense?.createdAt?.toISOString(),
           expenseCount: gExpenses.length,
+          starred: !!membership?.starredAt,
         }
       })
       .sort((a, b) => (b.lastActivity ?? '').localeCompare(a.lastActivity ?? ''))
   }
+
+  const starredRows = groupRows.filter((r) => r.starred)
+  const regularRows = groupRows.filter((r) => !r.starred)
 
   const { totalOwed, totalOwe, netBalance } = AppCalculations.summarizeMyBalances(groupRows)
   const formattedNetBalance =
@@ -109,26 +115,49 @@ export default async function GroupsPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-5.5 pt-5.5 pb-2.5">
-        <BCSectionLabel>{tHome('groups_section')}</BCSectionLabel>
-        <div className="font-sans text-xs text-(--bc-muted)">{tHome('active', { 0: groupRows.length })}</div>
-      </div>
-
       <div className="flex-1 px-4 pb-40 flex flex-col gap-2.5">
         {groupRows.length === 0 ? (
           <div className="py-10 px-5 text-center text-(--bc-muted) font-sans">{tHome('empty')}</div>
         ) : (
-          groupRows.map((r) => (
-            <GroupRowCard
-              key={r.group.id}
-              row={r}
-              lang={lang}
-              settled={tCommon('settled')}
-              youreOwed={tHome('youre_owed')}
-              youOweShort={tHome('you_owe_short')}
-              lastActivityStr={r.lastActivity ? AppCalculations.relativeTime(r.lastActivity, lang, tCommon) : undefined}
-            />
-          ))
+          <>
+            {starredRows.length > 0 && (
+              <>
+                <div className="flex items-center justify-between px-1.5 pt-3.5 pb-0.5">
+                  <BCSectionLabel>{tHome('starred_section')}</BCSectionLabel>
+                </div>
+                {starredRows.map((r) => (
+                  <GroupRowCard
+                    key={r.group.id}
+                    row={r}
+                    lang={lang}
+                    settled={tCommon('settled')}
+                    youreOwed={tHome('youre_owed')}
+                    youOweShort={tHome('you_owe_short')}
+                    lastActivityStr={r.lastActivity ? AppCalculations.relativeTime(r.lastActivity, lang, tCommon) : undefined}
+                  />
+                ))}
+              </>
+            )}
+            <div className="flex items-center justify-between px-1.5 pt-3.5 pb-0.5">
+              <BCSectionLabel>{tHome('groups_section')}</BCSectionLabel>
+              <div className="font-sans text-xs text-(--bc-muted)">{tHome('active', { 0: regularRows.length })}</div>
+            </div>
+            {regularRows.length === 0 ? (
+              <div className="py-4 px-5 text-center text-(--bc-muted) font-sans text-sm">{tHome('empty')}</div>
+            ) : (
+              regularRows.map((r) => (
+                <GroupRowCard
+                  key={r.group.id}
+                  row={r}
+                  lang={lang}
+                  settled={tCommon('settled')}
+                  youreOwed={tHome('youre_owed')}
+                  youOweShort={tHome('you_owe_short')}
+                  lastActivityStr={r.lastActivity ? AppCalculations.relativeTime(r.lastActivity, lang, tCommon) : undefined}
+                />
+              ))
+            )}
+          </>
         )}
       </div>
     </div>
@@ -146,6 +175,7 @@ type GroupRow = {
   myBalance: number
   lastActivity?: string
   expenseCount: number
+  starred: boolean
 }
 
 function GroupRowCard({
@@ -163,44 +193,47 @@ function GroupRowCard({
   youOweShort: string
   lastActivityStr?: string
 }) {
-  const { group, members, myBalance } = row
+  const { group, members, myBalance, starred } = row
   const { isOwed, isOwing: owes, isSettled } = AppCalculations.getBalanceFlags(myBalance)
 
   return (
-    <Link href={`/${lang}/groups/${group.id}`} className="no-underline">
-      <BCCard padded={false} className="bc-tap px-4 py-3.5">
-        <div className="flex items-center gap-3.5">
-          <BCGroupGlyph name={group.name} size={44} />
-          <div className="flex-1 min-w-0">
-            <div className="font-sans font-medium text-base text-(--bc-ink) tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
-              {group.name}
+    <div className="relative">
+      <Link href={`/${lang}/groups/${group.id}`} className="no-underline block">
+        <BCCard padded={false} className="bc-tap px-4 py-3.5 pr-12">
+          <div className="flex items-center gap-3.5">
+            <BCGroupGlyph name={group.name} size={44} />
+            <div className="flex-1 min-w-0">
+              <div className="font-sans font-medium text-base text-(--bc-ink) tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
+                {group.name}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <BCAvatarStack members={members} size={20} max={4} />
+                {lastActivityStr && <div className="font-sans text-xs text-(--bc-muted)">· {lastActivityStr}</div>}
+              </div>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <BCAvatarStack members={members} size={20} max={4} />
-              {lastActivityStr && <div className="font-sans text-xs text-(--bc-muted)">· {lastActivityStr}</div>}
+            <div className="text-right">
+              {isSettled ? (
+                <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">{settled}</div>
+              ) : (
+                <>
+                  <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.08em] uppercase whitespace-nowrap">
+                    {isOwed ? youreOwed : youOweShort}
+                  </div>
+                  <div
+                    className={cn(
+                      'font-serif text-[26px] leading-none tabular-nums tracking-[-0.01em] mt-0.5',
+                      isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
+                    )}
+                  >
+                    {owes ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(myBalance, group.currency)}
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <div className="text-right">
-            {isSettled ? (
-              <div className="font-sans text-xs text-(--bc-muted) tracking-[0.06em] uppercase">{settled}</div>
-            ) : (
-              <>
-                <div className="font-sans text-[10px] text-(--bc-muted) tracking-[0.08em] uppercase whitespace-nowrap">
-                  {isOwed ? youreOwed : youOweShort}
-                </div>
-                <div
-                  className={cn(
-                    'font-serif text-[26px] leading-none tabular-nums tracking-[-0.01em] mt-0.5',
-                    isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
-                  )}
-                >
-                  {owes ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(myBalance, group.currency)}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </BCCard>
-    </Link>
+        </BCCard>
+      </Link>
+      <StarButton groupId={group.id} lang={lang} starred={starred} />
+    </div>
   )
 }

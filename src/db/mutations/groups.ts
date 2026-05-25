@@ -43,3 +43,10 @@ export async function updateGroupSettings(groupId: string, data: { name: string;
 export async function archiveGroupById(groupId: string) {
   await db.update(groups).set({ archivedAt: new Date() }).where(eq(groups.id, groupId))
 }
+
+export async function setGroupMemberStarred(membershipId: string, starred: boolean) {
+  await db
+    .update(groupMembers)
+    .set({ starredAt: starred ? new Date() : null })
+    .where(eq(groupMembers.id, membershipId))
+}

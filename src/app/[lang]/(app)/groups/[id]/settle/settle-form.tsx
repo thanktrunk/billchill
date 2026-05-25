@@ -27,21 +27,21 @@ function MemberRow({
       <div className="w-9 font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.12em] shrink-0">{label}</div>
       <div className="flex-1 flex gap-2 overflow-x-auto">
         {members.map((m) => {
-            const sel = m.id === selectedId
-            return (
-              <button
-                key={m.id}
-                onClick={() => onChange(m.id)}
-                className={cn(
-                  'bc-tap border-0 cursor-pointer shrink-0 py-1.5 pr-3 pl-1.5 rounded-full inline-flex items-center gap-1.5 font-sans font-medium text-[13px]',
-                  sel ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
-                )}
-              >
-                <BCAvatar name={m.displayName} seed={m.id} size={22} />
-                {m.displayName}
-              </button>
-            )
-          })}
+          const sel = m.id === selectedId
+          return (
+            <button
+              key={m.id}
+              onClick={() => onChange(m.id)}
+              className={cn(
+                'bc-tap border-0 cursor-pointer shrink-0 py-1.5 pr-3 pl-1.5 rounded-full inline-flex items-center gap-1.5 font-sans font-medium text-[13px]',
+                sel ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
+              )}
+            >
+              <BCAvatar name={m.displayName} seed={m.id} size={22} />
+              {m.displayName}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

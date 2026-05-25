@@ -16,7 +16,7 @@ export async function getJoinPageData(token: string) {
 
 export async function getGroupListDataForUser(userId: string) {
   const myMemberships = await db
-    .select({ groupId: groupMembers.groupId, myMemberId: groupMembers.id })
+    .select({ groupId: groupMembers.groupId, myMemberId: groupMembers.id, starredAt: groupMembers.starredAt })
     .from(groupMembers)
     .where(eq(groupMembers.userId, userId))
 
