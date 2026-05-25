@@ -1,6 +1,7 @@
 import { auth0 } from '@/lib/auth0'
 import { db } from '@/db'
 import { users } from '@/db/schema'
+import { sql } from 'drizzle-orm'
 
 export async function getCurrentUser() {
   const session = await auth0.getSession()
@@ -8,7 +9,8 @@ export async function getCurrentUser() {
 
   const { sub, email, name, picture } = session.user
 
-  // Upsert user in database
+  // Upsert user in database. avatarUrl is only seeded from the provider on
+  // first insert; subsequent logins keep whatever the user has set.
   const [dbUser] = await db
     .insert(users)
     .values({
@@ -21,7 +23,7 @@ export async function getCurrentUser() {
       target: users.auth0Id,
       set: {
         email: (email as string) || '',
-        avatarUrl: (picture as string) || null,
+        avatarUrl: sql`COALESCE(${users.avatarUrl}, EXCLUDED.avatar_url)`,
       },
     })
     .returning()

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { Newsreader, Be_Vietnam_Pro, JetBrains_Mono } from 'next/font/google'
 import { Auth0Provider } from '@auth0/nextjs-auth0/client'
-import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations } from 'next-intl/server'
 import { hasLocale } from '@/lib/i18n'
@@ -101,7 +100,6 @@ export default async function RootLayout({ children, params }: LayoutProps) {
           <NextIntlClientProvider locale={lang} messages={messages}>
             {children}
           </NextIntlClientProvider>
-          <ServiceWorkerRegister />
           <Analytics />
           <SpeedInsights />
         </body>

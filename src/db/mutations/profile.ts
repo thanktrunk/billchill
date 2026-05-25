@@ -9,3 +9,7 @@ export async function setUserDisplayName(userId: string, displayName: string) {
 export async function setUserPreferredCurrency(userId: string, preferredCurrency: string) {
   await db.update(users).set({ preferredCurrency }).where(eq(users.id, userId))
 }
+
+export async function setUserAvatarUrl(userId: string, avatarUrl: string) {
+  await db.update(users).set({ avatarUrl }).where(eq(users.id, userId))
+}

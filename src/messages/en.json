@@ -240,7 +240,12 @@
     "logout": "Log out",
     "edit_name": "Edit name",
     "save_name": "Save",
-    "cancel_name": "Cancel"
+    "cancel_name": "Cancel",
+    "change_avatar": "Change photo",
+    "uploading_avatar": "Uploading…",
+    "avatar_too_large": "Image must be under 5 MB",
+    "avatar_bad_type": "Please pick an image file",
+    "avatar_upload_error": "Upload failed, try again"
   },
   "cat": {
     "food": "Food 🍖",

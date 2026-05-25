@@ -14,6 +14,10 @@ export async function proxy(req: NextRequest) {
     return auth0.middleware(req)
   }
 
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   // Apply next-intl locale routing (detects locale, redirects if missing)
   const intlResponse = intlMiddleware(req)
   if (intlResponse.status !== 200) {

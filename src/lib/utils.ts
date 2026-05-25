@@ -5,6 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const AVATAR_MAX_BYTES = 5 * 1024 * 1024
+
 export { currencySymbol, formatCurrency } from './currency'
 
 const VI_VARIANTS: Record<string, string> = {

@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
       { protocol: 'https', hostname: '*.auth0.com' },
       { protocol: 'https', hostname: 's.gravatar.com' },
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
     ],
   },
   async headers() {
@@ -36,7 +37,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self'; connect-src 'self' https://*.auth0.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://s.gravatar.com",
+              "default-src 'self'; script-src 'self' https://va.vercel-scripts.com; connect-src 'self' https://*.auth0.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://s.gravatar.com https://*.public.blob.vercel-storage.com https://va.vercel-scripts.com; img-src 'self' https://*.public.blob.vercel-storage.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://s.gravatar.com",
           },
         ],
       },

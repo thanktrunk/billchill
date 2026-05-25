@@ -90,7 +90,16 @@ export default async function ProfilePage({ params }: PageProps) {
             userId={user.id}
             email={user.email}
             avatarUrl={user.avatarUrl}
-            labels={{ edit: t('edit_name'), save: t('save_name'), cancel: t('cancel_name') }}
+            labels={{
+              edit: t('edit_name'),
+              save: t('save_name'),
+              cancel: t('cancel_name'),
+              changeAvatar: t('change_avatar'),
+              uploadingAvatar: t('uploading_avatar'),
+              avatarTooLarge: t('avatar_too_large'),
+              avatarBadType: t('avatar_bad_type'),
+              avatarUploadError: t('avatar_upload_error'),
+            }}
           />
         </BCCard>
 

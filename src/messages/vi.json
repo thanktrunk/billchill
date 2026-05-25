@@ -240,7 +240,12 @@
     "logout": "Thoát",
     "edit_name": "Đổi tên",
     "save_name": "Lưu",
-    "cancel_name": "Thôi"
+    "cancel_name": "Thôi",
+    "change_avatar": "Đổi ảnh",
+    "uploading_avatar": "Đang tải…",
+    "avatar_too_large": "Ảnh phải nhỏ hơn 5 MB",
+    "avatar_bad_type": "Vui lòng chọn file ảnh",
+    "avatar_upload_error": "Tải lên thất bại, thử lại"
   },
   "cat": {
     "food": "Ăn nhậu 🍖",
