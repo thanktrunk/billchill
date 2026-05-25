@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCTopBar } from '@/components/bc-ui'
+import { Switch } from '@/components/ui/switch'
 import { formatCurrency, currencySymbol } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { updateExpense, deleteExpense } from './actions'
@@ -24,6 +25,7 @@ type Expense = {
   date: string
   paidBy: string
   createdAt: string
+  isTransfer: boolean
 }
 
 export function ExpenseDetailClient({
@@ -54,6 +56,7 @@ export function ExpenseDetailClient({
   const [editDate, setEditDate] = useState(expense.date)
   const [paidBy, setPaidBy] = useState(expense.paidBy)
   const [category, setCategory] = useState(expense.category ?? 'other')
+  const [isTransfer, setIsTransfer] = useState(expense.isTransfer)
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('amount')
   const [memberInputs, setMemberInputs] = useState<Record<string, string>>(() => {
     if (!splits.length) return {}
@@ -153,6 +156,7 @@ export function ExpenseDetailClient({
         paidBy,
         date: editDate,
         category: category || null,
+        isTransfer,
         splits: splitData,
       })
       setPending(false)
@@ -230,6 +234,16 @@ export function ExpenseDetailClient({
               </div>
             </BCCard>
           </div>
+
+          <BCCard padded={false}>
+            <div className="flex items-center justify-between px-4 py-3">
+              <div>
+                <div className="font-sans font-medium text-[15px] text-(--bc-ink)">{tAdd('is_transfer')}</div>
+                <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">{tAdd('is_transfer_hint')}</div>
+              </div>
+              <Switch checked={expense.isTransfer} disabled />
+            </div>
+          </BCCard>
 
           <div>
             <div className="px-1 pb-2">
@@ -364,6 +378,14 @@ export function ExpenseDetailClient({
             <BCSectionLabel>{tAdd('category')}</BCSectionLabel>
           </div>
           <CategoryPicker category={category} onChange={setCategory} />
+        </div>
+
+        <div className="flex items-center justify-between px-1 py-1">
+          <div>
+            <div className="font-sans font-medium text-[14px] text-(--bc-ink) tracking-[-0.005em]">{tAdd('is_transfer')}</div>
+            <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">{tAdd('is_transfer_hint')}</div>
+          </div>
+          <Switch checked={isTransfer} onCheckedChange={setIsTransfer} />
         </div>
 
         <SplitEditor

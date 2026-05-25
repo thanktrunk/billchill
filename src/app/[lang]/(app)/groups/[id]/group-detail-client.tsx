@@ -33,6 +33,7 @@ type Expense = {
   date: string
   paidBy: string
   createdAt: string
+  isTransfer: boolean
 }
 type Split = { expenseId: string; memberId: string; shareAmount: string }
 type Settlement = { id: string; fromMember: string; toMember: string; amount: string; settledAt: string }
@@ -89,7 +90,7 @@ export function GroupDetailClient({
     setTab(next)
   }
   const { isOwed, isOwing } = AppCalculations.getBalanceFlags(myBalance)
-  const totalSpent = AppCalculations.sumAmountStrings(expenses)
+  const totalSpent = AppCalculations.sumAmountStrings(expenses.filter((e) => !e.isTransfer))
 
   return (
     <div className="bc-page">
@@ -119,9 +120,9 @@ export function GroupDetailClient({
               >
                 {isOwing ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(Math.abs(myBalance), group.currency)}
               </div>
-              {/* <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
+              <div className="font-sans text-[11px] opacity-[0.45] mt-2 tracking-[0.06em] text-(--bc-bg) uppercase">
                 {tGroup('total_spent')} {formatCurrency(totalSpent, group.currency)}
-              </div> */}
+              </div>
             </div>
             <Link
               href={`/${locale}/groups/${group.id}/settle`}

@@ -23,7 +23,12 @@ export async function getGroupMembers(groupId: string) {
   return members
 }
 
-export async function addExpense(groupId: string, formData: FormData, splitMethod: 'equal' | 'amount' | 'shares' | 'percentage') {
+export async function addExpense(
+  groupId: string,
+  formData: FormData,
+  splitMethod: 'equal' | 'amount' | 'shares' | 'percentage',
+  isTransfer = false,
+) {
   const user = await requireUser()
   await verifyGroupMembership(groupId, user.id)
 
@@ -60,6 +65,7 @@ export async function addExpense(groupId: string, formData: FormData, splitMetho
     category,
     date,
     createdBy: user.id,
+    isTransfer,
   })
 
   // Insert splits

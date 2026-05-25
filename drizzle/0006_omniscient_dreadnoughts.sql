@@ -1,0 +1,1 @@
+ALTER TABLE "expenses" ADD COLUMN "is_transfer" boolean DEFAULT false NOT NULL;

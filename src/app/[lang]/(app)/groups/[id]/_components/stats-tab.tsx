@@ -14,6 +14,7 @@ type Expense = {
   category: string | null
   date: string
   paidBy: string
+  isTransfer: boolean
 }
 type Split = { expenseId: string; memberId: string; shareAmount: string }
 type Settlement = {
@@ -47,9 +48,12 @@ export function StatsTab({
 
   const memberById = useMemo(() => new Map(allMembers.map((m) => [m.id, m])), [allMembers])
 
+  const realExpenses = useMemo(() => expenses.filter((e) => !e.isTransfer), [expenses])
+  const realExpenseIds = useMemo(() => new Set(realExpenses.map((e) => e.id)), [realExpenses])
+
   const categoryData = useMemo(() => {
     const totals: Record<string, number> = {}
-    for (const e of expenses) {
+    for (const e of realExpenses) {
       const key = e.category ?? 'other'
       totals[key] = (totals[key] ?? 0) + parseFloat(e.amount)
     }
@@ -61,11 +65,11 @@ export function StatsTab({
         color: BC_CATEGORIES[key]?.tint ?? '#6B6359',
       }))
       .sort((a, b) => b.value - a.value)
-  }, [expenses, tCat])
+  }, [realExpenses, tCat])
 
   const paidByData = useMemo(() => {
     const totals: Record<string, number> = {}
-    for (const e of expenses) {
+    for (const e of realExpenses) {
       totals[e.paidBy] = (totals[e.paidBy] ?? 0) + parseFloat(e.amount)
     }
     return Object.entries(totals)
@@ -74,11 +78,11 @@ export function StatsTab({
         value: parseFloat(value.toFixed(2)),
       }))
       .sort((a, b) => b.value - a.value)
-  }, [expenses, memberById])
+  }, [realExpenses, memberById])
 
   const spentByData = useMemo(() => {
     const totals: Record<string, number> = {}
-    for (const s of splits) {
+    for (const s of splits.filter((s) => realExpenseIds.has(s.expenseId))) {
       totals[s.memberId] = (totals[s.memberId] ?? 0) + parseFloat(s.shareAmount)
     }
     return Object.entries(totals)
@@ -87,11 +91,11 @@ export function StatsTab({
         value: parseFloat(value.toFixed(2)),
       }))
       .sort((a, b) => b.value - a.value)
-  }, [splits, memberById])
+  }, [splits, memberById, realExpenseIds])
 
   const timeData = useMemo(() => {
     const totals: Record<string, number> = {}
-    for (const e of expenses) {
+    for (const e of realExpenses) {
       const month = e.date.slice(0, 7)
       totals[month] = (totals[month] ?? 0) + parseFloat(e.amount)
     }
@@ -102,11 +106,11 @@ export function StatsTab({
         const label = new Date(Number(y), Number(m) - 1).toLocaleString(undefined, { month: 'short', year: '2-digit' })
         return { month: label, value: parseFloat(value.toFixed(2)) }
       })
-  }, [expenses])
+  }, [realExpenses])
 
   const topExpenses = useMemo(
     () =>
-      [...expenses]
+      [...realExpenses]
         .sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount))
         .slice(0, 8)
         .map((e) => ({
@@ -114,12 +118,12 @@ export function StatsTab({
           value: parseFloat(parseFloat(e.amount).toFixed(2)),
           color: BC_CATEGORIES[e.category ?? 'other']?.tint ?? '#6B6359',
         })),
-    [expenses],
+    [realExpenses],
   )
 
   const categoryCountData = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const e of expenses) {
+    for (const e of realExpenses) {
       const key = e.category ?? 'other'
       counts[key] = (counts[key] ?? 0) + 1
     }
@@ -131,7 +135,7 @@ export function StatsTab({
         color: BC_CATEGORIES[key]?.tint ?? '#6B6359',
       }))
       .sort((a, b) => b.value - a.value)
-  }, [expenses, tCat])
+  }, [realExpenses, tCat])
 
   const topDebtorsData = useMemo(
     () =>
@@ -157,7 +161,7 @@ export function StatsTab({
     }
   }, [settlements, balances])
 
-  if (expenses.length === 0) {
+  if (realExpenses.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="font-sans text-[14px] text-(--bc-muted)">{tGroup('stats_no_data')}</p>

@@ -180,6 +180,8 @@
     "split_with": "Chia cùng ai",
     "each": "{0} /NGƯỜI",
     "save": "Lưu",
+    "is_transfer": "Chuyển khoản nội bộ",
+    "is_transfer_hint": "Không ảnh hưởng số dư hay thống kê đâu",
     "method_equal": "Chia đều",
     "method_amount": "Theo số tiền",
     "method_shares": "Theo phần",

@@ -180,6 +180,8 @@
     "split_with": "Split with",
     "each": "{0} EACH",
     "save": "Save it",
+    "is_transfer": "Group transfer",
+    "is_transfer_hint": "Won't mess with balances or stats",
     "method_equal": "Equal",
     "method_amount": "By amount",
     "method_shares": "By shares",

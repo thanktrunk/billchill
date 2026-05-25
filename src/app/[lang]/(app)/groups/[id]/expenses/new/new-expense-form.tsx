@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES, numPadReducer } from '@/components/bc-ui'
+import { Switch } from '@/components/ui/switch'
 import { addExpense } from './actions'
 import { currencySymbol, formatCurrency, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
@@ -44,6 +45,7 @@ export function NewExpenseForm({
   const [splitWith, setSplitWith] = useState<string[] | null>(null)
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('equal')
   const [memberInputs, setMemberInputs] = useState<Record<string, string>>({})
+  const [isTransfer, setIsTransfer] = useState(false)
 
   const onKey = (k: string) => setAmountStr((s) => numPadReducer(s, k))
 
@@ -105,19 +107,19 @@ export function NewExpenseForm({
 
       if (splitMethod === 'equal') {
         for (const mid of selected) fd.set(`split_${mid}`, perPerson.toFixed(2))
-        await addExpense(groupId, fd, 'amount')
+        await addExpense(groupId, fd, 'amount', isTransfer)
       } else if (splitMethod === 'amount') {
         for (const m of members) {
           const val = parseFloat(memberInputs[m.id] || '0')
           if (val > 0) fd.set(`split_${m.id}`, val.toFixed(2))
         }
-        await addExpense(groupId, fd, 'amount')
+        await addExpense(groupId, fd, 'amount', isTransfer)
       } else if (splitMethod === 'shares') {
         for (const m of members) fd.set(`split_${m.id}`, memberInputs[m.id] || '0')
-        await addExpense(groupId, fd, 'shares')
+        await addExpense(groupId, fd, 'shares', isTransfer)
       } else {
         for (const m of members) fd.set(`split_${m.id}`, memberInputs[m.id] || '0')
-        await addExpense(groupId, fd, 'percentage')
+        await addExpense(groupId, fd, 'percentage', isTransfer)
       }
 
       router.push(`/${locale}/groups/${groupId}`)
@@ -252,6 +254,14 @@ export function NewExpenseForm({
             onChange={(e) => setExpenseDate(e.target.value)}
             className="w-full border border-(--bc-softhair) outline-none bg-(--bc-surface) rounded-[14px] px-3.5 py-3 font-sans font-medium text-[15px] text-(--bc-ink) box-border"
           />
+        </div>
+
+        <div className="flex items-center justify-between px-1 py-1">
+          <div>
+            <div className="font-sans font-medium text-[14px] text-(--bc-ink) tracking-[-0.005em]">{t('is_transfer')}</div>
+            <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">{t('is_transfer_hint')}</div>
+          </div>
+          <Switch checked={isTransfer} onCheckedChange={setIsTransfer} />
         </div>
 
         <div>

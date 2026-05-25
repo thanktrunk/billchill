@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, numeric, timestamp, date } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, numeric, timestamp, date, boolean } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { groups, groupMembers } from './groups'
 
@@ -21,6 +21,7 @@ export const expenses = pgTable('expenses', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   deletedAt: timestamp('deleted_at'),
   deletedBy: uuid('deleted_by').references(() => groupMembers.id),
+  isTransfer: boolean('is_transfer').notNull().default(false),
 })
 
 export const expenseSplits = pgTable('expense_splits', {

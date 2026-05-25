@@ -23,6 +23,7 @@ export default async function ExpenseDetailPage({ params }: PageProps) {
     date: detail.expense.date,
     paidBy: detail.expense.paidBy,
     createdAt: detail.expense.createdAt.toISOString(),
+    isTransfer: detail.expense.isTransfer,
   }
 
   const serializedSplits = detail.splits.map((s) => ({

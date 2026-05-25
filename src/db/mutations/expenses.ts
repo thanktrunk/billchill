@@ -22,6 +22,7 @@ export async function createExpense(data: {
   category: string | null
   date: string
   createdBy: string
+  isTransfer?: boolean
 }) {
   const [expense] = await db.insert(expenses).values(data).returning()
   return expense
@@ -70,6 +71,7 @@ export async function updateExpenseById(
     paidBy: string
     date: string
     category: string | null
+    isTransfer?: boolean
   },
 ) {
   await db

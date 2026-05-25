@@ -48,6 +48,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
     date: e.date,
     paidBy: e.paidBy,
     createdAt: e.createdAt.toISOString(),
+    isTransfer: e.isTransfer,
   }))
 
   const serializedDeletedExpenses = deletedExpenses.map((e) => ({

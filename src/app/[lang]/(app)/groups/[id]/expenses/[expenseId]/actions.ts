@@ -27,6 +27,7 @@ export async function updateExpense(
     paidBy: string
     date: string
     category: string | null
+    isTransfer: boolean
     splits: { memberId: string; shareAmount: string }[]
   },
 ) {
@@ -43,6 +44,7 @@ export async function updateExpense(
     paidBy: data.paidBy,
     date: data.date,
     category: data.category,
+    isTransfer: data.isTransfer,
   })
 
   await replaceExpenseSplits(expenseId, data.splits)
