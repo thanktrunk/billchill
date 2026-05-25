@@ -33,6 +33,11 @@ export async function proxy(req: NextRequest) {
     authRes.headers.set('X-NEXT-INTL-LOCALE', localeHeader)
   }
 
+  // Propagate the locale cookie so the browser persists the chosen locale
+  for (const value of intlResponse.headers.getSetCookie()) {
+    authRes.headers.append('Set-Cookie', value)
+  }
+
   if (isLandingRoute) {
     return authRes
   }
