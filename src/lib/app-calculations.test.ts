@@ -134,8 +134,7 @@ describe('AppCalculations.buildExpenseDelta', () => {
 })
 
 describe('AppCalculations.relativeTime', () => {
-  const tCommon = (key: string, values?: Record<string, string | number | Date>) =>
-    values ? `${key}:${values['0']}` : key
+  const tCommon = (key: string, values?: Record<string, string | number | Date>) => (values ? `${key}:${values['0']}` : key)
 
   beforeEach(() => {
     vi.useFakeTimers()

@@ -55,8 +55,17 @@ export function ExpenseDetailClient({
   const [category, setCategory] = useState(expense.category ?? 'other')
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('amount')
   const [memberInputs, setMemberInputs] = useState<Record<string, string>>(() => {
+    if (!splits.length) return {}
+    const expenseAmount = parseFloat(expense.amount)
+    const parsed = splits.map((s) => ({ memberId: s.memberId, amount: parseFloat(s.shareAmount) }))
+    const rawSum = parsed.reduce((sum, s) => sum + s.amount, 0)
+    const diff = parseFloat((expenseAmount - rawSum).toFixed(2))
     const m: Record<string, string> = {}
-    for (const s of splits) m[s.memberId] = parseFloat(s.shareAmount).toFixed(2)
+    for (let i = 0; i < parsed.length; i++) {
+      const s = parsed[i]
+      const adjusted = i === parsed.length - 1 ? s.amount + diff : s.amount
+      m[s.memberId] = adjusted.toFixed(2)
+    }
     return m
   })
   const [splitWith, setSplitWith] = useState<string[]>(() => splits.filter((s) => parseFloat(s.shareAmount) > 0).map((s) => s.memberId))
