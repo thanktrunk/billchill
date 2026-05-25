@@ -12,6 +12,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 }
 
 const ZERO_DECIMAL_CURRENCIES = new Set(['JPY', 'VND'])
+const TRAILING_SYMBOL_CURRENCIES = new Set(['VND'])
 
 const CURRENCY_LOCALES: Record<string, string> = {
   USD: 'en-US',
@@ -73,6 +74,26 @@ export function formatCurrency(amount: number | string, currencyCode: string): s
   }).format(safeNum)
 
   return rawCode ? `${formattedNumber} ${rawCode}` : formattedNumber
+}
+
+export function formatCurrencyShort(amount: number | string, currencyCode: string): string {
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount
+  const safeNum = Number.isFinite(num) ? num : 0
+  const abs = Math.abs(safeNum)
+  const symbol = currencySymbol(currencyCode)
+  const sign = safeNum < 0 ? '-' : ''
+  const trailing = TRAILING_SYMBOL_CURRENCIES.has(currencyCode.toUpperCase())
+  const fmt = (n: string, suffix: string) => (trailing ? `${sign}${n}${suffix} ${symbol}` : `${sign}${symbol}${n}${suffix}`)
+
+  if (abs >= 1_000_000) {
+    const shortened = (abs / 1_000_000).toFixed(2).replace(/\.0$/, '')
+    return fmt(shortened, 'M')
+  }
+  if (abs >= 1_000) {
+    const shortened = (abs / 1_000).toFixed(2).replace(/\.0$/, '')
+    return fmt(shortened, 'K')
+  }
+  return formatCurrency(safeNum, currencyCode)
 }
 
 export function formatDate(iso: string, lang: string, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }): string {

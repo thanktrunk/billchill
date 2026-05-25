@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
@@ -594,5 +594,26 @@ export function BCBalanceBadge({ amount, currency, size = 26 }: { amount: number
         </>
       )}
     </div>
+  )
+}
+
+export function BCStarButton({ starred, onToggle }: { starred: boolean; onToggle: () => void }) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        startTransition(onToggle)
+      }}
+      className={cn(
+        'bc-tap absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-full border-0 bg-transparent cursor-pointer transition-opacity',
+        isPending ? 'opacity-40' : 'opacity-100',
+      )}
+      aria-label={starred ? 'Unstar group' : 'Star group'}
+    >
+      <BCIcon name={starred ? 'starFill' : 'star'} size={18} color={starred ? 'var(--bc-pos)' : 'var(--bc-muted)'} />
+    </button>
   )
 }

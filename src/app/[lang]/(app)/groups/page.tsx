@@ -3,12 +3,12 @@ import { requireUser } from '@/lib/auth'
 import { hasLocale } from '@/lib/i18n'
 import { notFound } from 'next/navigation'
 import { AppCalculations } from '@/lib/app-calculations'
-import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel } from '@/components/bc-ui'
+import { BCIcon, BCGroupGlyph, BCAvatarStack, BCCard, BCSectionLabel, BCStarButton } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { getTranslations } from 'next-intl/server'
-import { formatCurrency } from '@/lib/currency'
+import { formatCurrencyShort } from '@/lib/currency'
 import { getGroupListDataForUser } from '@/db/queries/groups'
-import { StarButton } from './star-button'
+import { toggleGroupStarAction } from './actions'
 
 export default async function GroupsPage({ params }: PageProps) {
   const { lang } = await params
@@ -68,10 +68,12 @@ export default async function GroupsPage({ params }: PageProps) {
 
   const { totalOwed, totalOwe, netBalance } = AppCalculations.summarizeMyBalances(groupRows)
   const formattedNetBalance =
-    netBalance < 0 ? `-${formatCurrency(Math.abs(netBalance), user.preferredCurrency)}` : formatCurrency(netBalance, user.preferredCurrency)
-  const formattedTotalOwed = formatCurrency(totalOwed, user.preferredCurrency)
+    netBalance < 0
+      ? `-${formatCurrencyShort(Math.abs(netBalance), user.preferredCurrency)}`
+      : formatCurrencyShort(netBalance, user.preferredCurrency)
+  const formattedTotalOwed = formatCurrencyShort(totalOwed, user.preferredCurrency)
   const formattedTotalOwe =
-    totalOwe > 0 ? `-${formatCurrency(totalOwe, user.preferredCurrency)}` : formatCurrency(totalOwe, user.preferredCurrency)
+    totalOwe > 0 ? `-${formatCurrencyShort(totalOwe, user.preferredCurrency)}` : formatCurrencyShort(totalOwe, user.preferredCurrency)
 
   return (
     <div className="bc-page">
@@ -225,7 +227,7 @@ function GroupRowCard({
                       isOwed ? 'text-(--bc-pos)' : 'text-(--bc-neg)',
                     )}
                   >
-                    {owes ? `-${formatCurrency(Math.abs(myBalance), group.currency)}` : formatCurrency(myBalance, group.currency)}
+                    {owes ? `-${formatCurrencyShort(Math.abs(myBalance), group.currency)}` : formatCurrencyShort(myBalance, group.currency)}
                   </div>
                 </>
               )}
@@ -233,7 +235,7 @@ function GroupRowCard({
           </div>
         </BCCard>
       </Link>
-      <StarButton groupId={group.id} lang={lang} starred={starred} />
+      <BCStarButton starred={starred} onToggle={toggleGroupStarAction.bind(null, group.id, lang)} />
     </div>
   )
 }
