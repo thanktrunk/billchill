@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm'
 import { db } from '@/db'
-import { expenses, groupMembers, groups } from '@/db/schema'
+import { expenses, groupMembers, groups, settlements } from '@/db/schema'
 
 export async function getProfileStatsData(userId: string) {
   const myMemberships = await db
@@ -11,9 +11,12 @@ export async function getProfileStatsData(userId: string) {
   const groupIds = myMemberships.map((membership) => membership.groupId)
   const memberIds = myMemberships.map((membership) => membership.memberId)
 
-  const [allExpenses, allGroups] = await Promise.all([
+  const [allExpenses, allGroups, allSettlements] = await Promise.all([
     groupIds.length
-      ? db.select({ amount: expenses.amount, paidBy: expenses.paidBy }).from(expenses).where(inArray(expenses.groupId, groupIds))
+      ? db
+          .select({ amount: expenses.amount, paidBy: expenses.paidBy, category: expenses.category, date: expenses.date })
+          .from(expenses)
+          .where(inArray(expenses.groupId, groupIds))
       : Promise.resolve([]),
     groupIds.length
       ? db
@@ -25,11 +28,15 @@ export async function getProfileStatsData(userId: string) {
           .from(groups)
           .where(inArray(groups.id, groupIds))
       : Promise.resolve([]),
+    memberIds.length
+      ? db.select({ amount: settlements.amount }).from(settlements).where(inArray(settlements.fromMember, memberIds))
+      : Promise.resolve([]),
   ])
 
   return {
     allExpenses,
     allGroups,
     memberIds,
+    allSettlements,
   }
 }

@@ -23,17 +23,36 @@ export default async function ProfilePage({ params }: PageProps) {
   const { lang } = await params
   if (!hasLocale(lang)) notFound()
 
-  const [user, t, tCommon] = await Promise.all([
+  const [user, t, tCommon, tCat] = await Promise.all([
     requireUser(),
     getTranslations({ locale: lang, namespace: 'profile' }),
     getTranslations({ locale: lang, namespace: 'common' }),
+    getTranslations({ locale: lang, namespace: 'cat' }),
   ])
 
-  const { allExpenses, allGroups, memberIds } = await getProfileStatsData(user.id)
+  const { allExpenses, allGroups, memberIds, allSettlements } = await getProfileStatsData(user.id)
 
   const activeGroups = allGroups.filter((g) => !g.archivedAt)
   const archivedGroups = allGroups.filter((g) => g.archivedAt)
   const totalLent = allExpenses.filter((e) => memberIds.includes(e.paidBy)).reduce((s, e) => s + parseFloat(e.amount), 0)
+
+  const avgExpense = allExpenses.length > 0 ? allExpenses.reduce((s, e) => s + parseFloat(e.amount), 0) / allExpenses.length : 0
+
+  const totalSettled = allSettlements.reduce((s, e) => s + parseFloat(e.amount), 0)
+
+  const now = new Date()
+  const thisMonthCount = allExpenses.filter((e) => {
+    const d = new Date(e.date)
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  }).length
+
+  const categoryFreq: Record<string, number> = {}
+  for (const e of allExpenses) {
+    if (e.category) categoryFreq[e.category] = (categoryFreq[e.category] ?? 0) + 1
+  }
+  const topCategory = Object.entries(categoryFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+
+  const memberSince = user.createdAt.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', year: 'numeric' })
 
   const providerLabels: Record<string, string> = {
     'google-oauth2': 'Google',
@@ -74,14 +93,6 @@ export default async function ProfilePage({ params }: PageProps) {
             labels={{ edit: t('edit_name'), save: t('save_name'), cancel: t('cancel_name') }}
           />
         </BCCard>
-
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Stat label={t('stat_groups')} value={String(activeGroups.length)} />
-            <Stat label={t('stat_expenses')} value={String(allExpenses.length)} />
-          </div>
-          <Stat label={t('stat_total_lent')} value={formatCurrency(totalLent, user.preferredCurrency)} />
-        </div>
 
         <div>
           <div className="px-1 pb-2">
@@ -128,6 +139,28 @@ export default async function ProfilePage({ params }: PageProps) {
               <ArchivedGroupsRow groups={archivedGroups} label={t('archived_groups')} archivedLabel={t('archived')} />
             )}
           </BCCard>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label={t('stat_groups')} value={String(activeGroups.length)} />
+            <Stat label={t('stat_expenses')} value={String(allExpenses.length)} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label={t('stat_total_lent')} value={formatCurrency(totalLent, user.preferredCurrency)} />
+            <Stat label={t('stat_total_settled')} value={formatCurrency(totalSettled, user.preferredCurrency)} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label={t('stat_avg_expense')} value={avgExpense > 0 ? formatCurrency(avgExpense, user.preferredCurrency) : '—'} />
+            <Stat label={t('stat_this_month')} value={String(thisMonthCount)} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Stat
+              label={t('stat_top_category')}
+              value={topCategory ? tCat(topCategory as Parameters<typeof tCat>[0]) : t('stat_no_category')}
+            />
+            <Stat label={t('stat_member_since')} value={memberSince} />
+          </div>
         </div>
 
         <div className="text-center p-3 font-sans text-[11px] text-(--bc-muted) tracking-[0.1em] uppercase">{tCommon('app_footer')}</div>
