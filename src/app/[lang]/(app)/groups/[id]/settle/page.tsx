@@ -19,18 +19,19 @@ export default async function SettlePage({ params, searchParams }: PageProps) {
 
   const activeMembers = members.filter((m) => m.isActive)
 
-  const balances = AppCalculations.calculateGroupBalances(
+  const mappedSettlements = groupSettlements.map((s) => ({
+    fromMember: s.fromMember,
+    toMember: s.toMember,
+    amount: s.amount,
+  }))
+
+  const expenseBalances = AppCalculations.calculateGroupBalances(
     activeMembers.map((m) => ({ id: m.id, displayName: m.displayName })),
     groupExpenses.map((e) => ({ id: e.id, paidBy: e.paidBy })),
     allSplits,
-    groupSettlements.map((s) => ({
-      fromMember: s.fromMember,
-      toMember: s.toMember,
-      amount: s.amount,
-    })),
   )
 
-  const debts = minimizeDebts(balances)
+  const debts = minimizeDebts(expenseBalances, mappedSettlements)
 
   const sp = await searchParams
   const fromParam = sp?.from as string | undefined

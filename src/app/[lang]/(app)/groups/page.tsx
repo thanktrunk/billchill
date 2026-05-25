@@ -36,18 +36,19 @@ export default async function GroupsPage({ params }: PageProps) {
         const gSettlements = allSettlements.filter((s) => s.groupId === g.id)
 
         const myMemberId = membership?.myMemberId
-        const balances = AppCalculations.calculateGroupBalances(
+        const mappedSettlements = gSettlements.map((s) => ({
+          fromMember: s.fromMember,
+          toMember: s.toMember,
+          amount: s.amount,
+        }))
+        const expenseBalances = AppCalculations.calculateGroupBalances(
           members.map((m) => ({ id: m.id, displayName: m.displayName })),
           gExpenses.map((e) => ({ id: e.id, paidBy: e.paidBy })),
           allSplits,
-          gSettlements.map((s) => ({
-            fromMember: s.fromMember,
-            toMember: s.toMember,
-            amount: s.amount,
-          })),
         )
+        const netBalances = AppCalculations.applySettlements(expenseBalances, mappedSettlements)
 
-        const myBal = AppCalculations.getMyBalance(balances, myMemberId)
+        const myBal = AppCalculations.getMyBalance(netBalances, myMemberId)
 
         const lastExpense = gExpenses.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
 

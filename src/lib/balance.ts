@@ -17,14 +17,11 @@ export function calculateBalances(
     paidBy: string
     splits: { memberId: string; shareAmount: string }[]
   }[],
-  settlements: { fromMember: string; toMember: string; amount: string }[],
 ): MemberBalance[] {
   const balanceMap = new Map<string, number>()
-  const nameMap = new Map<string, string>()
 
   for (const member of members) {
     balanceMap.set(member.id, 0)
-    nameMap.set(member.id, member.displayName)
   }
 
   for (const expense of expenses) {
@@ -35,12 +32,6 @@ export function calculateBalances(
     }
   }
 
-  for (const settlement of settlements) {
-    const amount = parseFloat(settlement.amount)
-    balanceMap.set(settlement.fromMember, (balanceMap.get(settlement.fromMember) || 0) + amount)
-    balanceMap.set(settlement.toMember, (balanceMap.get(settlement.toMember) || 0) - amount)
-  }
-
   return members.map((member) => ({
     memberId: member.id,
     displayName: member.displayName,
@@ -49,15 +40,30 @@ export function calculateBalances(
 }
 
 // Greedy: match largest creditor with largest debtor to minimize transaction count.
-export function minimizeDebts(balances: MemberBalance[]): DebtTransaction[] {
+export function minimizeDebts(
+  balances: MemberBalance[],
+  settlements: { fromMember: string; toMember: string; amount: string }[] = [],
+): DebtTransaction[] {
   const transactions: DebtTransaction[] = []
 
-  const debtors = balances
+  const adjustedMap = new Map<string, number>(balances.map((b) => [b.memberId, b.balance]))
+  for (const s of settlements) {
+    const amount = parseFloat(s.amount)
+    adjustedMap.set(s.fromMember, (adjustedMap.get(s.fromMember) || 0) + amount)
+    adjustedMap.set(s.toMember, (adjustedMap.get(s.toMember) || 0) - amount)
+  }
+
+  const adjusted = balances.map((b) => ({
+    ...b,
+    balance: Math.round((adjustedMap.get(b.memberId) || 0) * 100) / 100,
+  }))
+
+  const debtors = adjusted
     .filter((b) => b.balance < -0.01)
     .map((b) => ({ ...b, amount: Math.abs(b.balance) }))
     .sort((a, b) => b.amount - a.amount)
 
-  const creditors = balances
+  const creditors = adjusted
     .filter((b) => b.balance > 0.01)
     .map((b) => ({ ...b, amount: b.balance }))
     .sort((a, b) => b.amount - a.amount)

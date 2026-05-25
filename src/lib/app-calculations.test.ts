@@ -47,7 +47,7 @@ describe('AppCalculations.calculateGroupBalances', () => {
     ]
     const expenses = [{ id: 'e1', paidBy: 'a' }]
     const splits = [{ expenseId: 'e1', memberId: 'b', shareAmount: '10' }]
-    const result = AppCalculations.calculateGroupBalances(members, expenses, splits, [])
+    const result = AppCalculations.calculateGroupBalances(members, expenses, splits)
     expect(result.find((r) => r.memberId === 'a')?.balance).toBe(10)
     expect(result.find((r) => r.memberId === 'b')?.balance).toBe(-10)
   })

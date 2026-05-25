@@ -23,18 +23,20 @@ export default async function GroupDetailPage({ params }: PageProps) {
 
   const activeMembers = allMembers.filter((m) => m.isActive)
 
-  const balances = AppCalculations.calculateGroupBalances(
+  const mappedSettlements = groupSettlements.map((s) => ({
+    fromMember: s.fromMember,
+    toMember: s.toMember,
+    amount: s.amount,
+  }))
+
+  const expenseBalances = AppCalculations.calculateGroupBalances(
     activeMembers.map((m) => ({ id: m.id, displayName: m.displayName })),
     groupExpenses.map((e) => ({ id: e.id, paidBy: e.paidBy })),
     allSplitsForGroup,
-    groupSettlements.map((s) => ({
-      fromMember: s.fromMember,
-      toMember: s.toMember,
-      amount: s.amount,
-    })),
   )
 
-  const minimizedDebts = minimizeDebts(balances)
+  const balances = AppCalculations.applySettlements(expenseBalances, mappedSettlements)
+  const minimizedDebts = minimizeDebts(expenseBalances, mappedSettlements)
   const myBalance = AppCalculations.getMyBalance(balances, myMember?.id)
 
   const serializedExpenses = groupExpenses.map((e) => ({

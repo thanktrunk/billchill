@@ -56,10 +56,22 @@ export class AppCalculations {
     }))
   }
 
-  static calculateGroupBalances(members: Member[], expenses: ExpenseWithId[], splits: Split[], settlements: Settlement[]): MemberBalance[] {
+  static calculateGroupBalances(members: Member[], expenses: ExpenseWithId[], splits: Split[]): MemberBalance[] {
     const expensesWithSplits = this.buildExpensesWithSplits(expenses, splits)
+    return calculateBalances(members, expensesWithSplits)
+  }
 
-    return calculateBalances(members, expensesWithSplits, settlements)
+  static applySettlements(balances: MemberBalance[], settlements: Settlement[]): MemberBalance[] {
+    const map = new Map<string, number>(balances.map((b) => [b.memberId, b.balance]))
+    for (const s of settlements) {
+      const amount = parseFloat(s.amount)
+      map.set(s.fromMember, (map.get(s.fromMember) || 0) + amount)
+      map.set(s.toMember, (map.get(s.toMember) || 0) - amount)
+    }
+    return balances.map((b) => ({
+      ...b,
+      balance: Math.round((map.get(b.memberId) || 0) * 100) / 100,
+    }))
   }
 
   static getMyBalance(balances: MemberBalance[], myMemberId: string | null | undefined): number {
