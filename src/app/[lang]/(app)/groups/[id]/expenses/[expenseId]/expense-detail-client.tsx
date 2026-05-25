@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCCategoryBadge, BCTopBar } from '@/components/bc-ui'
+import { BCIcon, BCCard, BCSectionLabel, BCAvatar, BCTopBar } from '@/components/bc-ui'
 import { formatCurrency, currencySymbol } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { updateExpense, deleteExpense } from './actions'
@@ -42,6 +42,7 @@ export function ExpenseDetailClient({
   const router = useRouter()
   const t = useTranslations('expense')
   const tAdd = useTranslations('add')
+  const tCat = useTranslations('cat')
   const sym = currencySymbol(expense.currency)
 
   const [mode, setMode] = useState<'view' | 'edit'>('view')
@@ -199,18 +200,18 @@ export function ExpenseDetailClient({
           }
         />
 
-        <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-4.5 pb-25">
-          <BCCard>
-            <div className="flex items-start gap-3.5">
-              <BCCategoryBadge category={expense.category ?? 'other'} size={48} />
-              <div className="flex-1 min-w-0">
-                <div className="font-sans font-semibold text-[17px] text-(--bc-ink) tracking-[-0.005em]">{expense.description}</div>
-                <div className="font-sans text-xs text-(--bc-muted) mt-0.75">
-                  {expense.date} · {payer?.displayName ?? '?'}
-                </div>
-              </div>
-              <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em] whitespace-nowrap shrink-0">
+        <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-4 pb-25">
+          <BCCard className="text-center">
+            <div className="flex flex-col items-center gap-2 py-2">
+              <span className="font-sans text-[11px] text-(--bc-muted) tracking-wide uppercase">{tCat(expense.category ?? 'other')}</span>
+              <div className="font-serif text-[44px] leading-none text-(--bc-ink) tabular-nums tracking-tight">
                 {formatCurrency(amount, expense.currency)}
+              </div>
+              <div className="font-sans font-semibold text-[17px] text-(--bc-ink) tracking-[-0.005em] mt-0.5">{expense.description}</div>
+              <div className="flex items-center gap-1.5 font-sans text-[12px] text-(--bc-muted)">
+                <span>{expense.date}</span>
+                <span className="w-1 h-1 rounded-full bg-(--bc-muted) opacity-40 inline-block" />
+                <span>{payer?.displayName ?? '?'}</span>
               </div>
             </div>
           </BCCard>
@@ -220,10 +221,12 @@ export function ExpenseDetailClient({
               <BCSectionLabel>{t('paid_by')}</BCSectionLabel>
             </div>
             <BCCard padded={false}>
-              <div className="flex items-center gap-3 px-3.5 py-2.5">
-                <BCAvatar name={payer?.displayName ?? '?'} seed={paidBy} size={32} />
-                <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{payer?.displayName ?? '?'}</div>
-                <div className="font-mono text-[13px] text-(--bc-ink) tabular-nums">{formatCurrency(amount, expense.currency)}</div>
+              <div className="flex items-center gap-3 px-4 py-3">
+                <BCAvatar name={payer?.displayName ?? '?'} seed={paidBy} size={36} />
+                <div className="flex-1 font-sans font-medium text-[15px] text-(--bc-ink)">{payer?.displayName ?? '?'}</div>
+                <div className="font-sans font-semibold text-[15px] text-(--bc-ink) tabular-nums">
+                  {formatCurrency(amount, expense.currency)}
+                </div>
               </div>
             </BCCard>
           </div>
@@ -236,11 +239,17 @@ export function ExpenseDetailClient({
               {splits.map((s, i) => {
                 const member = allMembers.find((m) => m.id === s.memberId)
                 const share = parseFloat(s.shareAmount)
+                const pct = amount > 0 ? Math.round((share / amount) * 100) : 0
                 return (
-                  <div key={s.memberId} className={cn('flex items-center gap-3 px-3.5 py-2.5', i > 0 && 'border-t border-(--bc-softhair)')}>
-                    <BCAvatar name={member?.displayName ?? '?'} seed={s.memberId} size={32} />
-                    <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{member?.displayName ?? '?'}</div>
-                    <div className="font-mono text-[13px] text-(--bc-ink) tabular-nums">{formatCurrency(share, expense.currency)}</div>
+                  <div key={s.memberId} className={cn('flex items-center gap-3 px-4 py-3', i > 0 && 'border-t border-(--bc-softhair)')}>
+                    <BCAvatar name={member?.displayName ?? '?'} seed={s.memberId} size={36} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-sans font-medium text-[15px] text-(--bc-ink) truncate">{member?.displayName ?? '?'}</div>
+                      <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">{pct}%</div>
+                    </div>
+                    <div className="font-sans font-semibold text-[15px] text-(--bc-ink) tabular-nums">
+                      {formatCurrency(share, expense.currency)}
+                    </div>
                   </div>
                 )
               })}
