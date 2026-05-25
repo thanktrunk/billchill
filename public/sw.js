@@ -1,4 +1,4 @@
-const CACHE_NAME = 'billchill-v2'
+const CACHE_NAME = 'billchill-v3'
 const STATIC_ASSETS = ['/', '/groups', '/notifications']
 
 self.addEventListener('install', (event) => {
