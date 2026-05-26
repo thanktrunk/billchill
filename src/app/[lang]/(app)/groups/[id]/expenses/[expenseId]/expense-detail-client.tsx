@@ -345,6 +345,19 @@ export function ExpenseDetailClient({
             <BCIcon name="back" size={20} color="var(--bc-ink)" />
           </button>
         }
+        right={
+          <button
+            type="button"
+            disabled={pending || !canSave}
+            onClick={handleSave}
+            className={cn(
+              'bc-tap border-0 bg-(--bc-accent) text-white px-4 py-2 rounded-full cursor-pointer font-sans font-medium text-[13px]',
+              (pending || !canSave) && 'opacity-40',
+            )}
+          >
+            {pending ? '…' : t('save')}
+          </button>
+        }
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3.5">
