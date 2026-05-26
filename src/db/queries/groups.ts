@@ -129,8 +129,10 @@ export async function getNewExpensePageData(groupId: string) {
         userId: groupMembers.userId,
         displayName: groupMembers.displayName,
         defaultShare: groupMembers.defaultShare,
+        avatarUrl: users.avatarUrl,
       })
       .from(groupMembers)
+      .leftJoin(users, eq(groupMembers.userId, users.id))
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true))),
   ])
 
@@ -147,7 +149,9 @@ export async function getActiveMembersByGroupId(groupId: string) {
       userId: groupMembers.userId,
       displayName: groupMembers.displayName,
       defaultShare: groupMembers.defaultShare,
+      avatarUrl: users.avatarUrl,
     })
     .from(groupMembers)
+    .leftJoin(users, eq(groupMembers.userId, users.id))
     .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.isActive, true)))
 }

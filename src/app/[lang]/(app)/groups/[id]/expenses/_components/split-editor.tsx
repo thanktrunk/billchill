@@ -5,7 +5,7 @@ import { BCCard, BCSectionLabel, BCAvatar, BCIcon } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 import { currencySymbol, formatCurrency } from '@/lib/currency'
 
-type Member = { id: string; displayName: string; defaultShare: number }
+type Member = { id: string; displayName: string; defaultShare: number; avatarUrl?: string | null }
 export type SplitMethod = 'equal' | 'amount' | 'shares' | 'percentage'
 
 export function SplitEditor({
@@ -60,7 +60,12 @@ export function SplitEditor({
   return (
     <div>
       <div className="px-1 pb-2 flex items-center justify-between">
-        <BCSectionLabel>{tAdd('split_with')}</BCSectionLabel>
+        <div className="flex items-center gap-2">
+          <BCSectionLabel>{tAdd('split_with')}</BCSectionLabel>
+          <span className="font-mono text-[11px] text-(--bc-muted) tabular-nums">
+            {selected.length}/{members.length}
+          </span>
+        </div>
         <div className="flex gap-1.5">
           {(['equal', 'amount', 'shares', 'percentage'] as SplitMethod[]).map((m) => {
             const label =
@@ -99,7 +104,7 @@ export function SplitEditor({
                 onClick={() => onToggleMember(m.id)}
                 className={cn('bc-tap flex items-center gap-3 px-3.5 py-2.5 cursor-pointer', i > 0 && 'border-t border-(--bc-softhair)')}
               >
-                <BCAvatar name={m.displayName} seed={m.id} size={32} />
+                <BCAvatar name={m.displayName} seed={m.id} size={32} avatarUrl={m.avatarUrl} />
                 <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{m.displayName}</div>
                 <div className={cn('font-mono text-xs tabular-nums', has ? 'text-(--bc-ink)' : 'text-(--bc-muted)')}>
                   {has ? formatCurrency(perPerson, currency) : '—'}
@@ -133,7 +138,7 @@ export function SplitEditor({
                     !has && 'opacity-40',
                   )}
                 >
-                  <BCAvatar name={m.displayName} seed={m.id} size={32} />
+                  <BCAvatar name={m.displayName} seed={m.id} size={32} avatarUrl={m.avatarUrl} />
                   <div className="flex-1 font-sans font-medium text-[14.5px] text-(--bc-ink)">{m.displayName}</div>
                   <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
                     {splitMethod !== 'amount' && has && (
@@ -150,7 +155,7 @@ export function SplitEditor({
                         onChange={(e) => onChangeInput(m.id, e.target.value)}
                         placeholder="0"
                         className={cn(
-                          'w-24 border-0 outline-none rounded-lg px-2 py-1.5 font-mono text-[13px] text-(--bc-ink) text-right tabular-nums',
+                          'w-36 border-0 outline-none rounded-lg px-3 py-2.5 font-mono text-[15px] text-(--bc-ink) text-right tabular-nums',
                           has ? 'bg-(--bc-chip)' : 'bg-transparent',
                         )}
                       />

@@ -25,7 +25,7 @@ function MemberRow({
   return (
     <div className="flex items-center gap-3 py-2.5">
       <div className="w-9 font-sans text-[11px] text-(--bc-muted) uppercase tracking-[0.12em] shrink-0">{label}</div>
-      <div className="flex-1 flex gap-2 overflow-x-auto">
+      <div className="flex-1 flex flex-wrap gap-2">
         {members.map((m) => {
           const sel = m.id === selectedId
           return (

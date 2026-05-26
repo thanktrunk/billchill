@@ -13,7 +13,7 @@ import { CategoryPicker } from '../_components/category-picker'
 import { PaidByPicker } from '../_components/paid-by-picker'
 import { SplitEditor, SplitMethod } from '../_components/split-editor'
 
-type Member = { id: string; displayName: string; defaultShare: number }
+type Member = { id: string; displayName: string; defaultShare: number; avatarUrl?: string | null }
 type Split = { memberId: string; shareAmount: string }
 type Expense = {
   id: string
@@ -101,6 +101,25 @@ export function ExpenseDetailClient({
       return (editedAmount * pct) / 100
     }
     return parseFloat(memberInputs[m.id] || '0') || 0
+  }
+
+  function handleAmountChange(val: string) {
+    setAmountStr(val)
+    if (splitMethod !== 'amount') return
+    const newTotal = parseFloat(val) || 0
+    if (newTotal <= 0) return
+    const currentSum = allMembers.reduce((s, m) => s + (parseFloat(memberInputs[m.id] || '0') || 0), 0)
+    const inputs: Record<string, string> = {}
+    if (currentSum > 0) {
+      for (const m of allMembers) {
+        const ratio = (parseFloat(memberInputs[m.id] || '0') || 0) / currentSum
+        inputs[m.id] = (ratio * newTotal).toFixed(2)
+      }
+    } else {
+      const each = (newTotal / Math.max(1, selected.length)).toFixed(2)
+      for (const m of allMembers) inputs[m.id] = selected.includes(m.id) ? each : '0'
+    }
+    setMemberInputs(inputs)
   }
 
   function switchMethod(m: SplitMethod) {
@@ -226,7 +245,7 @@ export function ExpenseDetailClient({
             </div>
             <BCCard padded={false}>
               <div className="flex items-center gap-3 px-4 py-3">
-                <BCAvatar name={payer?.displayName ?? '?'} seed={paidBy} size={36} />
+                <BCAvatar name={payer?.displayName ?? '?'} seed={paidBy} size={36} avatarUrl={payer?.avatarUrl} />
                 <div className="flex-1 font-sans font-medium text-[15px] text-(--bc-ink)">{payer?.displayName ?? '?'}</div>
                 <div className="font-sans font-semibold text-[15px] text-(--bc-ink) tabular-nums">
                   {formatCurrency(amount, expense.currency)}
@@ -247,7 +266,10 @@ export function ExpenseDetailClient({
 
           <div>
             <div className="px-1 pb-2">
-              <BCSectionLabel>{t('split_breakdown')}</BCSectionLabel>
+              <div className="flex items-center gap-2">
+                <BCSectionLabel>{t('split_breakdown')}</BCSectionLabel>
+                <span className="font-mono text-[11px] text-(--bc-muted) tabular-nums">{splits.length}</span>
+              </div>
             </div>
             <BCCard padded={false}>
               {splits.map((s, i) => {
@@ -256,7 +278,7 @@ export function ExpenseDetailClient({
                 const pct = amount > 0 ? Math.round((share / amount) * 100) : 0
                 return (
                   <div key={s.memberId} className={cn('flex items-center gap-3 px-4 py-3', i > 0 && 'border-t border-(--bc-softhair)')}>
-                    <BCAvatar name={member?.displayName ?? '?'} seed={s.memberId} size={36} />
+                    <BCAvatar name={member?.displayName ?? '?'} seed={s.memberId} size={36} avatarUrl={member?.avatarUrl} />
                     <div className="flex-1 min-w-0">
                       <div className="font-sans font-medium text-[15px] text-(--bc-ink) truncate">{member?.displayName ?? '?'}</div>
                       <div className="font-sans text-[12px] text-(--bc-muted) mt-0.5">{pct}%</div>
@@ -337,40 +359,32 @@ export function ExpenseDetailClient({
           />
         </div>
 
-        <div className="flex gap-2.5">
-          <div className="flex-1">
-            <div className="px-1 pb-2">
-              <BCSectionLabel>{tAdd('amount')}</BCSectionLabel>
-            </div>
-            <div className="flex items-center gap-1.5 border border-(--bc-softhair) rounded-[14px] px-3.5 py-3 bg-(--bc-surface)">
-              <span className="font-mono text-sm text-(--bc-muted)">{sym}</span>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={amountStr}
-                onChange={(e) => setAmountStr(e.target.value)}
-                className="flex-1 border-0 outline-none bg-transparent font-mono font-medium text-[15px] text-(--bc-ink) tabular-nums"
-              />
-            </div>
+        <div>
+          <div className="px-1 pb-2">
+            <BCSectionLabel>{tAdd('amount')}</BCSectionLabel>
           </div>
-          <div className="flex-1">
-            <div className="px-1 pb-2">
-              <BCSectionLabel>{t('date')}</BCSectionLabel>
-            </div>
+          <div className="flex items-center gap-1.5 border border-(--bc-softhair) rounded-[14px] px-3.5 py-3 bg-(--bc-surface)">
+            <span className="font-mono text-sm text-(--bc-muted)">{sym}</span>
             <input
-              type="date"
-              value={editDate}
-              onChange={(e) => setEditDate(e.target.value)}
-              className="w-full border border-(--bc-softhair) outline-none bg-(--bc-surface) rounded-[14px] px-3.5 py-3 font-sans font-medium text-[15px] text-(--bc-ink) box-border"
+              type="number"
+              inputMode="decimal"
+              value={amountStr}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              className="flex-1 border-0 outline-none bg-transparent font-mono font-medium text-[15px] text-(--bc-ink) tabular-nums"
             />
           </div>
         </div>
 
         <div>
           <div className="px-1 pb-2">
-            <BCSectionLabel>{tAdd('paid_by')}</BCSectionLabel>
+            <BCSectionLabel>{t('date')}</BCSectionLabel>
           </div>
-          <PaidByPicker members={allMembers} paidBy={paidBy} onChange={setPaidBy} />
+          <input
+            type="date"
+            value={editDate}
+            onChange={(e) => setEditDate(e.target.value)}
+            className="w-full border border-(--bc-softhair) outline-none bg-(--bc-surface) rounded-[14px] px-3.5 py-3 font-sans font-medium text-[15px] text-(--bc-ink) box-border"
+          />
         </div>
 
         <div>
@@ -378,6 +392,13 @@ export function ExpenseDetailClient({
             <BCSectionLabel>{tAdd('category')}</BCSectionLabel>
           </div>
           <CategoryPicker category={category} onChange={setCategory} />
+        </div>
+
+        <div>
+          <div className="px-1 pb-2">
+            <BCSectionLabel>{tAdd('paid_by')}</BCSectionLabel>
+          </div>
+          <PaidByPicker members={allMembers} paidBy={paidBy} onChange={setPaidBy} />
         </div>
 
         <div className="flex items-center justify-between px-1 py-1">

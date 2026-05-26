@@ -202,7 +202,7 @@ export function ActivitiesTab({
 }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
-  const [filter, setFilter] = useState<'all' | 'expenses' | 'settlements' | 'system'>('all')
+  const [filter, setFilter] = useState<'all' | 'expenses' | 'settlements' | 'system'>('expenses')
 
   type TimelineItem =
     | { kind: 'expense'; e: Expense; ts: string }

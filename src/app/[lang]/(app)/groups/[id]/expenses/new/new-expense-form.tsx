@@ -7,12 +7,12 @@ import { useTranslations, useLocale } from 'next-intl'
 import { BCIcon, BCSectionLabel, BCNumPad, BCAmountDisplay, BCChip, BCTopBar, BC_CATEGORIES, numPadReducer } from '@/components/bc-ui'
 import { Switch } from '@/components/ui/switch'
 import { addExpense } from './actions'
-import { currencySymbol, formatCurrency, suggestedAmounts } from '@/lib/currency'
+import { formatCurrency, suggestedAmounts } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { PaidByPicker } from '../_components/paid-by-picker'
 import { SplitEditor, SplitMethod } from '../_components/split-editor'
 
-type Member = { id: string; userId: string | null; displayName: string; defaultShare: number }
+type Member = { id: string; userId: string | null; displayName: string; defaultShare: number; avatarUrl?: string | null }
 
 export function NewExpenseForm({
   groupId,
@@ -33,7 +33,6 @@ export function NewExpenseForm({
   const t = useTranslations('add')
   const tCat = useTranslations('cat')
   const tExpense = useTranslations('expense')
-  const sym = currencySymbol(currency)
   const [pending, setPending] = useState(false)
   const [step, setStep] = useState<'amount' | 'details'>('amount')
 
@@ -154,7 +153,7 @@ export function NewExpenseForm({
           <div className="h-px bg-(--bc-softhair) mt-0.5" />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto px-5.5 py-2 no-scrollbar">
+        <div className="flex flex-wrap gap-2 px-5.5 py-2">
           {Object.entries(BC_CATEGORIES).map(([key, { glyph }]) => {
             const label = tCat(key as Parameters<typeof tCat>[0])
             const active = category === key
@@ -163,11 +162,11 @@ export function NewExpenseForm({
                 key={key}
                 type="button"
                 onClick={() => {
-                  setDescription(label)
+                  if (!description) setDescription(label)
                   setCategory(key)
                 }}
                 className={cn(
-                  'bc-tap border-0 cursor-pointer shrink-0 py-1.5 px-3 rounded-full font-sans font-medium text-[13px] inline-flex items-center gap-1.5',
+                  'bc-tap border-0 cursor-pointer py-1.5 px-3 rounded-full font-sans font-medium text-[13px] inline-flex items-center gap-1.5',
                   active ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
                 )}
               >
@@ -239,8 +238,7 @@ export function NewExpenseForm({
             </div>
           </div>
           <div className="font-serif text-[36px] leading-none text-(--bc-ink) tabular-nums tracking-[-0.015em]">
-            {sym}
-            {amount.toFixed(2)}
+            {formatCurrency(amount, currency)}
           </div>
         </div>
 

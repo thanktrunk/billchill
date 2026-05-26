@@ -3,11 +3,11 @@
 import { BCAvatar } from '@/components/bc-ui'
 import { cn } from '@/lib/utils'
 
-type Member = { id: string; displayName: string }
+type Member = { id: string; displayName: string; avatarUrl?: string | null }
 
 export function PaidByPicker({ members, paidBy, onChange }: { members: Member[]; paidBy: string | null; onChange: (id: string) => void }) {
   return (
-    <div className="flex gap-2 overflow-x-auto px-1">
+    <div className="flex flex-wrap gap-2 px-1">
       {members.map((m) => {
         const sel = m.id === paidBy
         return (
@@ -20,7 +20,7 @@ export function PaidByPicker({ members, paidBy, onChange }: { members: Member[];
               sel ? 'bg-(--bc-ink) text-(--bc-bg)' : 'bg-(--bc-chip) text-(--bc-ink)',
             )}
           >
-            <BCAvatar name={m.displayName} seed={m.id} size={24} />
+            <BCAvatar name={m.displayName} seed={m.id} size={24} avatarUrl={m.avatarUrl} />
             {m.displayName}
           </button>
         )

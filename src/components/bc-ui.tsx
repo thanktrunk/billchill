@@ -25,15 +25,15 @@ export function avatarColor(seed: string | number): string {
 }
 
 // ── Category config ───────────────────────────────────────────────
-export const BC_CATEGORIES: Record<string, { labelKey: string; glyph: string; tint: string }> = {
-  food: { labelKey: 'cat.food', glyph: 'F', tint: '#E5572F' },
-  drinks: { labelKey: 'cat.drinks', glyph: 'D', tint: '#7B5E8C' },
-  transport: { labelKey: 'cat.transport', glyph: 'T', tint: '#4A6B7C' },
-  lodging: { labelKey: 'cat.lodging', glyph: 'L', tint: '#B7873A' },
-  groceries: { labelKey: 'cat.groceries', glyph: 'G', tint: '#3F6E55' },
-  fun: { labelKey: 'cat.fun', glyph: 'E', tint: '#A4452C' },
-  utilities: { labelKey: 'cat.utilities', glyph: 'U', tint: '#5B6E3F' },
-  other: { labelKey: 'cat.other', glyph: '·', tint: '#6B6359' },
+export const BC_CATEGORIES: Record<string, { labelKey: string; glyph: string; tint: string; icon: string }> = {
+  food: { labelKey: 'cat.food', glyph: 'F', tint: '#E5572F', icon: 'catFood' },
+  drinks: { labelKey: 'cat.drinks', glyph: 'D', tint: '#7B5E8C', icon: 'catDrinks' },
+  transport: { labelKey: 'cat.transport', glyph: 'T', tint: '#4A6B7C', icon: 'catTransport' },
+  stay: { labelKey: 'cat.stay', glyph: 'S', tint: '#B7873A', icon: 'catStay' },
+  groceries: { labelKey: 'cat.groceries', glyph: 'G', tint: '#3F6E55', icon: 'catGroceries' },
+  fun: { labelKey: 'cat.fun', glyph: 'E', tint: '#A4452C', icon: 'catFun' },
+  utilities: { labelKey: 'cat.utilities', glyph: 'U', tint: '#5B6E3F', icon: 'catUtilities' },
+  other: { labelKey: 'cat.other', glyph: '·', tint: '#6B6359', icon: 'catOther' },
 }
 
 // ── SVG Icon ──────────────────────────────────────────────────────
@@ -80,6 +80,58 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
     <g>
       <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
       <circle cx="12" cy="13" r="4" />
+    </g>
+  ),
+  catFood: (
+    <g>
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20" />
+      <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+    </g>
+  ),
+  catDrinks: (
+    <g>
+      <path d="M5 3l7 8 7-8H5z" />
+      <path d="M12 11v11M8 22h8" />
+    </g>
+  ),
+  catTransport: (
+    <g>
+      <path d="M5 17H3a2 2 0 01-2-2V9l2-5h18l2 5v6a2 2 0 01-2 2h-2" />
+      <circle cx="7" cy="17" r="2" />
+      <circle cx="17" cy="17" r="2" />
+      <path d="M9 17h6" />
+    </g>
+  ),
+  catStay: (
+    <g>
+      <path d="M2 4v16M22 4v16" />
+      <path d="M2 16h20" />
+      <path d="M2 8a2 2 0 012-2h6a2 2 0 012 2v8" />
+      <path d="M14 10a2 2 0 012-2h6" />
+    </g>
+  ),
+  catGroceries: (
+    <g>
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 01-8 0" />
+    </g>
+  ),
+  catFun: (
+    <g>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+  ),
+  catUtilities: <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
+  catOther: (
+    <g>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
     </g>
   ),
 }
@@ -251,18 +303,13 @@ export function BCCategoryBadge({ category, size = 40 }: { category: string; siz
         height: size,
         borderRadius: 12,
         background: c.tint,
-        color: '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'var(--font-newsreader), serif',
-        fontWeight: 400,
-        fontSize: size * 0.5,
-        letterSpacing: '-0.02em',
         flexShrink: 0,
       }}
     >
-      {c.glyph}
+      <BCIcon name={c.icon} size={size * 0.52} color="#fff" strokeWidth={1.6} />
     </div>
   )
 }
