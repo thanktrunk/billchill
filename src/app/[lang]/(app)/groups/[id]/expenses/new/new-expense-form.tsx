@@ -184,8 +184,8 @@ export function NewExpenseForm({
           </div>
           <div className="flex gap-2 mt-6 flex-wrap justify-center">
             {suggestedAmounts(currency).map((n) => (
-              <BCChip key={n} onClick={() => setAmountStr(String(n))}>
-                {formatCurrency(n, currency)}
+              <BCChip key={n} onClick={() => setAmountStr((s) => String((parseFloat(s) || 0) + n))}>
+                +{formatCurrency(n, currency)}
               </BCChip>
             ))}
           </div>
