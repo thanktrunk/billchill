@@ -100,7 +100,7 @@ describe('suggestedAmounts', () => {
     ['USD', [5, 10, 20, 50]],
     ['EUR', [5, 10, 20, 50]],
     ['JPY', [500, 1000, 2000, 5000]],
-    ['VND', [50000, 100000, 200000, 500000, 1000000]],
+    ['VND', [1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000]],
   ])('returns correct amounts for %s', (code, expected) => {
     expect(suggestedAmounts(code)).toEqual(expected)
   })
