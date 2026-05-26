@@ -66,7 +66,15 @@ export function GroupDetailClient({
   myMemberId,
   myBalance,
 }: {
-  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null; createdAt: string }
+  group: {
+    id: string
+    name: string
+    currency: string
+    isPublic: boolean
+    inviteToken: string | null
+    imageUrl: string | null
+    createdAt: string
+  }
   members: Member[]
   allMembers: AllMember[]
   expenses: Expense[]

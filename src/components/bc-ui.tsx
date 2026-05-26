@@ -267,16 +267,32 @@ export function BCAvatarStack({
   )
 }
 
-// ── Group glyph ───────────────────────────────────────────────────
-export function BCGroupGlyph({ name, size = 44 }: { name: string; size?: number }) {
+export function BCGroupGlyph({ name, size = 44, imageUrl }: { name: string; size?: number; imageUrl?: string | null }) {
+  const [imgError, setImgError] = useState(false)
   const ch = (name || '?').trim().charAt(0).toUpperCase()
   const tint = avatarColor(name)
+  const baseStyle = { width: size, height: size, borderRadius: 14, flexShrink: 0 }
+
+  if (imageUrl && !imgError) {
+    return (
+      <Image
+        key={imageUrl}
+        src={imageUrl}
+        alt={name}
+        width={size}
+        height={size}
+        style={{ ...baseStyle, objectFit: 'cover' }}
+        onError={() => setImgError(true)}
+        loading="eager"
+        unoptimized
+      />
+    )
+  }
+
   return (
     <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: 14,
+        ...baseStyle,
         background: tint,
         color: '#fff',
         display: 'flex',
@@ -285,7 +301,6 @@ export function BCGroupGlyph({ name, size = 44 }: { name: string; size?: number 
         fontFamily: 'var(--font-newsreader), serif',
         fontSize: size * 0.55,
         letterSpacing: '-0.02em',
-        flexShrink: 0,
       }}
     >
       {ch}

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { BCSectionLabel, BCIcon } from '@/components/bc-ui'
-import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { BCSectionLabel, BCIcon, BCGroupGlyph } from '@/components/bc-ui'
+import { cn, AVATAR_MAX_BYTES } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
 import { updateGroup, archiveGroup, toggleGroupVisibility } from '../settings/actions'
 import { MembersTab } from './members-tab'
@@ -24,11 +25,13 @@ export function SettingsTab({
   group,
   allMembers,
 }: {
-  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null }
+  group: { id: string; name: string; currency: string; isPublic: boolean; inviteToken: string | null; imageUrl?: string | null }
   allMembers: AllMember[]
 }) {
   const locale = useLocale()
   const tGroup = useTranslations('group')
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(group.name)
   const [currency, setCurrency] = useState(group.currency)
   const [confirmArchive, setConfirmArchive] = useState(false)
@@ -38,6 +41,9 @@ export function SettingsTab({
   const [inviteToken, setInviteToken] = useState(group.inviteToken)
   const [togglingVisibility, setTogglingVisibility] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [currentImageUrl, setCurrentImageUrl] = useState(group.imageUrl)
+  const [isUploading, setIsUploading] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
 
   async function handleToggleVisibility() {
     if (togglingVisibility) return
@@ -70,6 +76,55 @@ export function SettingsTab({
     }
   }
 
+  async function onImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageError(null)
+
+    if (!file.type.startsWith('image/')) {
+      setImageError(tGroup('image_bad_type'))
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > AVATAR_MAX_BYTES) {
+      setImageError(tGroup('image_too_large'))
+      e.target.value = ''
+      return
+    }
+
+    setIsUploading(true)
+    setCurrentImageUrl(URL.createObjectURL(file))
+
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`/api/upload/group-image/${group.id}`, { method: 'POST', body: form })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setImageError(
+          body.error === 'too_large'
+            ? tGroup('image_too_large')
+            : body.error === 'bad_type'
+              ? tGroup('image_bad_type')
+              : tGroup('image_upload_error'),
+        )
+        setCurrentImageUrl(group.imageUrl ?? null)
+      } else {
+        const { url } = await res.json()
+        setCurrentImageUrl(url)
+        router.refresh()
+      }
+    } catch {
+      setImageError(tGroup('image_upload_error'))
+      setCurrentImageUrl(group.imageUrl ?? null)
+    } finally {
+      setIsUploading(false)
+      e.target.value = ''
+    }
+  }
+
   async function handleArchive() {
     if (archiving) return
     setArchiving(true)
@@ -83,6 +138,30 @@ export function SettingsTab({
 
   return (
     <div className="flex flex-col gap-5.5">
+      <div className="flex flex-col items-center gap-2">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="relative block rounded-[18px] cursor-pointer bg-transparent border-0 p-0"
+            aria-label={tGroup('image_change')}
+          >
+            <BCGroupGlyph name={group.name} size={72} imageUrl={currentImageUrl} />
+            {isUploading && (
+              <div className="absolute inset-0 rounded-[18px] flex items-center justify-center bg-black/40">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-bc-spin" />
+              </div>
+            )}
+          </button>
+          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-(--bc-chip) border border-(--bc-softhair) flex items-center justify-center pointer-events-none">
+            <BCIcon name="camera" size={13} color="var(--bc-muted)" strokeWidth={1.8} />
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*,.svg" className="hidden" onChange={onImageFileChange} />
+        </div>
+        {imageError && <div className="font-sans text-[12px] text-(--bc-neg)">{imageError}</div>}
+      </div>
+
       <MembersTab groupId={group.id} allMembers={allMembers} />
 
       <div className="h-px bg-(--bc-softhair)" />

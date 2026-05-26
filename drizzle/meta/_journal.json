@@ -50,6 +50,13 @@
       "when": 1779720811305,
       "tag": "0006_omniscient_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779769853980,
+      "tag": "0007_lucky_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

@@ -44,6 +44,10 @@ export async function archiveGroupById(groupId: string) {
   await db.update(groups).set({ archivedAt: new Date() }).where(eq(groups.id, groupId))
 }
 
+export async function setGroupImageUrl(groupId: string, imageUrl: string | null) {
+  await db.update(groups).set({ imageUrl }).where(eq(groups.id, groupId))
+}
+
 export async function setGroupMemberStarred(membershipId: string, starred: boolean) {
   await db
     .update(groupMembers)

@@ -28,7 +28,7 @@ export default async function JoinPage({ params }: PageProps) {
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-12 bg-(--bc-bg)">
       <div className="w-full max-w-sm flex flex-col items-center gap-6">
-        <BCGroupGlyph name={group.name} size={72} />
+        <BCGroupGlyph name={group.name} size={72} imageUrl={group.imageUrl} />
 
         <div className="text-center">
           <div className="font-sans font-semibold text-xl text-(--bc-ink) tracking-tight">{group.name}</div>

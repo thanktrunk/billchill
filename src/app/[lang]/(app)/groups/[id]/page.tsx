@@ -99,6 +99,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
         currency: group.currency,
         isPublic: group.isPublic,
         inviteToken: group.inviteToken ?? null,
+        imageUrl: group.imageUrl ?? null,
         createdAt: group.createdAt.toISOString(),
       }}
       allMembers={serializedAllMembers}

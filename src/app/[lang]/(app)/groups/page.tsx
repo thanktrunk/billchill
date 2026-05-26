@@ -173,6 +173,7 @@ type GroupRow = {
     name: string
     currency: string
     archivedAt: Date | null
+    imageUrl?: string | null
   }
   members: { id: string; displayName: string }[]
   myBalance: number
@@ -204,7 +205,7 @@ function GroupRowCard({
       <Link href={`/${lang}/groups/${group.id}`} className="no-underline block">
         <BCCard padded={false} className="bc-tap px-4 py-3.5 pr-12">
           <div className="flex items-center gap-3.5">
-            <BCGroupGlyph name={group.name} size={44} />
+            <BCGroupGlyph name={group.name} size={44} imageUrl={group.imageUrl} />
             <div className="flex-1 min-w-0">
               <div className="font-sans font-medium text-base text-(--bc-ink) tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
                 {group.name}
