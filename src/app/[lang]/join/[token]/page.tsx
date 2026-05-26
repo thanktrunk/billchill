@@ -17,7 +17,7 @@ export default async function JoinPage({ params }: PageProps) {
   const data = await getJoinPageData(token)
   if (!data) notFound()
 
-  const { group, memberCount } = data
+  const { group, memberCount, ghostMembers } = data
 
   const user = await getCurrentUser()
 
@@ -59,7 +59,7 @@ export default async function JoinPage({ params }: PageProps) {
             </>
           )}
 
-          {user && !alreadyMember && <JoinButton lang={lang} token={token} />}
+          {user && !alreadyMember && <JoinButton lang={lang} token={token} ghostMembers={ghostMembers} />}
         </div>
 
         <div className="font-serif italic text-[13px] text-(--bc-muted)">{t('subtitle')}</div>

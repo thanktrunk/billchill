@@ -9,9 +9,10 @@ import {
   reactivateGroupMember,
   createMemberAddedNotifications,
   findActiveGroupMemberUserIds,
+  claimGroupMember,
 } from '@/db/mutations/group-members'
 
-export async function joinGroupByToken(lang: string, token: string) {
+export async function joinGroupByToken(lang: string, token: string, existingMemberId?: string) {
   const user = await requireUser()
 
   const group = await findGroupByInviteToken(token)
@@ -25,6 +26,19 @@ export async function joinGroupByToken(lang: string, token: string) {
     if (!existing.isActive) {
       await reactivateGroupMember(existing.id)
     }
+  } else if (existingMemberId) {
+    await claimGroupMember(existingMemberId, user.id)
+
+    const activeUserIds = await findActiveGroupMemberUserIds(group.id)
+    const notifRows = activeUserIds
+      .filter((uid) => uid !== user.id)
+      .map((uid) => ({
+        userId: uid,
+        groupId: group.id,
+        type: 'member_added' as const,
+        message: `${user.displayName} joined "${group.name}"`,
+      }))
+    if (notifRows.length) await createMemberAddedNotifications(notifRows)
   } else {
     await createGroupMember({ groupId: group.id, userId: user.id, displayName: user.displayName })
 

@@ -6,12 +6,18 @@ export async function getJoinPageData(token: string) {
   const group = await db.query.groups.findFirst({ where: eq(groups.inviteToken, token) })
   if (!group || !group.isPublic || group.archivedAt) return null
 
-  const [{ value: memberCount }] = await db
-    .select({ value: count() })
-    .from(groupMembers)
-    .where(and(eq(groupMembers.groupId, group.id), eq(groupMembers.isActive, true)))
+  const [[{ value: memberCount }], ghostMembers] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, group.id), eq(groupMembers.isActive, true))),
+    db
+      .select({ id: groupMembers.id, displayName: groupMembers.displayName })
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, group.id), eq(groupMembers.isActive, true), isNull(groupMembers.userId))),
+  ])
 
-  return { group, memberCount }
+  return { group, memberCount, ghostMembers }
 }
 
 export async function getGroupListDataForUser(userId: string) {

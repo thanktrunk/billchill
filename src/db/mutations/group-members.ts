@@ -64,3 +64,7 @@ export async function setGroupMemberActive(groupId: string, memberId: string, is
     .set({ isActive })
     .where(and(eq(groupMembers.id, memberId), eq(groupMembers.groupId, groupId)))
 }
+
+export async function claimGroupMember(memberId: string, userId: string) {
+  await db.update(groupMembers).set({ userId, isActive: true }).where(eq(groupMembers.id, memberId))
+}

@@ -156,7 +156,9 @@
     "not_found": "Link's cooked 💀 Ask your friend for a fresh one.",
     "sign_in_to_join": "Log in first 🔑",
     "join_member_count_one": "{0} person already in",
-    "join_member_count_other": "{0} people already in"
+    "join_member_count_other": "{0} people already in",
+    "claim_prompt": "Wait, is that you? 👀",
+    "claim_new": "Nope, I'm someone new ✨"
   },
   "expense": {
     "title": "Expense",

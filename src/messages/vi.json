@@ -148,15 +148,17 @@
     "join_login_prompt": "Đăng nhập trước rồi nhảy vô sau nha 😏"
   },
   "join": {
-    "title": "Có chỗ cho mày rồi 🎟️",
+    "title": "Có chỗ cho bạn rồi 🎟️",
     "subtitle": "Tụi nó đang chờ mày trên billchill đó",
     "join_button": "Vô nhóm thôi 🎉",
-    "already_member": "Ủa mày ở đây rồi mà 👀",
+    "already_member": "Ủa bạn ở đây rồi mà 👀",
     "go_to_group": "Về nhóm đi →",
     "not_found": "Link này hỏng rồi 💀 Xin link mới từ bạn bè đi.",
     "sign_in_to_join": "Đăng nhập trước đã 🔑",
     "join_member_count_one": "{0} đứa đang trong nhóm",
-    "join_member_count_other": "{0} đứa đang trong nhóm"
+    "join_member_count_other": "{0} đứa đang trong nhóm",
+    "claim_prompt": "Ủa, đó là bạn không? 👀",
+    "claim_new": "Không, tôi là người mới ✨"
   },
   "expense": {
     "title": "Chi tiêu",
