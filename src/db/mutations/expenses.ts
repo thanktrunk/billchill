@@ -54,7 +54,9 @@ export async function createExpenseSplits(expenseId: string, splits: { memberId:
   )
 }
 
-export async function createExpenseAddedNotifications(rows: { userId: string; groupId: string; type: 'expense_added'; message: string }[]) {
+export async function createExpenseAddedNotifications(
+  rows: { userId: string; groupId: string; type: 'expense_added'; message: string; messageParams?: Record<string, string> }[],
+) {
   if (!rows.length) return
   await db.insert(notifications).values(rows)
 }

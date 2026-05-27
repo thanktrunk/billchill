@@ -83,6 +83,7 @@ The Stats tab shows a visual spending breakdown for the group. All data is deriv
   - You create a group (member_added confirmation)
 - The Activity tab in the bottom nav shows an unread count badge.
 - A notifications page lists all notifications sorted by date; each links to the relevant group.
+- Notification message bodies are localised: action files store structured `messageParams` (key + interpolation values) alongside an English fallback. The notifications page renders `t(key, params)` when `messageParams` is present, falling back to the stored English string for pre-existing rows.
 - All notifications can be marked as read at once via the check button on the notifications page.
 
 ---

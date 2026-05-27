@@ -28,20 +28,11 @@ export async function joinGroupByToken(lang: string, token: string, existingMemb
     }
   } else if (existingMemberId) {
     await claimGroupMember(existingMemberId, user.id)
-
-    const activeUserIds = await findActiveGroupMemberUserIds(group.id)
-    const notifRows = activeUserIds
-      .filter((uid) => uid !== user.id)
-      .map((uid) => ({
-        userId: uid,
-        groupId: group.id,
-        type: 'member_added' as const,
-        message: `${user.displayName} joined "${group.name}"`,
-      }))
-    if (notifRows.length) await createMemberAddedNotifications(notifRows)
   } else {
     await createGroupMember({ groupId: group.id, userId: user.id, displayName: user.displayName })
+  }
 
+  if (!existing) {
     const activeUserIds = await findActiveGroupMemberUserIds(group.id)
     const notifRows = activeUserIds
       .filter((uid) => uid !== user.id)
@@ -50,6 +41,7 @@ export async function joinGroupByToken(lang: string, token: string, existingMemb
         groupId: group.id,
         type: 'member_added' as const,
         message: `${user.displayName} joined "${group.name}"`,
+        messageParams: { key: 'msg_member_joined', name: user.displayName, group: group.name },
       }))
     if (notifRows.length) await createMemberAddedNotifications(notifRows)
   }

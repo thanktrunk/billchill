@@ -46,11 +46,7 @@ export async function addExpense(
     throw new Error('Amount must be positive')
   }
 
-  // Get group info for currency
-  const group = await findGroupById(groupId)
-
-  // Get active members for splitting
-  const members = await findActiveGroupMembers(groupId)
+  const [group, members] = await Promise.all([findGroupById(groupId), findActiveGroupMembers(groupId)])
 
   // Calculate splits
   const splits = calculateSplits(members, amount, splitMethod, formData)
@@ -90,6 +86,13 @@ export async function addExpense(
         groupId,
         type: 'expense_added' as const,
         message: `${actorName} added "${description.trim()}" (${group?.currency ?? ''} ${amount.toFixed(2)})`,
+        messageParams: {
+          key: 'msg_expense_added',
+          actor: actorName,
+          description: description.trim(),
+          currency: group?.currency ?? '',
+          amount: amount.toFixed(2),
+        },
       })),
     )
   }

@@ -38,11 +38,16 @@ export async function reactivateGroupMember(memberId: string) {
   await db.update(groupMembers).set({ isActive: true }).where(eq(groupMembers.id, memberId))
 }
 
-export async function createMemberAddedNotifications(rows: { userId: string; groupId: string; type: 'member_added'; message: string }[]) {
+export async function createMemberAddedNotifications(
+  rows: { userId: string; groupId: string; type: 'member_added'; message: string; messageParams?: Record<string, string> }[],
+) {
+  if (!rows.length) return
   await db.insert(notifications).values(rows)
 }
 
-export async function createMemberRenamedNotifications(rows: { userId: string; groupId: string; message: string }[]) {
+export async function createMemberRenamedNotifications(
+  rows: { userId: string; groupId: string; message: string; messageParams?: Record<string, string> }[],
+) {
   if (!rows.length) return
   await db.insert(notifications).values(rows.map((r) => ({ ...r, type: 'member_renamed' as const })))
 }

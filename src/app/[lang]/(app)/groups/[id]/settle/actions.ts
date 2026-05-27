@@ -2,7 +2,8 @@
 
 import { requireUser } from '@/lib/auth'
 import { verifyGroupMembership } from '@/lib/access-control'
-import { createSettlement, createSettlementRecordedNotifications, findGroupMemberByIdInGroup } from '@/db/mutations/settlements'
+import { findGroupMemberByIdInGroup, createSettlementWithNotifications } from '@/db/mutations/settlements'
+import { findGroupById } from '@/db/mutations/expenses'
 
 export async function recordSettlement(groupId: string, fromMember: string, toMember: string, amount: number) {
   const user = await requireUser()
@@ -10,34 +11,28 @@ export async function recordSettlement(groupId: string, fromMember: string, toMe
 
   if (amount <= 0) throw new Error('Amount must be positive')
 
-  await createSettlement({
-    groupId,
-    fromMember,
-    toMember,
-    amount: amount.toFixed(2),
-    createdBy: user.id,
-  })
-
-  // Notify involved members (other than the actor)
-  const [fromRow, toRow] = await Promise.all([
+  const [fromRow, toRow, group] = await Promise.all([
     findGroupMemberByIdInGroup(fromMember, groupId),
     findGroupMemberByIdInGroup(toMember, groupId),
+    findGroupById(groupId),
   ])
 
   const fromName = fromRow?.displayName ?? 'Someone'
   const toName = toRow?.displayName ?? 'Someone'
-  const message = `${fromName} paid ${toName} ${amount.toFixed(2)}`
+  const currency = group?.currency ?? ''
+  const amountStr = amount.toFixed(2)
+  const message = `${fromName} paid ${toName}${currency ? ` ${currency}` : ''} ${amountStr}`
 
   const recipientUserIds = [fromRow?.userId, toRow?.userId].filter((uid): uid is string => !!uid && uid !== user.id)
 
-  if (recipientUserIds.length > 0) {
-    await createSettlementRecordedNotifications(
-      recipientUserIds.map((userId) => ({
-        userId,
-        groupId,
-        type: 'settlement_recorded' as const,
-        message,
-      })),
-    )
-  }
+  await createSettlementWithNotifications(
+    { groupId, fromMember, toMember, amount: amountStr, createdBy: user.id },
+    recipientUserIds.map((userId) => ({
+      userId,
+      groupId,
+      type: 'settlement_recorded' as const,
+      message,
+      messageParams: { key: 'msg_settlement_paid', from: fromName, to: toName, currency, amount: amountStr },
+    })),
+  )
 }

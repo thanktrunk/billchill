@@ -16,9 +16,7 @@ test.describe('Groups list', () => {
     const name = `Solo Group ${Date.now()}`
     await page.goto('/en/groups/new')
     await page.getByLabel('Group Name').fill(name)
-    const currencyInput = page.getByLabel('Currency')
-    await currencyInput.clear()
-    await currencyInput.fill('EUR')
+    await page.getByRole('button', { name: 'EUR' }).click()
     await page.getByRole('button', { name: /create group/i }).click()
     await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/)
     await expect(page.getByText(name)).toBeVisible()
@@ -30,7 +28,7 @@ test.describe('Groups list', () => {
     await page.getByLabel('Group Name').fill(`Empty ${Date.now()}`)
     await page.getByRole('button', { name: /create group/i }).click()
     await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/)
-    await expect(page.getByText(/no expenses yet/i)).toBeVisible()
+    await expect(page.getByText(/nothing yet/i)).toBeVisible()
   })
 
   test('navigates to group detail from list', async ({ page }) => {
@@ -82,12 +80,12 @@ test.describe
 
     test('shows add expense button on group page', async ({ page }) => {
       await page.goto(groupUrl)
-      await expect(page.getByRole('link', { name: /add expense/i })).toBeVisible()
+      await expect(page.getByRole('link', { name: /add an expense/i })).toBeVisible()
     })
 
     test('navigates to add expense page', async ({ page }) => {
       await page.goto(groupUrl)
-      await page.getByRole('link', { name: /add expense/i }).click()
+      await page.getByRole('link', { name: /add an expense/i }).click()
       await page.waitForURL(/\/expenses\/new$/)
       await expect(page.getByText(/add expense/i)).toBeVisible()
     })
@@ -99,13 +97,13 @@ test.describe
 
     test('adds expense via quick-add chip and saves', async ({ page }) => {
       await page.goto(groupUrl + '/expenses/new')
-      await page.getByPlaceholder(/what's this for/i).fill('Team dinner')
+      await page.getByPlaceholder(/what.*this for/i).fill('Team dinner')
       // Quick-add chips: $10, $20, $50, $100 — click the $50 chip
       await page.getByRole('button', { name: /50/ }).first().click()
       await page.getByRole('button', { name: /continue/i }).click()
       // Step 2: description and save button visible
       await expect(page.getByText('Team dinner')).toBeVisible()
-      await page.getByRole('button', { name: /save expense/i }).click()
+      await page.getByRole('button', { name: /save it/i }).click()
       await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/)
       await expect(page.getByText('Team dinner')).toBeVisible()
     })
@@ -117,11 +115,11 @@ test.describe
 
     test('adds expense using numpad digit buttons', async ({ page }) => {
       await page.goto(groupUrl + '/expenses/new')
-      await page.getByPlaceholder(/what's this for/i).fill('Coffee')
+      await page.getByPlaceholder(/what.*this for/i).fill('Coffee')
       await page.getByRole('button', { name: '2', exact: true }).click()
       await page.getByRole('button', { name: '5', exact: true }).click()
       await page.getByRole('button', { name: /continue/i }).click()
-      await page.getByRole('button', { name: /save expense/i }).click()
+      await page.getByRole('button', { name: /save it/i }).click()
       await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/)
       await expect(page.getByText('Coffee')).toBeVisible()
     })
@@ -145,18 +143,18 @@ test.describe
 
     test('shows balances tab button on group detail', async ({ page }) => {
       await page.goto(groupUrl)
-      await expect(page.getByRole('button', { name: /balances/i })).toBeVisible()
+      await expect(page.getByRole('tab', { name: /balances/i })).toBeVisible()
     })
 
     test('switches to balances tab and shows member balances', async ({ page }) => {
       await page.goto(groupUrl)
-      await page.getByRole('button', { name: /balances/i }).click()
+      await page.getByRole('tab', { name: /balances/i }).click()
       await expect(page.getByText(/member balances/i)).toBeVisible()
     })
 
     test('balances tab shows YOU label for current user', async ({ page }) => {
       await page.goto(groupUrl)
-      await page.getByRole('button', { name: /balances/i }).click()
+      await page.getByRole('tab', { name: /balances/i }).click()
       await expect(page.getByText('YOU')).toBeVisible()
     })
 
@@ -177,14 +175,14 @@ test.describe
 
     test('record button is disabled when amount is zero', async ({ page }) => {
       await page.goto(groupUrl + '/settle')
-      await expect(page.getByRole('button', { name: /record settlement/i })).toBeDisabled()
+      await expect(page.getByRole('button', { name: /record payment/i })).toBeDisabled()
     })
 
     test('entering amount via numpad enables record button', async ({ page }) => {
       await page.goto(groupUrl + '/settle')
       await page.getByRole('button', { name: '1', exact: true }).click()
       await page.getByRole('button', { name: '0', exact: true }).click()
-      await expect(page.getByRole('button', { name: /record settlement/i })).toBeEnabled()
+      await expect(page.getByRole('button', { name: /record payment/i })).toBeEnabled()
     })
 
     // Recording a settlement requires 2 group members; the test group has only
@@ -239,7 +237,7 @@ test.describe('Notifications', () => {
       .getByText(/no activity yet/i)
       .isVisible()
       .catch(() => false)
-    const hasItems = (await page.locator('a[href*="/en/groups/"]').count()) > 0
+    const hasItems = (await page.locator('a[href*="/en/groups/"]').count()) > 0 || (await page.locator('main form button').count()) > 0
     expect(hasEmpty || hasItems).toBeTruthy()
   })
 
@@ -339,18 +337,18 @@ test.describe('i18n', () => {
     await page.getByLabel('Group Name').fill(`i18n Group ${Date.now()}`)
     await page.getByRole('button', { name: /create group/i }).click()
     await page.waitForURL(/\/en\/groups\/[a-f0-9-]{36}$/)
-    await page.getByRole('link', { name: /add expense/i }).click()
+    await page.getByRole('link', { name: /add an expense/i }).click()
     await page.waitForURL(/\/expenses\/new$/)
-    await expect(page.getByPlaceholder(/what's this for/i)).toBeVisible()
+    await expect(page.getByPlaceholder(/what.*this for/i)).toBeVisible()
   })
 
   test("Vietnamese settle page shows 'Từ' label", async ({ page }) => {
     await page.goto('/vi/groups/new')
     await page.getByLabel(/tên nhóm|group name/i).fill(`vi Group ${Date.now()}`)
-    await page.getByRole('button', { name: /tạo nhóm|create group/i }).click()
+    await page.getByRole('button', { name: /tạo nhóm|tạo|create group/i }).click()
     await page.waitForURL(/\/vi\/groups\/[a-f0-9-]{36}$/)
     const settleUrl = page.url() + '/settle'
     await page.goto(settleUrl)
-    await expect(page.getByText(/từ/i).first()).toBeVisible()
+    await expect(page.getByText(/người trả/i).first()).toBeVisible()
   })
 })

@@ -50,12 +50,14 @@ export async function inviteMember(groupId: string, email: string) {
           groupId,
           type: 'member_added',
           message: `You were re-added to "${group.name}" by ${currentUser.displayName}`,
+          messageParams: { key: 'msg_member_readded_you', actor: currentUser.displayName, group: group.name },
         },
         {
           userId: currentUser.id,
           groupId,
           type: 'member_added',
           message: `You re-added ${existing!.displayName} to "${group.name}"`,
+          messageParams: { key: 'msg_member_readded_other', name: existing!.displayName, group: group.name },
         },
       ])
       revalidatePath(`/groups/${groupId}`)
@@ -78,6 +80,7 @@ export async function inviteMember(groupId: string, email: string) {
       groupId,
       type: 'member_added' as const,
       message: `You added ${inviteeName} to "${group.name}"`,
+      messageParams: { key: 'msg_member_added_other', name: inviteeName, group: group.name } as Record<string, string>,
     },
     ...(existing
       ? [
@@ -86,6 +89,7 @@ export async function inviteMember(groupId: string, email: string) {
             groupId,
             type: 'member_added' as const,
             message: `You were added to "${group.name}" by ${currentUser.displayName}`,
+            messageParams: { key: 'msg_member_added_you', actor: currentUser.displayName, group: group.name },
           },
         ]
       : []),
@@ -113,6 +117,9 @@ export async function updateMember(groupId: string, memberId: string, data: { di
         uid === user.id
           ? `You renamed "${existing.displayName}" to "${newName}"`
           : `${user.displayName} renamed "${existing.displayName}" to "${newName}"`,
+      messageParams: (uid === user.id
+        ? { key: 'msg_member_renamed_self', from: existing.displayName, to: newName }
+        : { key: 'msg_member_renamed_other', actor: user.displayName, from: existing.displayName, to: newName }) as Record<string, string>,
     }))
     await createMemberRenamedNotifications(rows)
   }

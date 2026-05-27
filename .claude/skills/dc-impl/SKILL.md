@@ -1,4 +1,3 @@
----
 name: dc-impl
 description: Use when implementing a feature plan from docs/plans/ — works through each section of the plan in order, following all BillChill coding conventions from CLAUDE.md
 ---
@@ -82,10 +81,11 @@ Do not proceed to the next section if lint fails.
 After all sections are done:
 
 1. Run `npm run build` — must pass. Fix any build errors before declaring done.
-2. Run `npm run test:e2e` — review `tests/e2e/` and create or update Playwright E2E tests to cover every user-visible behaviour added or changed by this plan.
-3. If the plan added a DB schema change, remind the user to run `npx drizzle-kit push`.
-4. Update `docs/ARCHITECTURE.md` if the change affects the stack, DB schema, auth flow, access control, algorithms, or deployment config.
-5. Update `docs/REQUIREMENTS.md` if the change adds, removes, or modifies any functional or non-functional behaviour.
+2. If any pure logic was added or modified in `src/lib/`, check whether a unit test should be added or updated in the corresponding test file under `src/lib/`. Add tests for non-trivial logic that isn't already covered.
+3. Run `npm run test` — must pass. Fix any failing tests before declaring done.
+4. If the plan added a DB schema change, remind the user to run `npx drizzle-kit push`.
+5. Update `docs/ARCHITECTURE.md` if the change affects the stack, DB schema, auth flow, access control, algorithms, or deployment config.
+6. Update `docs/REQUIREMENTS.md` if the change adds, removes, or modifies any functional or non-functional behaviour.
 
 ## Step 6 — Done report
 

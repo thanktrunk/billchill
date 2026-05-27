@@ -63,6 +63,16 @@ export default async function NotificationsPage({ params }: PageProps) {
             const label = typeLabel[n.type] ?? n.type
             const time = AppCalculations.relativeTime(n.createdAt.toISOString(), lang, tCommon, 'short').toUpperCase()
 
+            let body = n.message
+            if (n.messageParams?.key) {
+              const { key, ...params } = n.messageParams
+              try {
+                body = t(key as Parameters<typeof t>[0], params)
+              } catch {
+                // stale key — fall back to stored message
+              }
+            }
+
             return (
               <form key={n.id} action={markAsReadAndNavigate.bind(null, lang, n.id, n.groupId)}>
                 <button type="submit" className="w-full text-left border-0 bg-transparent p-0 cursor-pointer">
@@ -93,7 +103,7 @@ export default async function NotificationsPage({ params }: PageProps) {
                           <div className="flex-1" />
                           <div className="font-mono text-[10px] text-(--bc-muted) tracking-[0.04em] shrink-0">{time}</div>
                         </div>
-                        <div className="font-sans text-[14.5px] text-(--bc-ink) tracking-[-0.005em] leading-[1.35]">{n.message}</div>
+                        <div className="font-sans text-[14.5px] text-(--bc-ink) tracking-[-0.005em] leading-[1.35]">{body}</div>
                       </div>
                     </div>
                   </div>

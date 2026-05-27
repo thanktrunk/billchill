@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, boolean, timestamp, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, boolean, timestamp, pgEnum, jsonb } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { groups } from './groups'
 
@@ -14,6 +14,7 @@ export const notifications = pgTable('notifications', {
     .notNull(),
   type: notificationTypeEnum('type').notNull(),
   message: varchar('message', { length: 500 }).notNull(),
+  messageParams: jsonb('message_params').$type<Record<string, string>>(),
   isRead: boolean('is_read').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

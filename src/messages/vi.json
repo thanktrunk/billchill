@@ -215,7 +215,16 @@
     "type_reminder": "Nhắc nhở 📢",
     "type_joined": "Vào nhóm 👋",
     "type_renamed": "Đổi tên ✏️",
-    "mark_all_read": "Bỏ qua hết"
+    "mark_all_read": "Bỏ qua hết",
+    "msg_expense_added": "{actor} thêm \"{description}\" ({currency} {amount})",
+    "msg_settlement_paid": "{from} trả {to} {currency} {amount}",
+    "msg_member_added_you": "{actor} đã thêm bạn vào \"{group}\"",
+    "msg_member_added_other": "Bạn đã thêm {name} vào \"{group}\"",
+    "msg_member_readded_you": "{actor} đã thêm bạn lại vào \"{group}\"",
+    "msg_member_readded_other": "Bạn đã thêm lại {name} vào \"{group}\"",
+    "msg_member_renamed_self": "Bạn đổi tên \"{from}\" thành \"{to}\"",
+    "msg_member_renamed_other": "{actor} đổi tên \"{from}\" thành \"{to}\"",
+    "msg_member_joined": "{name} đã vào \"{group}\""
   },
   "notif": {
     "expense_added": "{actor} vừa ghi {what} ({amount}) 👀",

@@ -215,7 +215,16 @@
     "type_reminder": "Reminder 📢",
     "type_joined": "Joined 👋",
     "type_renamed": "Renamed ✏️",
-    "mark_all_read": "Mark all read"
+    "mark_all_read": "Mark all read",
+    "msg_expense_added": "{actor} added \"{description}\" ({currency} {amount})",
+    "msg_settlement_paid": "{from} paid {to} {currency} {amount}",
+    "msg_member_added_you": "You were added to \"{group}\" by {actor}",
+    "msg_member_added_other": "You added {name} to \"{group}\"",
+    "msg_member_readded_you": "You were re-added to \"{group}\" by {actor}",
+    "msg_member_readded_other": "You re-added {name} to \"{group}\"",
+    "msg_member_renamed_self": "You renamed \"{from}\" to \"{to}\"",
+    "msg_member_renamed_other": "{actor} renamed \"{from}\" to \"{to}\"",
+    "msg_member_joined": "{name} joined \"{group}\""
   },
   "notif": {
     "expense_added": "{actor} added \"{what}\" ({amount}) 👀",

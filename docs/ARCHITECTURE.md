@@ -88,7 +88,8 @@ All tables use UUID primary keys. Amounts stored as `numeric(12,2)`. No RLS — 
 | user_id | uuid FK → users | |
 | group_id | uuid FK → groups | |
 | type | enum | |
-| message | text | |
+| message | text | English fallback for pre-i18n rows |
+| message_params | jsonb nullable | Structured params for `t(key, params)` render |
 | is_read | bool | default `false` |
 | created_at | timestamp | |
 
