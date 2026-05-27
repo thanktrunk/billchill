@@ -5,14 +5,15 @@ config({ path: '.env.local', quiet: true })
 
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: false,
+  fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
-  workers: 1,
+  workers: process.env.CI ? 2 : 3,
   reporter: 'html',
   use: {
     baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'on-first-retry',
   },
   projects: [
     {
@@ -23,6 +24,14 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        storageState: 'tests/e2e/.auth/session.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 5'],
         storageState: 'tests/e2e/.auth/session.json',
       },
       dependencies: ['setup'],
