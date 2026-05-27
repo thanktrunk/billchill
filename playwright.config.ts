@@ -8,11 +8,14 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 3,
-  reporter: 'html',
+  reporter: [
+    ['html', { open: 'never' }],
+    ['allure-playwright', { resultsDir: 'allure-results' }],
+  ],
   use: {
     baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: 'on',
     video: 'on-first-retry',
   },
   projects: [

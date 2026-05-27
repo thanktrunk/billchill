@@ -21,7 +21,8 @@
     "test:e2e:report": "playwright show-report",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest"
+    "test:unit:watch": "vitest",
+    "test:e2e:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.20.0",
@@ -52,6 +53,8 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "allure-js-commons": "^3.9.0",
+    "allure-playwright": "^3.9.0",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^10",

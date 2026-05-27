@@ -57,11 +57,6 @@ test.describe
       await expect(page.getByText('Team dinner')).toBeVisible()
     })
 
-    test('shows expense in group detail after adding', async ({ page }) => {
-      await page.goto(groupUrl)
-      await expect(page.getByText('Team dinner')).toBeVisible()
-    })
-
     // ── Add expense via numpad ───────────────────────────────────────
 
     test('adds expense using numpad digit buttons', async ({ page }) => {
